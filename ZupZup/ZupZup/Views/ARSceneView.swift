@@ -24,15 +24,7 @@ struct ARSceneView: View {
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
                     Button("1단계 햅틱") {
-                        try? HapticManager.shared.playSimple()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(10)
-
-                    Button("2단계 햅틱") {
-                        try? HapticManager.shared.playFold()
+                        HapticManager.shared.playSimple()
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
