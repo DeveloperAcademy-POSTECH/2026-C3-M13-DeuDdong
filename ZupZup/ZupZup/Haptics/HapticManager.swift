@@ -11,7 +11,7 @@ import OSLog
 class HapticManager {
     static let shared = HapticManager()
 
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Haptic")
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ZupZup", category: "Haptic")
     private var engine: CHHapticEngine?
     private var engineError: HapticError?
 
