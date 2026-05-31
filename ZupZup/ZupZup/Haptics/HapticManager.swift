@@ -58,11 +58,6 @@ class HapticManager {
         play(events: [event])
     }
 
-    /**
-     이벤트 배열을 받아 햅틱 패턴을 생성하고 재생합니다.
-     엔진 초기화에 실패했거나 재생 중 오류가 발생하면 콘솔에 로그를 남기고  종료합니다.
-     - Parameter events: 재생할 CHHapticEvent 배열
-     */
     private func play(events: [CHHapticEvent]) {
         if let engineError {
             logger.error("햅틱 재생 실패: \(engineError.localizedDescription)")
