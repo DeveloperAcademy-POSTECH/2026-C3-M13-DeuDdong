@@ -21,18 +21,22 @@ class HapticManager {
             return
         }
         do {
-            engine = try CHHapticEngine()
-            engine!.stoppedHandler = { [weak self] reason in
-                self?.logger.info("햅틱 엔진 정지: \(reason.rawValue)")
+            let engine = try CHHapticEngine()
+            self.engine = engine
+
+            engine.stoppedHandler = { [weak self] reason in
+                self?.logger.info("햅틱 엔진 정지: \(reason.rawValue, privacy: .public)")
                 self?.restartEngine()
             }
 
-            engine!.resetHandler = { [weak self] in
+            engine.resetHandler = { [weak self] in
                 self?.restartEngine()
             }
-            try engine?.start()
+
+            try engine.start()
         } catch {
             engineError = .engineFailed
+            logger.error("햅틱 엔진 생성/시작 실패: \(error.localizedDescription, privacy: .public)")
         }
     }
 
