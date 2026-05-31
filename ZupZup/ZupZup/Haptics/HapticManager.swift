@@ -22,15 +22,24 @@ class HapticManager {
         }
         do {
             engine = try CHHapticEngine()
+            engine!.stoppedHandler = { [weak self] reason in
+                self?.logger.info("햅틱 엔진 정지: \(reason.rawValue)")
+                self?.restartEngine()
+            }
+
             engine!.resetHandler = { [weak self] in
-                do {
-                    try self?.engine?.start()
-                    self?.engineError = nil
-                } catch {
-                    self?.engineError = .engineFailed
-                }
+                self?.restartEngine()
             }
             try engine?.start()
+        } catch {
+            engineError = .engineFailed
+        }
+    }
+
+    private func restartEngine() {
+        do {
+            try engine?.start()
+            engineError = nil
         } catch {
             engineError = .engineFailed
         }

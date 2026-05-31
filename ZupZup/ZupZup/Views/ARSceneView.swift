@@ -22,15 +22,9 @@ struct ARSceneView: View {
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
 
             VStack(spacing: 12) {
-                HStack(spacing: 12) {
-                    Button("1단계 햅틱") {
-                        HapticManager.shared.playSimple()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(10)
-                }
+                #if DEBUG
+                HapticDebugView()
+                #endif
 
                 ARStatusOverlayView(state: planeState)
                     .padding(.horizontal, 20)
