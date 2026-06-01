@@ -63,13 +63,13 @@ class HapticManager {
     }
 
     private func play(events: [CHHapticEvent]) {
-        if let engineError {
-            logger.error("햅틱 재생 실패: \(engineError.localizedDescription)")
-            return
+        guard let engine else {
+            logger.error("햅틱 재생 실패: \((engineError ?? .engineFailed).localizedDescription)")
+             return
         }
         do {
             let pattern = try CHHapticPattern(events: events, parameters: [])
-            let player = try engine!.makePlayer(with: pattern)
+            let player = try engine.makePlayer(with: pattern)
             try player.start(atTime: 0)
         } catch {
             logger.error("햅틱 재생 실패: \(error.localizedDescription)")
