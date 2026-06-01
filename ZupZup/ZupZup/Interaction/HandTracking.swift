@@ -48,8 +48,8 @@ final class HandTrackingManager {
             
             guard
                 let observation = request.results?.first, //request의 결과중 첫 번째 손을 꺼내서 observation 변수에 담고
-                let thumbTip = try?observation.recognizedPoint(.thumbTip), //그 손에서 엄지 끝 좌표를 안전하게 추출
-                let indexTip = try?observation.recognizedPoint(.indexTip), //그 손에서 검지 끝 좌표도 안전하게 추출
+                let thumbTip = try? observation.recognizedPoint(.thumbTip), //그 손에서 엄지 끝 좌표를 안전하게 추출
+                let indexTip = try? observation.recognizedPoint(.indexTip), //그 손에서 검지 끝 좌표도 안전하게 추출
                 
                     //확신도가 30% 넘을 때만 아래로 통과시킴
                     thumbTip.confidence > 0.3,
