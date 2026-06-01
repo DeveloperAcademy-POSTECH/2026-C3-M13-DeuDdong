@@ -1,0 +1,9 @@
+//
+//  Develop.xcconfig
+//  ZupZup
+//
+//  Created by 조민지 on 6/1/26.
+//
+
+PRODUCT_BUNDLE_IDENTIFIER = -C3-T13.ZupZup
+DEVELOPMENT_TEAM = 84XPW792BT
