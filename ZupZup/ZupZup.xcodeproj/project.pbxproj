@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C187DE82FCC5A6A00660EE9 /* ARKit.framework */; };
 		56D79AB72FCD2CA600807EC5 /* Develop.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 56D79AB62FCD2CA600807EC5 /* Develop.xcconfig */; };
-		CBAB66B22FCD7DCA00D24A06 /* AffectionParticle.usdz in Resources */ = {isa = PBXBuildFile; fileRef = CBAB66B12FCD7DCA00D24A06 /* AffectionParticle.usdz */; };
+		CBAB66B42FCD821600D24A06 /* AffectionParticle.usdz in Resources */ = {isa = PBXBuildFile; fileRef = CBAB66B32FCD821600D24A06 /* AffectionParticle.usdz */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,7 +35,7 @@
 		56D795EF2FC95B6200807EC5 /* ZupZupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZupZupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D795F92FC95B6200807EC5 /* ZupZupUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZupZupUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D79AB62FCD2CA600807EC5 /* Develop.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Develop.xcconfig; sourceTree = "<group>"; };
-		CBAB66B12FCD7DCA00D24A06 /* AffectionParticle.usdz */ = {isa = PBXFileReference; lastKnownFileType = file; path = AffectionParticle.usdz; sourceTree = "<group>"; };
+		CBAB66B32FCD821600D24A06 /* AffectionParticle.usdz */ = {isa = PBXFileReference; lastKnownFileType = file; path = AffectionParticle.usdz; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -106,13 +106,13 @@
 		56D795D92FC95B6100807EC5 = {
 			isa = PBXGroup;
 			children = (
-				CBAB66B12FCD7DCA00D24A06 /* AffectionParticle.usdz */,
 				56D79AB62FCD2CA600807EC5 /* Develop.xcconfig */,
 				56D795E42FC95B6100807EC5 /* ZupZup */,
 				56D795F22FC95B6200807EC5 /* ZupZupTests */,
 				56D795FC2FC95B6200807EC5 /* ZupZupUITests */,
 				3C187DE72FCC5A6900660EE9 /* Frameworks */,
 				56D795E32FC95B6100807EC5 /* Products */,
+				CBAB66B32FCD821600D24A06 /* AffectionParticle.usdz */,
 			);
 			sourceTree = "<group>";
 		};
@@ -247,7 +247,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56D79AB72FCD2CA600807EC5 /* Develop.xcconfig in Resources */,
-				CBAB66B22FCD7DCA00D24A06 /* AffectionParticle.usdz in Resources */,
+				CBAB66B42FCD821600D24A06 /* AffectionParticle.usdz in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
