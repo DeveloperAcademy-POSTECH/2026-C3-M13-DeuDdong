@@ -18,3 +18,5 @@ DerivedData/
 
 # SPM 캐시
 .build/
+
+ZupZup/Develop.xcconfig
