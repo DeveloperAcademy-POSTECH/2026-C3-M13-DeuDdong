@@ -17,7 +17,7 @@ enum ParticleBurst {
     }
 
     private static func loadEntity(for emotion: EmotionType) -> Entity? {
-        let name = emotion.rawValue.capitalized + "Particle"
+        let name = emotion.particleName
         guard let entity = try? Entity.load(named: name) else {
             Logger.particle.error("'\(name)' 로드 실패")
             return nil
