@@ -11,6 +11,9 @@ struct ARSceneView: View {
     @State private var planeState: ARState = .searching
     @State private var sessionManager = ARSessionManager()
     @State private var placementManager = PlacementManager()
+    #if DEBUG
+    @State private var handTrackingManager = HandTrackingManager.shared
+    #endif
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -20,6 +23,16 @@ struct ARSceneView: View {
                 planeState: $planeState //
             )
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
+            
+            #if DEBUG
+            ARDebugOverlayView(
+                gesture: handTrackingManager.currentGesture,
+                distance: handTrackingManager.distance
+            )
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            #endif
+
 
             ARStatusOverlayView(state: planeState)
                 .padding(.horizontal, 20)
