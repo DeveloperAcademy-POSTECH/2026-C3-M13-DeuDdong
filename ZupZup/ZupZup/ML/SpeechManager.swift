@@ -30,6 +30,11 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
     private var recentEmissions: [(text: String, emittedAt: Date)] = []
 
     var onFinalUtterance: ((String) -> Void)?
+    var onStateChange: ((SpeechState) -> Void)? {
+        didSet {
+            publishState()
+        }
+    }
 
     func requestPermissions() async -> Bool {
         let speechGranted = await withCheckedContinuation { continuation in
@@ -51,6 +56,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         }
 
         statusText = speechGranted && micGranted ? "권한 허용됨" : "음성 인식/마이크 권한이 필요합니다"
+        publishState()
         return speechGranted && micGranted
     }
 
@@ -66,6 +72,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         retryCount = 0
         resetRecognition(finalizeInterim: true)
         statusText = "대기 중"
+        publishState()
     }
 
     private func startRecognition() async {
@@ -73,6 +80,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         guard await requestPermissions() else { return }
         guard recognizer?.isAvailable == true else {
             statusText = "한국어 음성 인식기를 사용할 수 없습니다"
+            publishState()
             return
         }
 
@@ -97,6 +105,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
                 let level = Self.normalizedAudioLevel(from: buffer)
                 Task { @MainActor in
                     self.audioLevel = level
+                    self.publishState()
                 }
             }
 
@@ -106,6 +115,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
             self.request = request
             isListening = true
             statusText = "대화를 듣는 중"
+            publishState()
 
             task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
                 Task { @MainActor in
@@ -115,6 +125,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         } catch {
             statusText = "음성 인식 시작 실패: \(error.localizedDescription)"
             resetRecognition(finalizeInterim: false)
+            publishState()
         }
     }
 
@@ -155,6 +166,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         audioLevel = 0
         latestTranscriptionText = ""
         emittedCharacterCount = 0
+        publishState()
     }
 
     private func handleRecognition(result: SFSpeechRecognitionResult?, error: Error?) {
@@ -168,12 +180,14 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         latestTranscriptionText = fullText
         let pendingText = pendingSegment(from: fullText)
         interimText = pendingText
+        publishState()
 
         partialFinalizeTask?.cancel()
 
         if result.isFinal {
             emitPendingSegment(from: fullText)
             interimText = ""
+            publishState()
             restartAfterFinalResult()
         } else if pendingText.count >= 3 {
             schedulePartialFinalize(for: fullText)
@@ -187,6 +201,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
 
             emitPendingSegment(from: fullText)
             interimText = ""
+            publishState()
         }
     }
 
@@ -213,6 +228,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         if retryCount < 1 {
             retryCount += 1
             statusText = "음성 인식 재시도 중"
+            publishState()
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 450_000_000)
                 await startRecognition()
@@ -221,6 +237,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         }
 
         statusText = "음성 인식 오류: \(error.localizedDescription)"
+        publishState()
     }
 
     private func finalize(_ text: String) -> Bool {
@@ -239,6 +256,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         isRestartingRecognition = true
         resetRecognition(finalizeInterim: false)
         statusText = "대화를 계속 듣는 중"
+        publishState()
 
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 250_000_000)
@@ -293,5 +311,16 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
 
         let decibels = 20 * log10(Double(rms))
         return min(1, max(0, (decibels + 55) / 55))
+    }
+
+    private func publishState() {
+        onStateChange?(
+            SpeechState(
+                isListening: isListening,
+                interimText: interimText,
+                statusText: statusText,
+                audioLevel: audioLevel
+            )
+        )
     }
 }

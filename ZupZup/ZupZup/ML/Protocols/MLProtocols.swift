@@ -21,6 +21,7 @@ protocol SpeechManaging: AnyObject {
     var statusText: String { get }
     var audioLevel: Double { get }
     var onFinalUtterance: ((String) -> Void)? { get set }
+    var onStateChange: ((SpeechState) -> Void)? { get set }
 
     func requestPermissions() async -> Bool
     func start() async
@@ -29,6 +30,26 @@ protocol SpeechManaging: AnyObject {
 
 protocol FaceTracking {
     func detectFaces(
+        in pixelBuffer: CVPixelBuffer,
+        orientation: CGImagePropertyOrientation
+    ) -> FaceTrackingResult
+}
+
+@MainActor
+protocol EmotionRuntimeManaging: AnyObject {
+    var speechState: SpeechState { get }
+    var latestUtterance: String { get }
+    var latestResult: EmotionResult? { get }
+    var latestOrbEvent: EmotionOrbEvent? { get }
+    var latestFaceTrackingResult: FaceTrackingResult? { get }
+    var debugSummary: String { get }
+    var onOrbEvent: ((EmotionOrbEvent) -> Void)? { get set }
+
+    func start() async
+    func stop()
+    @discardableResult
+    func processUtterance(_ text: String) -> EmotionResult
+    func updateFaceTracking(
         in pixelBuffer: CVPixelBuffer,
         orientation: CGImagePropertyOrientation
     ) -> FaceTrackingResult
