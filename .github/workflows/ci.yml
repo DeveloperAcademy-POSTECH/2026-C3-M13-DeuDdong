@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project ZupZup.xcodeproj \
+            -scheme ZupZup \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -configuration Debug \
+            | xcpretty
