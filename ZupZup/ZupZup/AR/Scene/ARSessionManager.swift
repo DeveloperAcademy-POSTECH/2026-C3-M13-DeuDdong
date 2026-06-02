@@ -38,6 +38,14 @@ final class ARSessionManager {
     func pauseSession() {
         arview?.session.pause()
     }
+
+    func burst(emotion: EmotionType) {
+        guard let arview else { return }
+        let cameraPos = arview.cameraTransform.translation
+        // 머리 위 1.5m에 스폰해서 눈 내리는 느낌
+        let position = SIMD3<Float>(cameraPos.x, cameraPos.y + 1.5, cameraPos.z)
+        ParticleBurst.burst(for: emotion, at: position, in: arview.scene)
+    }
     
     private func makeWorldTrackingConfiguration() -> ARWorldTrackingConfiguration {
         let configuration = ARWorldTrackingConfiguration()
