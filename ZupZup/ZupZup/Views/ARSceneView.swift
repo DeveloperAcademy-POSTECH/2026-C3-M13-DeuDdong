@@ -14,7 +14,7 @@ struct ARSceneView: View {
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     #endif
-    
+
     var body: some View {
         ZStack(alignment: .bottom) {
             ARViewContainer(
@@ -34,9 +34,15 @@ struct ARSceneView: View {
             #endif
 
 
-            ARStatusOverlayView(state: planeState)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 28)
+            VStack(spacing: 12) {
+                #if DEBUG
+                HapticDebugView()
+                #endif
+
+                ARStatusOverlayView(state: planeState)
+                    .padding(.horizontal, 20)
+            }
+            .padding(.bottom, 28)
         }
         .onAppear {
             if !sessionManager.isWorldTrackingSupported {
