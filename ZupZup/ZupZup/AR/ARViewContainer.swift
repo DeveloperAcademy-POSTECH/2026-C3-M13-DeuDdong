@@ -12,12 +12,15 @@ import SwiftUI
 struct ARViewContainer: UIViewRepresentable {
     let sessionManager: ARSessionManager
     let placementManager: PlacementManager
+    let emotionRuntime: EmotionRuntimeManaging
     @Binding var planeState: ARState
     
     func makeCoordinator() -> ARSceneCoordinator {
         ARSceneCoordinator(
             sessionManager: sessionManager,
-            placementManager: placementManager) {
+            placementManager: placementManager,
+            emotionRuntime: emotionRuntime
+        ) {
                 state in planeState = state
             }
     }
