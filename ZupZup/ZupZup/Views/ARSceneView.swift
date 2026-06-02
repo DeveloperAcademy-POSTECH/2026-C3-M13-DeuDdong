@@ -17,7 +17,7 @@ struct ARSceneView: View {
             ARViewContainer(
                 sessionManager: sessionManager,
                 placementManager: placementManager,
-                planeState: $planeState //
+                planeState: $planeState
             )
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
 
