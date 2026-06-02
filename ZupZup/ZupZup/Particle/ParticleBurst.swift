@@ -16,8 +16,12 @@ enum ParticleBurst {
         scheduleRemoval(of: anchor, from: scene)
     }
 
+    private static func particleName(for emotion: EmotionType) -> String {
+        emotion.rawValue.capitalized + "Particle"
+    }
+
     private static func loadEntity(for emotion: EmotionType) -> Entity? {
-        let name = emotion.particleName
+        let name = particleName(for: emotion)
         guard let entity = try? Entity.load(named: name) else {
             Logger.particle.error("'\(name)' 로드 실패")
             return nil

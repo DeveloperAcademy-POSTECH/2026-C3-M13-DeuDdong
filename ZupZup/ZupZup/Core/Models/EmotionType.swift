@@ -16,8 +16,6 @@ enum EmotionType: String, CaseIterable, Identifiable {
     case empathy // 공감, 위로
     
     var id: String { rawValue }
-
-    var particleName: String { rawValue.capitalized + "Particle" }
     
     // 색상도 피그마 hifi 기준으로 지정했습니다.
     var color: UIColor {
