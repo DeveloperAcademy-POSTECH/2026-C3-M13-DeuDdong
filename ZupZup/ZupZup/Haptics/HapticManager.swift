@@ -55,7 +55,7 @@ class HapticManager {
             eventType: .hapticTransient,
             parameters: [
                 CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
-                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.8)
             ],
             relativeTime: 0
         )
@@ -64,7 +64,7 @@ class HapticManager {
 
     private func play(events: [CHHapticEvent]) {
         guard let engine else {
-            logger.error("햅틱 재생 실패: \((engineError ?? .engineFailed).localizedDescription)")
+            logger.error("햅틱 재생 실패: \((self.engineError ?? .engineFailed).localizedDescription)")
              return
         }
         do {
