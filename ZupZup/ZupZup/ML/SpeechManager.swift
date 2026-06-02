@@ -25,7 +25,9 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
     private var emittedCharacterCount = 0
     private var partialFinalizeTask: Task<Void, Never>?
     private var didRequestStop = false
+    private var isRestartingRecognition = false
     private var retryCount = 0
+    private var recentEmissions: [(text: String, emittedAt: Date)] = []
 
     var onFinalUtterance: ((String) -> Void)?
 
@@ -54,11 +56,13 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
 
     func start() async {
         retryCount = 0
+        recentEmissions.removeAll()
         await startRecognition()
     }
 
     func stop() {
         didRequestStop = true
+        isRestartingRecognition = false
         retryCount = 0
         resetRecognition(finalizeInterim: true)
         statusText = "대기 중"
@@ -74,6 +78,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
 
         resetRecognition(finalizeInterim: false)
         didRequestStop = false
+        isRestartingRecognition = false
 
         do {
             let session = AVAudioSession.sharedInstance()
@@ -169,6 +174,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
         if result.isFinal {
             emitPendingSegment(from: fullText)
             interimText = ""
+            restartAfterFinalResult()
         } else if pendingText.count >= 3 {
             schedulePartialFinalize(for: fullText)
         }
@@ -176,7 +182,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
 
     private func schedulePartialFinalize(for fullText: String) {
         partialFinalizeTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 850_000_000)
+            try? await Task.sleep(nanoseconds: 1_100_000_000)
             guard !Task.isCancelled else { return }
 
             emitPendingSegment(from: fullText)
@@ -200,7 +206,7 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
     }
 
     private func handleRecognitionError(_ error: Error) {
-        guard !didRequestStop else { return }
+        guard !didRequestStop, !isRestartingRecognition else { return }
 
         resetRecognition(finalizeInterim: false)
 
@@ -218,11 +224,56 @@ final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
     }
 
     private func finalize(_ text: String) -> Bool {
-        let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let clean = normalizedUtterance(text)
         guard clean.count >= 2 else { return false }
+        guard !isDuplicateEmission(clean) else { return false }
 
+        rememberEmission(clean)
         onFinalUtterance?(clean)
         return true
+    }
+
+    private func restartAfterFinalResult() {
+        guard !didRequestStop else { return }
+
+        isRestartingRecognition = true
+        resetRecognition(finalizeInterim: false)
+        statusText = "대화를 계속 듣는 중"
+
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            guard !didRequestStop else { return }
+
+            isRestartingRecognition = false
+            await startRecognition()
+        }
+    }
+
+    private func normalizedUtterance(_ text: String) -> String {
+        text
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func isDuplicateEmission(_ text: String) -> Bool {
+        pruneRecentEmissions()
+        return recentEmissions.contains { emission in
+            emission.text == text || emission.text.hasSuffix(text) || text.hasSuffix(emission.text)
+        }
+    }
+
+    private func rememberEmission(_ text: String) {
+        recentEmissions.append((text: text, emittedAt: Date()))
+        pruneRecentEmissions()
+    }
+
+    private func pruneRecentEmissions() {
+        let now = Date()
+        recentEmissions = recentEmissions.suffix(8).filter { emission in
+            now.timeIntervalSince(emission.emittedAt) < 8
+        }
     }
 
     private static func normalizedAudioLevel(from buffer: AVAudioPCMBuffer) -> Double {

@@ -11,6 +11,7 @@ import Foundation
 struct TextClassifierResult {
     let label: String
     let confidence: Double
+    let confidenceAvailable: Bool
 }
 
 final class DynamicTextClassifier {
@@ -52,30 +53,73 @@ final class DynamicTextClassifier {
         }
 
         let label = labelValue.stringValue.isEmpty ? String(labelValue.int64Value) : labelValue.stringValue
-        return TextClassifierResult(label: label, confidence: confidence(for: label, output: output))
+        let confidence = confidence(for: label, output: output)
+        return TextClassifierResult(
+            label: label,
+            confidence: confidence.value,
+            confidenceAvailable: confidence.isAvailable
+        )
     }
 
-    private func confidence(for label: String, output: MLFeatureProvider) -> Double {
-        guard
-            let probabilitiesName,
-            let probabilities = output.featureValue(for: probabilitiesName)?.dictionaryValue
-        else {
-            return 1
+    private func confidence(for label: String, output: MLFeatureProvider) -> (value: Double, isAvailable: Bool) {
+        guard let probabilitiesName,
+              let probabilities = output.featureValue(for: probabilitiesName)?.dictionaryValue else {
+            return (1, false)
         }
 
         for (key, value) in probabilities where String(describing: key) == label {
-            return value.doubleValue
+            return (value.doubleValue, true)
         }
 
-        return 0
+        return (0, true)
     }
 }
 
 final class EmotionClassifier: EmotionClassifying {
+    private struct PositiveEmotionRule {
+        let emotion: EmotionType
+        let reason: String
+        let cues: [String]
+        let blockers: [String]
+    }
+
     private let polarityGate: DynamicTextClassifier
     private let positiveType: DynamicTextClassifier
     private let polarityThreshold: Double
     private let positiveTypeThreshold: Double
+
+    private let highPrecisionRules: [PositiveEmotionRule] = [
+        PositiveEmotionRule(
+            emotion: .gratitude,
+            reason: "rule:gratitude",
+            cues: ["감사", "고마워", "고맙", "덕분", "수고하셨", "고생하셨", "도와줘서"],
+            blockers: ["감사하지", "안 감사", "고맙지 않", "고마운 줄 모르", "감사한 줄 모르"]
+        ),
+        PositiveEmotionRule(
+            emotion: .encouragement,
+            reason: "rule:encouragement",
+            cues: ["힘내", "할 수 있어", "할 수 있다", "응원", "파이팅", "화이팅", "잘 될 거야", "해낼 수 있어"],
+            blockers: ["응원하지", "힘내지", "할 수 없어", "못 할 거야", "안 될 거야"]
+        ),
+        PositiveEmotionRule(
+            emotion: .empathy,
+            reason: "rule:empathy",
+            cues: ["힘들었겠다", "속상했겠다", "이해해", "그랬구나", "마음 아프", "위로", "괜찮아"],
+            blockers: ["괜찮지 않", "이해 안", "이해하지 않", "위로가 안"]
+        ),
+        PositiveEmotionRule(
+            emotion: .praise,
+            reason: "rule:praise",
+            cues: ["잘했어", "잘 하셨어", "잘한다", "멋지다", "대단해", "최고야", "훌륭", "인정", "칭찬"],
+            blockers: ["칭찬 아니", "잘한 게 아니", "대단하지 않", "최고는 아니"]
+        ),
+        PositiveEmotionRule(
+            emotion: .affection,
+            reason: "rule:affection",
+            cues: ["사랑해", "좋아해", "보고 싶", "소중해", "아껴", "예뻐", "귀여워"],
+            blockers: ["사랑하지", "좋아하지", "보고 싶지", "소중하지"]
+        )
+    ]
 
     init(
         polarityThreshold: Double = 0.45,
@@ -88,27 +132,30 @@ final class EmotionClassifier: EmotionClassifying {
     }
 
     func predict(text: String) -> EmotionResult {
-        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = normalize(text)
         guard !normalized.isEmpty else {
             return emptyResult(text: text)
         }
 
-        if let gratitudeResult = gratitudeOverride(for: normalized) {
-            return gratitudeResult
+        if let ruleResult = highPrecisionRuleOverride(for: normalized) {
+            return ruleResult
         }
 
         do {
             let polarityResult = try polarityGate.classify(normalized)
-            let polarity = PolarityLabel(rawValue: polarityResult.label) ?? .unknown
+            let polarity = PolarityLabel.fromModelLabel(polarityResult.label)
 
             guard polarity == .positive, polarityResult.confidence >= polarityThreshold else {
                 return EmotionResult(
                     text: normalized,
                     polarity: polarity,
                     polarityConfidence: polarityResult.confidence,
+                    polarityConfidenceAvailable: polarityResult.confidenceAvailable,
                     emotion: nil,
                     emotionConfidence: 0,
+                    emotionConfidenceAvailable: false,
                     candidateEmotion: nil,
+                    decisionReason: polarityResult.confidenceAvailable ? "model:polarity-gate" : "model:polarity-gate:no-probability",
                     createdAt: Date()
                 )
             }
@@ -120,48 +167,67 @@ final class EmotionClassifier: EmotionClassifying {
                 text: normalized,
                 polarity: polarity,
                 polarityConfidence: polarityResult.confidence,
+                polarityConfidenceAvailable: polarityResult.confidenceAvailable,
                 emotion: positiveResult.confidence >= positiveTypeThreshold ? candidate : nil,
                 emotionConfidence: positiveResult.confidence,
+                emotionConfidenceAvailable: positiveResult.confidenceAvailable,
                 candidateEmotion: candidate,
+                decisionReason: positiveResult.confidenceAvailable ? "model:positive-type" : "model:positive-type:no-probability",
                 createdAt: Date()
             )
         } catch {
-            return emptyResult(text: normalized)
+            return emptyResult(text: normalized, reason: "error:\(error.localizedDescription)")
         }
     }
 
-    private func emptyResult(text: String) -> EmotionResult {
+    private func emptyResult(text: String, reason: String = "empty") -> EmotionResult {
         EmotionResult(
             text: text,
             polarity: .unknown,
             polarityConfidence: 0,
+            polarityConfidenceAvailable: false,
             emotion: nil,
             emotionConfidence: 0,
+            emotionConfidenceAvailable: false,
             candidateEmotion: nil,
+            decisionReason: reason,
             createdAt: Date()
         )
     }
 
-    private func gratitudeOverride(for text: String) -> EmotionResult? {
-        let blockers = ["감사하지", "안 감사", "고맙지 않", "고마운 줄 모르"]
-        guard !blockers.contains(where: { text.contains($0) }) else {
-            return nil
+    private func normalize(_ text: String) -> String {
+        text
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func highPrecisionRuleOverride(for text: String) -> EmotionResult? {
+        for rule in highPrecisionRules {
+            guard !rule.blockers.contains(where: { text.contains($0) }) else {
+                continue
+            }
+
+            guard rule.cues.contains(where: { text.contains($0) }) else {
+                continue
+            }
+
+            return EmotionResult(
+                text: text,
+                polarity: .positive,
+                polarityConfidence: 0.98,
+                polarityConfidenceAvailable: true,
+                emotion: rule.emotion,
+                emotionConfidence: 0.98,
+                emotionConfidenceAvailable: true,
+                candidateEmotion: rule.emotion,
+                decisionReason: rule.reason,
+                createdAt: Date()
+            )
         }
 
-        let gratitudeCues = ["감사", "고마워", "고맙", "덕분", "수고하셨", "고생하셨"]
-        guard gratitudeCues.contains(where: { text.contains($0) }) else {
-            return nil
-        }
-
-        return EmotionResult(
-            text: text,
-            polarity: .positive,
-            polarityConfidence: 0.96,
-            emotion: .gratitude,
-            emotionConfidence: 0.96,
-            candidateEmotion: .gratitude,
-            createdAt: Date()
-        )
+        return nil
     }
 }
 

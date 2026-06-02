@@ -18,6 +18,7 @@ struct FaceTrackingCandidate: Identifiable, Equatable {
     let mouthPoints: [CGPoint]
     let mouthActivity: Double
     let speechScore: Double
+    let speakerConfidence: Double
     let isLikelySpeaking: Bool
     let lastSeen: Date
 }
@@ -129,6 +130,7 @@ final class FaceTracker: FaceTracking {
                     mouthPoints: detection.mouthPoints,
                     mouthActivity: detection.mouthActivity,
                     speechScore: smoothed,
+                    speakerConfidence: 0,
                     isLikelySpeaking: false,
                     lastSeen: now
                 )
@@ -140,6 +142,10 @@ final class FaceTracker: FaceTracking {
         let threshold = candidates.count <= 1 ? 0.12 : 0.15
         let likelySpeakerID = candidates.max { $0.speechScore < $1.speechScore }
             .flatMap { $0.speechScore >= threshold ? $0.id : nil }
+        let sortedScores = candidates.map(\.speechScore).sorted(by: >)
+        let topScore = sortedScores.first ?? 0
+        let runnerUpScore = sortedScores.dropFirst().first ?? 0
+        let speakerConfidence = min(1, max(0, topScore * 0.75 + (topScore - runnerUpScore) * 0.25))
         let resolvedCandidates = candidates.map { candidate in
             FaceTrackingCandidate(
                 id: candidate.id,
@@ -148,6 +154,7 @@ final class FaceTracker: FaceTracking {
                 mouthPoints: candidate.mouthPoints,
                 mouthActivity: candidate.mouthActivity,
                 speechScore: candidate.speechScore,
+                speakerConfidence: candidate.id == likelySpeakerID ? speakerConfidence : 0,
                 isLikelySpeaking: candidate.id == likelySpeakerID,
                 lastSeen: candidate.lastSeen
             )
