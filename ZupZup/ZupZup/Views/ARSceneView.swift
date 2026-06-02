@@ -12,7 +12,10 @@ struct ARSceneView: View {
     @State private var sessionManager = ARSessionManager()
     @State private var placementManager = PlacementManager()
     @StateObject private var emotionRuntime = EmotionRuntime(configuration: .conversation)
-    
+    #if DEBUG
+    @State private var handTrackingManager = HandTrackingManager.shared
+    #endif
+
     var body: some View {
         ZStack {
             ARViewContainer(
@@ -22,13 +25,26 @@ struct ARSceneView: View {
                 planeState: $planeState //
             )
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
+            
+            #if DEBUG
+            VStack(alignment: .leading, spacing: 8) {
+                ARDebugOverlayView(
+                    gesture: handTrackingManager.currentGesture,
+                    distance: handTrackingManager.distance
+                )
+
+                MLDebugOverlayView(runtime: emotionRuntime)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            #endif
 
             VStack(spacing: 12) {
-                ARDebugOverlayView(runtime: emotionRuntime)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-
                 Spacer(minLength: 0)
+
+                #if DEBUG
+                HapticDebugView()
+                #endif
 
                 ARStatusOverlayView(state: planeState)
                     .padding(.horizontal, 20)
