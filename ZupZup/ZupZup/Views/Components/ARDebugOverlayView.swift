@@ -12,7 +12,6 @@ struct ARDebugOverlayView: View {
     let gesture: HandGestureState
     let distance: CGFloat
 
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Gesture: \(gestureText)")
@@ -24,7 +23,7 @@ struct ARDebugOverlayView: View {
         .foregroundStyle(.white)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
-    
+
     private var gestureText: String {
         switch gesture {
         case .none:
@@ -38,6 +37,6 @@ struct ARDebugOverlayView: View {
 }
 #endif
 
-//#Preview {
+// #Preview {
 //    ARDebugOverlayView()
-//}
+// }

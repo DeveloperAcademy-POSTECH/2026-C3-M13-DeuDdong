@@ -13,7 +13,7 @@ struct ARViewContainer: UIViewRepresentable {
     let sessionManager: ARSessionManager
     let placementManager: PlacementManager
     @Binding var planeState: ARState
-    
+
     func makeCoordinator() -> ARSceneCoordinator {
         ARSceneCoordinator(
             sessionManager: sessionManager,
@@ -21,7 +21,7 @@ struct ARViewContainer: UIViewRepresentable {
                 state in planeState = state
             }
     }
-    
+
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(
             frame: .zero,
@@ -31,13 +31,13 @@ struct ARViewContainer: UIViewRepresentable {
         context.coordinator.install(on: arView)
         return arView
     }
-    
+
     func updateUIView(_ uiView: ARView, context: Context) {
         context.coordinator.updatePlaneStateHandler {
             state in planeState = state
         }
     }
-    
+
     static func dismantleUIView(_ uiView: ARView, coordinator: ARSceneCoordinator) {
         uiView.session.pause()
     }

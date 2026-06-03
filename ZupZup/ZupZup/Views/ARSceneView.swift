@@ -23,7 +23,7 @@ struct ARSceneView: View {
                 planeState: $planeState //
             )
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
-            
+
             #if DEBUG
             ARDebugOverlayView(
                 gesture: handTrackingManager.currentGesture,
@@ -32,7 +32,6 @@ struct ARSceneView: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             #endif
-
 
             VStack(spacing: 12) {
                 #if DEBUG

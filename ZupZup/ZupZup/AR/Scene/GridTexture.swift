@@ -45,9 +45,13 @@ enum GridTexture {
             fatalError("Grid를 생성할 수 없어요.")
         }
 
-        return try! TextureResource(
-            image: cgImage,
-            options: .init(semantic: .color)
-        )
+        do {
+            return try TextureResource(
+                image: cgImage,
+                options: .init(semantic: .color)
+            )
+        } catch {
+            fatalError("Grid TextureResource 생성 실패: \(error)")
+        }
     }()
 }
