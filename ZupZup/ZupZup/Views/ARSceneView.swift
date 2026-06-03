@@ -24,14 +24,26 @@ struct ARSceneView: View {
             VStack(spacing: 16) {
                 ARStatusOverlayView(state: planeState)
 
-                Button {
-                    sessionManager.burst(emotion: .affection)
-                } label: {
-                    Text("💗 Affection")
-                        .font(.headline)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(.ultraThinMaterial, in: Capsule())
+                HStack(spacing: 12) {
+                    Button {
+                        sessionManager.burst(emotion: .praise)
+                    } label: {
+                        Text("🌟 Praise")
+                            .font(.headline)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+
+                    Button {
+                        sessionManager.burst(emotion: .affection)
+                    } label: {
+                        Text("💗 Affection")
+                            .font(.headline)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
                 }
             }
             .padding(.horizontal, 20)
