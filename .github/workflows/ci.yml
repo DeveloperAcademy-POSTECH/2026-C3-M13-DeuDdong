@@ -14,12 +14,19 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+
+      # SwiftLint 실행 (에러가 나도 빌드 단계로 넘어가도록 설정)
+      - name: Run SwiftLint
+        run: swiftlint
+        continue-on-error: true
+
+      # 대상 기기를 iPhone 17 Pro로 변경한 Build 단계
       - name: Build
         run: |
           xcodebuild build \
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -configuration Debug \
             | xcpretty
 
