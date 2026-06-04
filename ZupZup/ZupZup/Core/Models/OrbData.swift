@@ -12,7 +12,7 @@ struct OrbData: Identifiable, Equatable {
     let id: UUID
     let emotion: EmotionType
     let position: SIMD3<Float>
-    
+
     init(id: UUID = UUID(), emotion: EmotionType, position: SIMD3<Float>) {
         self.id = id
         self.emotion = emotion

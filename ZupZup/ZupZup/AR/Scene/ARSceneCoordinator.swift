@@ -16,9 +16,8 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
     private var hasPlacedDemoObjects = false
-    private var lastHandPoseUpdateTime: TimeInterval = 0 //마지막으로 AI 검사를 완료한 시각
+    private var lastHandPoseUpdateTime: TimeInterval = 0 // 마지막으로 AI 검사를 완료한 시각
     private var lastFaceTrackingUpdateTime: TimeInterval = 0
-    
     init(
         sessionManager: ARSessionManager,
         placementManager: PlacementManager,
@@ -38,11 +37,11 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         arView.session.delegate = self
         sessionManager.startSession()
     }
-    
+
     func updatePlaneStateHandler(_ handler: @escaping (ARState) -> Void) {
         onPlaneStateChange = handler
     }
-    
+
     func resetScene() {
         hasPlacedDemoObjects = false
         planeVisualizer?.removeAll()
@@ -61,17 +60,17 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         handlePlaneAnchors(anchors)
     }
 
-    //handTrackingManager와 ARView 연결
+    // handTrackingManager와 ARView 연결
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        let currentTime = Date().timeIntervalSince1970 //현재 시간 체크(스톱워치 확인)
+        let currentTime = Date().timeIntervalSince1970 // 현재 시간 체크(스톱워치 확인)
         updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
 
-        //(현재 시간 - 마지막으로 검사한 시간)이 0.1초보다 작거나 같으면 아래 코드 실행하지 말고 이 프레임 버리기
+        // (현재 시간 - 마지막으로 검사한 시간)이 0.1초보다 작거나 같으면 아래 코드 실행하지 말고 이 프레임 버리기
         guard currentTime - lastHandPoseUpdateTime > 0.1 else { return }
 
-        //gurad문 무사히 통과했다면 마지막 검사시간을 지금 시간으로 업데이트
+        // gurad문 무사히 통과했다면 마지막 검사시간을 지금 시간으로 업데이트
         lastHandPoseUpdateTime = currentTime
-        //이 프레임의 이미지 데이터를 AI엔진에게 전달해서 손가락 분석
+        // 이 프레임의 이미지 데이터를 AI엔진에게 전달해서 손가락 분석
         handTrackingManager.updateHandPose(from: frame.capturedImage)
     }
 

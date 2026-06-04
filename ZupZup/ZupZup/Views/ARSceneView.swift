@@ -25,7 +25,7 @@ struct ARSceneView: View {
                 planeState: $planeState //
             )
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
-            
+
             #if DEBUG
             VStack(alignment: .leading, spacing: 8) {
                 ARDebugOverlayView(

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # SwiftLint 실행 (에러가 나도 빌드 단계로 넘어가도록 설정)
+      - name: Run SwiftLint
+        run: swiftlint
+        continue-on-error: true
+
+      # 대상 기기를 iPhone 17 Pro로 변경한 Build 단계
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project ZupZup.xcodeproj \
+            -scheme ZupZup \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -configuration Debug \
+            | xcpretty
+
+      - name: Post Comment on Success
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **Build Succeeded!**'
+            })
+
+      - name: Post Comment on Failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Build Failed!**'
+            })

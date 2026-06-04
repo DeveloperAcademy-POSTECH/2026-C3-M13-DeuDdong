@@ -25,4 +25,3 @@ enum BottleEntity {
         return bottle
     }
 }
-
