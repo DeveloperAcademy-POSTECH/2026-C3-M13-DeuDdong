@@ -26,6 +26,16 @@ final class PlacementManager {
         placedOrbs.append(OrbData(emotion: emotion, position: position)) // id 어쩔?
     }
 
+    func placeOrb(event: EmotionOrbEvent) {
+        let position = event.speakerMouthCenter
+            .flatMap(normalizedScreenPosition)
+            .flatMap(horizontalPlanePosition)
+            .map { $0 + SIMD3<Float>(0, 0.08, 0) }
+            ?? fallbackOrbPosition()
+
+        placeOrb(emotion: event.emotion, at: position)
+    }
+
     func placeBottle(at position: SIMD3<Float>) {
         let bottle = BottleEntity.makeBottle()
         addToScene(bottle, at: position)
@@ -63,5 +73,32 @@ final class PlacementManager {
         anchor.addChild(entity)
         arView.scene.addAnchor(anchor)
         sceneAnchors.append(anchor)
+    }
+
+    private func normalizedScreenPosition(_ point: CGPoint) -> CGPoint? {
+        guard let arView else { return nil }
+
+        return CGPoint(
+            x: point.x * arView.bounds.width,
+            y: point.y * arView.bounds.height
+        )
+    }
+
+    private func fallbackOrbPosition() -> SIMD3<Float> {
+        guard let arView else { return SIMD3<Float>(0, 0, -0.5) }
+
+        let matrix = arView.cameraTransform.matrix
+        let cameraPosition = SIMD3<Float>(
+            matrix.columns.3.x,
+            matrix.columns.3.y,
+            matrix.columns.3.z
+        )
+        let forward = -SIMD3<Float>(
+            matrix.columns.2.x,
+            matrix.columns.2.y,
+            matrix.columns.2.z
+        )
+
+        return cameraPosition + forward * 0.55 + SIMD3<Float>(0, -0.12, 0)
     }
 }

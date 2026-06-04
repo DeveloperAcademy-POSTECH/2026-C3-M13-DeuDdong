@@ -11,19 +11,22 @@ import RealityKit
 final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let sessionManager: ARSessionManager
     private let placementManager: PlacementManager
+    private let emotionRuntime: EmotionRuntimeManaging
     private let handTrackingManager = HandTrackingManager.shared
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
     private var hasPlacedDemoObjects = false
     private var lastHandPoseUpdateTime: TimeInterval = 0 // 마지막으로 AI 검사를 완료한 시각
-
+    private var lastFaceTrackingUpdateTime: TimeInterval = 0
     init(
         sessionManager: ARSessionManager,
         placementManager: PlacementManager,
+        emotionRuntime: EmotionRuntimeManaging,
         onPlaneStateChange: @escaping (ARState) -> Void
     ) {
         self.sessionManager = sessionManager
         self.placementManager = placementManager
+        self.emotionRuntime = emotionRuntime
         self.onPlaneStateChange = onPlaneStateChange
     }
         // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
@@ -60,6 +63,8 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     // handTrackingManager와 ARView 연결
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let currentTime = Date().timeIntervalSince1970 // 현재 시간 체크(스톱워치 확인)
+        updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
+
         // (현재 시간 - 마지막으로 검사한 시간)이 0.1초보다 작거나 같으면 아래 코드 실행하지 말고 이 프레임 버리기
         guard currentTime - lastHandPoseUpdateTime > 0.1 else { return }
 
@@ -67,6 +72,16 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         lastHandPoseUpdateTime = currentTime
         // 이 프레임의 이미지 데이터를 AI엔진에게 전달해서 손가락 분석
         handTrackingManager.updateHandPose(from: frame.capturedImage)
+    }
+
+    private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
+        guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
+
+        lastFaceTrackingUpdateTime = currentTime
+        _ = emotionRuntime.updateFaceTracking(
+            in: frame.capturedImage,
+            orientation: .right
+        )
     }
 
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
