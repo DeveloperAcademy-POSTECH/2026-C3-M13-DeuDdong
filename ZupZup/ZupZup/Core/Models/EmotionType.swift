@@ -14,9 +14,9 @@ enum EmotionType: String, CaseIterable, Identifiable {
     case affection // 사랑, 애정
     case gratitude // 감사
     case empathy // 공감, 위로
-    
+
     var id: String { rawValue }
-    
+
     // 색상도 피그마 hifi 기준으로 지정했습니다.
     var color: UIColor {
         switch self {

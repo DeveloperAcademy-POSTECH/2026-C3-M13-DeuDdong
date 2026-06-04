@@ -11,7 +11,7 @@ enum ARState: Equatable {
     case searching
     case ready
     case unsupported
-    
+
     var title: String {
         switch self {
         case .searching:
@@ -22,7 +22,7 @@ enum ARState: Equatable {
             "해당 기기는 ARKit을 지원하지 않아요."
         }
     }
-    
+
     var message: String {
         switch self {
         case .searching:
