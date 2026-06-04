@@ -38,7 +38,7 @@ struct ARDebugOverlayView: View {
 #endif
 
 struct MLDebugOverlayView: View {
-    @ObservedObject var runtime: EmotionRuntime
+    let runtime: EmotionRuntime
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

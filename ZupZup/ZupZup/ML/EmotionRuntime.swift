@@ -5,10 +5,10 @@
 //  Created by Simon on 6/2/26.
 //
 
-import Combine
 import CoreVideo
 import Foundation
 import ImageIO
+import Observation
 
 struct EmotionRuntimeConfiguration: Equatable {
     let requiresLikelySpeakerForOrb: Bool
@@ -29,14 +29,15 @@ struct EmotionRuntimeConfiguration: Equatable {
 }
 
 @MainActor
-final class EmotionRuntime: ObservableObject, EmotionRuntimeManaging {
-    @Published private(set) var speechState: SpeechState = .idle
-    @Published private(set) var latestUtterance = ""
-    @Published private(set) var latestResult: EmotionResult?
-    @Published private(set) var latestOrbEvent: EmotionOrbEvent?
-    @Published private(set) var latestFaceTrackingResult: FaceTrackingResult?
-    @Published private(set) var emittedOrbEvents: [EmotionOrbEvent] = []
-    @Published private(set) var debugSummary = "ML 런타임 대기 중"
+@Observable
+final class EmotionRuntime: EmotionRuntimeManaging {
+    private(set) var speechState: SpeechState = .idle
+    private(set) var latestUtterance = ""
+    private(set) var latestResult: EmotionResult?
+    private(set) var latestOrbEvent: EmotionOrbEvent?
+    private(set) var latestFaceTrackingResult: FaceTrackingResult?
+    private(set) var emittedOrbEvents: [EmotionOrbEvent] = []
+    private(set) var debugSummary = "ML 런타임 대기 중"
 
     var onOrbEvent: ((EmotionOrbEvent) -> Void)?
 

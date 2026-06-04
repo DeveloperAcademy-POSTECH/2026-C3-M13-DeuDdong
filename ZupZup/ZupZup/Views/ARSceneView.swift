@@ -11,7 +11,7 @@ struct ARSceneView: View {
     @State private var planeState: ARState = .searching
     @State private var sessionManager = ARSessionManager()
     @State private var placementManager = PlacementManager()
-    @StateObject private var emotionRuntime = EmotionRuntime(configuration: .conversation)
+    @State private var emotionRuntime = EmotionRuntime(configuration: .conversation)
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     #endif

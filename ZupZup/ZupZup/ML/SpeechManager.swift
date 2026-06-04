@@ -6,16 +6,17 @@
 //
 
 import AVFoundation
-import Combine
 import Foundation
+import Observation
 import Speech
 
 @MainActor
-final class SpeechManager: NSObject, ObservableObject, SpeechManaging {
-    @Published private(set) var isListening = false
-    @Published private(set) var interimText = ""
-    @Published private(set) var statusText = "대기 중"
-    @Published private(set) var audioLevel: Double = 0
+@Observable
+final class SpeechManager: SpeechManaging {
+    private(set) var isListening = false
+    private(set) var interimText = ""
+    private(set) var statusText = "대기 중"
+    private(set) var audioLevel: Double = 0
 
     private let audioEngine = AVAudioEngine()
     private let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "ko-KR"))
