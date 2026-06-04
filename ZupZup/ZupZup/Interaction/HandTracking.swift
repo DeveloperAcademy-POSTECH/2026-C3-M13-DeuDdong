@@ -26,6 +26,7 @@ final class HandTrackingManager {
     
     var currentGesture: HandGestureState = .none //현재 손가락 제스처 상태 (초기값은 none)
     var distance: CGFloat = 0 //엄지-검지 거리값
+    var pinchCenter: CGPoint? //엄지 끝-검지 끝 중간 좌표
     
     //손가락 감지 요청서 객체 생성
     private let request = VNDetectHumanHandPoseRequest()
@@ -56,11 +57,17 @@ final class HandTrackingManager {
                 indexTip.confidence > 0.3
             else {
                 currentGesture = .none
+                pinchCenter = nil
                 return
             }
             
             let dx = thumbTip.location.x - indexTip.location.x
             let dy = thumbTip.location.y - indexTip.location.y
+            
+            pinchCenter = CGPoint(
+                x: thumbTip.location.x + indexTip.location.x / 2,
+                y: thumbTip.location.y + indexTip.location.y / 2
+            )
             
             let newDistance = sqrt(dx * dx + dy * dy) //피타고라스 공식
             
@@ -75,6 +82,7 @@ final class HandTrackingManager {
             
         } catch {
             currentGesture = .none
+            pinchCenter = nil
         }
     }
     

@@ -24,7 +24,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         self.placementManager = placementManager
         self.onPlaneStateChange = onPlaneStateChange
     }
-        // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
+    // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
     func install(on arView: ARView) {
         sessionManager.attach(to: arView)
         placementManager.attach(to: arView)
@@ -44,27 +44,33 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         onPlaneStateChange(.searching)
         sessionManager.resetSession()
     }
-
+    
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         updatePlaneVisuals(for: anchors, action: .add)
         handlePlaneAnchors(anchors)
     }
-
-    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
+    
+    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) { // ARAnchor 업데이트 용
         updatePlaneVisuals(for: anchors, action: .update)
         handlePlaneAnchors(anchors)
     }
-
+    
+    func session(_ session: ARSession, didUpdate frame: ARFrame) { // 카메라 프레임 업데이트 용
+        HandTrackingManager.shared.updateHandPose(from: frame.capturedImage)
+        handleHandGesture()
+    }
+    
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
         for anchor in anchors {
             planeVisualizer?.remove(anchor.identifier)
         }
     }
-
+    
+    
     private func updatePlaneVisuals(for anchors: [ARAnchor], action: PlaneVisualAction) {
         for anchor in anchors {
             guard let planeAnchor = anchor as? ARPlaneAnchor else { continue }
-
+            
             switch action {
             case .add:
                 planeVisualizer?.add(planeAnchor)
@@ -73,20 +79,30 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             }
         }
     }
-
+    
     private func handlePlaneAnchors(_ anchors: [ARAnchor]) {
         guard let horizontalPlane = anchors.compactMap({ $0 as? ARPlaneAnchor })
             .first(where: { $0.alignment == .horizontal }) else {
             return
         }
-
+        
         onPlaneStateChange(.ready)
-
+        
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
         placementManager.placeDemoObjects(on: horizontalPlane)
     }
+    
+    private func handleHandGesture() {
+        guard let pinchCenter = HandTrackingManager.shared.pinchCenter else { return }
+        guard let screenPoint = placementManager.screenPoint(fromNormalizedPoint: pinchCenter) else { return }
+        
+        if HandTrackingManager.shared.currentGesture == .pinched {
+            placementManager.selectOrb(at: screenPoint)
+        }
+    }
 }
+
 
 private enum PlaneVisualAction {
     case add
