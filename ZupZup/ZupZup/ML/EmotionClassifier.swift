@@ -15,6 +15,18 @@ struct TextClassifierResult {
 }
 
 final class DynamicTextClassifier {
+    private struct ClassifierConfidence {
+        let value: Double
+        let isAvailable: Bool
+
+        static let unavailableProbabilityOutput = Self(value: .zero, isAvailable: false)
+        static let missingPredictedLabelProbability = Self(value: .zero, isAvailable: true)
+
+        static func available(_ value: Double) -> Self {
+            Self(value: value, isAvailable: true)
+        }
+    }
+
     private let model: MLModel
     private let inputName: String
     private let outputName: String
@@ -61,17 +73,20 @@ final class DynamicTextClassifier {
         )
     }
 
-    private func confidence(for label: String, output: MLFeatureProvider) -> (value: Double, isAvailable: Bool) {
-        guard let probabilitiesName,
-              let probabilities = output.featureValue(for: probabilitiesName)?.dictionaryValue else {
-            return (1, false)
+    private func confidence(for label: String, output: MLFeatureProvider) -> ClassifierConfidence {
+        guard let probabilitiesName else {
+            return .unavailableProbabilityOutput
+        }
+
+        guard let probabilities = output.featureValue(for: probabilitiesName)?.dictionaryValue else {
+            return .unavailableProbabilityOutput
         }
 
         for (key, value) in probabilities where String(describing: key) == label {
-            return (value.doubleValue, true)
+            return .available(value.doubleValue)
         }
 
-        return (0, true)
+        return .missingPredictedLabelProbability
     }
 }
 
@@ -145,7 +160,8 @@ final class EmotionClassifier: EmotionClassifying {
             let polarityResult = try polarityGate.classify(normalized)
             let polarity = PolarityLabel.fromModelLabel(polarityResult.label)
 
-            guard polarity == .positive, polarityResult.confidence >= polarityThreshold else {
+            guard polarity == .positive,
+                  passesConfidenceThreshold(polarityResult, threshold: polarityThreshold) else {
                 return EmotionResult(
                     text: normalized,
                     polarity: polarity,
@@ -162,13 +178,14 @@ final class EmotionClassifier: EmotionClassifying {
 
             let positiveResult = try positiveType.classify(normalized)
             let candidate = EmotionType.fromModelLabel(positiveResult.label)
+            let shouldEmitEmotion = passesConfidenceThreshold(positiveResult, threshold: positiveTypeThreshold)
 
             return EmotionResult(
                 text: normalized,
                 polarity: polarity,
                 polarityConfidence: polarityResult.confidence,
                 polarityConfidenceAvailable: polarityResult.confidenceAvailable,
-                emotion: positiveResult.confidence >= positiveTypeThreshold ? candidate : nil,
+                emotion: shouldEmitEmotion ? candidate : nil,
                 emotionConfidence: positiveResult.confidence,
                 emotionConfidenceAvailable: positiveResult.confidenceAvailable,
                 candidateEmotion: candidate,
@@ -178,6 +195,10 @@ final class EmotionClassifier: EmotionClassifying {
         } catch {
             return emptyResult(text: normalized, reason: "error:\(error.localizedDescription)")
         }
+    }
+
+    private func passesConfidenceThreshold(_ result: TextClassifierResult, threshold: Double) -> Bool {
+        !result.confidenceAvailable || result.confidence >= threshold
     }
 
     private func emptyResult(text: String, reason: String = "empty") -> EmotionResult {
