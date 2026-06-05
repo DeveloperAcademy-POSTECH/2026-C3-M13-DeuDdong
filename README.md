@@ -1,4 +1,4 @@
-# :iphone: [Project/ZupZup]
+# :iphone: ZupZup
 [Logo/Cover Image]
 
 [App statement]
@@ -20,8 +20,6 @@ Attach videos if you are available
 
 
 ## :sparkles: Skills & Tech Stack
-
-### 🖥️ Tech Stack
 | Category | Tools & Technologies |
 | :--- | :--- |
 | **Language** | ![Swift](https://img.shields.io/badge/Swift-F05138?style=flat-square&logo=Swift&logoColor=white) |
@@ -33,4 +31,8 @@ Attach videos if you are available
 
 ## :people_hugging: Authors
 
-@0sunset0, @dojmj, @quokkaki, @juugii-ho, @yujinjeong1013, @username
+## 👥 Contributors
+
+| <a href="https://github.com/0sunset0"><img src="https://github.com/0sunset0.png" width="100px"/></a> | <a href="https://github.com/dojmj"><img src="https://github.com/dojmj.png" width="100px"/></a> | <a href="https://github.com/quokkaki"><img src="https://github.com/quokkaki.png" width="100px"/></a> | <a href="https://github.com/juugii-ho"><img src="https://github.com/juugii-ho.png" width="100px"/></a> | <a href="https://github.com/yujinjeong1013"><img src="https://github.com/yujinjeong1013.png" width="100px"/></a> | <a href="https://github.com/Seoyeon94"><img src="https://github.com/Seoyeon94.png" width="100px"/></a> |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| [@0sunset0](https://github.com/0sunset0) | [@dojmj](https://github.com/dojmj) | [@quokkaki](https://github.com/quokkaki) | [@juugii-ho](https://github.com/juugii-ho) | [@yujinjeong1013](https://github.com/yujinjeong1013) | [@Seoyeon94](https://github.com/Seoyeon94) |
