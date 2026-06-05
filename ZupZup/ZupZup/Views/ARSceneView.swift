@@ -22,7 +22,7 @@ struct ARSceneView: View {
                 sessionManager: sessionManager,
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
-                planeState: $planeState
+                planeState: $planeState //
             )
             .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
 
@@ -44,28 +44,6 @@ struct ARSceneView: View {
 
                 #if DEBUG
                 HapticDebugView()
-
-                HStack(spacing: 12) {
-                    Button {
-                        sessionManager.burst(emotion: .praise)
-                    } label: {
-                        Text("🌟 Praise")
-                            .font(.headline)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-
-                    Button {
-                        sessionManager.burst(emotion: .affection)
-                    } label: {
-                        Text("💗 Affection")
-                            .font(.headline)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                }
                 #endif
 
                 ARStatusOverlayView(state: planeState)
