@@ -20,6 +20,7 @@ final class ARSessionManager {
         self.arview = arView
         arView.automaticallyConfigureSession = false
         arView.renderOptions.insert(.disableMotionBlur)
+        arView.environment.sceneUnderstanding.options.insert(.occlusion)
     }
 
     func startSession() {
@@ -39,10 +40,21 @@ final class ARSessionManager {
         arview?.session.pause()
     }
 
+
+    func burst(emotion: EmotionType) {
+        guard let arview else { return }
+        // TODO: FaceTracker.mouthCenter + ARDepthData로 입 위치 3D 변환 후 position에 사용
+        let cameraPos = arview.cameraTransform.translation
+        let position = SIMD3<Float>(cameraPos.x, cameraPos.y + 1.5, cameraPos.z)
+        ParticleBurst.burst(for: emotion, at: position, in: arview.scene)
+    }
+
+
     private func makeWorldTrackingConfiguration() -> ARWorldTrackingConfiguration {
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = [.horizontal]
         configuration.environmentTexturing = .automatic
+        configuration.frameSemantics = .personSegmentationWithDepth
         return configuration
     }
 }
