@@ -10,8 +10,12 @@ import ZupZupContent
 @MainActor
 enum EntityLoader {
     static func load(named name: String) async -> Entity? {
+        let start = Date()
         do {
-            return try await Entity(named: name, in: ZupZupContentBundle)
+            let entity = try await Entity(named: name, in: ZupZupContentBundle)
+            let elapsed = Date().timeIntervalSince(start) * 1000
+            Logger.ar.info("'\(name)' 로드 완료: \(String(format: "%.1f", elapsed))ms")
+            return entity
         } catch {
             Logger.ar.error("'\(name)' 로드 실패: \(error)")
             return nil
