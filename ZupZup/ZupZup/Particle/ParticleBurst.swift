@@ -20,12 +20,8 @@ enum ParticleBurst {
         }
     }
 
-    private static func particleName(for emotion: EmotionType) -> String {
-        "Particles/" + emotion.rawValue.capitalized + "Particle"
-    }
-
     private static func loadEntity(for emotion: EmotionType) async -> Entity? {
-        let name = particleName(for: emotion)
+        let name = emotion.particleName
         do {
             return try await Entity(named: name, in: ZupZupContentBundle)
         } catch {
