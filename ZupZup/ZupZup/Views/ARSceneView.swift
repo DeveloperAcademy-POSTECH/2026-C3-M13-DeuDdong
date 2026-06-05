@@ -12,6 +12,9 @@ struct ARSceneView: View {
     @State private var sessionManager = ARSessionManager()
     @State private var placementManager = PlacementManager()
     @State private var emotionRuntime = EmotionRuntime(configuration: .conversation)
+    @State private var countdownCuePlayer = ConversationCountdownCuePlayer()
+    @State private var countdownValue: Int?
+    @State private var didStartConversation = false
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     #endif
@@ -50,6 +53,11 @@ struct ARSceneView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 28)
             }
+
+            if let countdownValue {
+                CountdownOverlay(count: countdownValue)
+                    .transition(.opacity)
+            }
         }
         .onAppear {
             if !sessionManager.isWorldTrackingSupported {
@@ -61,12 +69,35 @@ struct ARSceneView: View {
             }
         }
         .task {
-            await emotionRuntime.start()
+            await startConversationAfterCountdown()
         }
         .onDisappear {
+            countdownCuePlayer.stop()
             emotionRuntime.stop()
             emotionRuntime.onOrbEvent = nil
         }
+    }
+
+    @MainActor
+    private func startConversationAfterCountdown() async {
+        guard !didStartConversation else { return }
+
+        countdownCuePlayer.speakIntro()
+
+        for count in stride(from: 3, through: 1, by: -1) {
+            countdownValue = count
+            countdownCuePlayer.playTick()
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+            guard !Task.isCancelled else {
+                countdownValue = nil
+                return
+            }
+        }
+
+        countdownValue = nil
+        didStartConversation = true
+        await emotionRuntime.start()
     }
 }
 
