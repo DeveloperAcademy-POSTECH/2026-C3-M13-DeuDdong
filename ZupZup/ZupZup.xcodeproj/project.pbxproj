@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C187DE82FCC5A6A00660EE9 /* ARKit.framework */; };
 		3CB6D6F72FCD4A720029A463 /* Develop.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3CB6D6F62FCD4A6D0029A463 /* Develop.xcconfig */; };
-		CBC1CFAF2FD28B6500EF9A02 /* zupzup_m in Frameworks */ = {isa = PBXBuildFile; productRef = CBC1CFAE2FD28B6500EF9A02 /* zupzup_m */; };
+		CBC1D2732FD2975200EF9A02 /* ZupZupContent in Frameworks */ = {isa = PBXBuildFile; productRef = CBC1D2722FD2975200EF9A02 /* ZupZupContent */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,7 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CBC1CFAF2FD28B6500EF9A02 /* zupzup_m in Frameworks */,
+				CBC1D2732FD2975200EF9A02 /* ZupZupContent in Frameworks */,
 				3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -146,7 +146,7 @@
 			);
 			name = ZupZup;
 			packageProductDependencies = (
-				CBC1CFAE2FD28B6500EF9A02 /* zupzup_m */,
+				CBC1D2722FD2975200EF9A02 /* ZupZupContent */,
 			);
 			productName = ZupZup;
 			productReference = 56D795E22FC95B6100807EC5 /* ZupZup.app */;
@@ -231,7 +231,7 @@
 			mainGroup = 56D795D92FC95B6100807EC5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "ZupZupContent" */,
+				CBC1D2712FD2974A00EF9A02 /* XCLocalSwiftPackageReference "ZupZupContent" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 56D795E32FC95B6100807EC5 /* Products */;
@@ -365,7 +365,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				DEVELOPMENT_TEAM = MLRTHHUP3R;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -432,7 +432,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				DEVELOPMENT_TEAM = MLRTHHUP3R;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -650,17 +650,17 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "ZupZupContent" */ = {
+		CBC1D2712FD2974A00EF9A02 /* XCLocalSwiftPackageReference "ZupZupContent" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ZupZupContent;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CBC1CFAE2FD28B6500EF9A02 /* zupzup_m */ = {
+		CBC1D2722FD2975200EF9A02 /* ZupZupContent */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "3d_ball" */;
-			productName = zupzup_m;
+			package = CBC1D2712FD2974A00EF9A02 /* XCLocalSwiftPackageReference "ZupZupContent" */;
+			productName = ZupZupContent;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
