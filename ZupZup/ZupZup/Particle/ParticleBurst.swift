@@ -16,7 +16,7 @@ enum ParticleBurst {
             guard let entity = await loadEntity(for: emotion) else { return }
             let anchor = spawn(entity: entity, at: position, in: scene)
             triggerBurstEffect(on: entity)
-            scheduleRemoval(of: anchor, from: scene)
+            await scheduleRemoval(of: anchor)
         }
     }
 
@@ -60,10 +60,8 @@ enum ParticleBurst {
         return nil
     }
 
-    private static func scheduleRemoval(of anchor: AnchorEntity, from scene: Scene) {
-        Task {
-            try? await Task.sleep(for: .seconds(3))
-            anchor.removeFromParent()
-        }
+    private static func scheduleRemoval(of anchor: AnchorEntity) async {
+        try? await Task.sleep(for: .seconds(2))
+        anchor.removeFromParent()
     }
 }
