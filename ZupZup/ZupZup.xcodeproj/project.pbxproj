@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C187DE82FCC5A6A00660EE9 /* ARKit.framework */; };
 		3CB6D6F72FCD4A720029A463 /* Develop.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3CB6D6F62FCD4A6D0029A463 /* Develop.xcconfig */; };
+		CBC1CFAF2FD28B6500EF9A02 /* zupzup_m in Frameworks */ = {isa = PBXBuildFile; productRef = CBC1CFAE2FD28B6500EF9A02 /* zupzup_m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CBC1CFAF2FD28B6500EF9A02 /* zupzup_m in Frameworks */,
 				3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -144,6 +146,7 @@
 			);
 			name = ZupZup;
 			packageProductDependencies = (
+				CBC1CFAE2FD28B6500EF9A02 /* zupzup_m */,
 			);
 			productName = ZupZup;
 			productReference = 56D795E22FC95B6100807EC5 /* ZupZup.app */;
@@ -652,6 +655,14 @@
 			relativePath = ZupZupContent;
 		};
 /* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CBC1CFAE2FD28B6500EF9A02 /* zupzup_m */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "3d_ball" */;
+			productName = zupzup_m;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 56D795DA2FC95B6100807EC5 /* Project object */;
 }
