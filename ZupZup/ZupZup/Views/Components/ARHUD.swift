@@ -183,6 +183,7 @@ struct AutoCollectButton: View {
 
 struct VoiceWaveformView: View {
     let samples: [CGFloat] // 0.0 ~ 1.0 사이의 음성 피크 배열
+    var strokeColor: Color = .white
 
     var body: some View {
         GeometryReader { geo in
@@ -195,8 +196,7 @@ struct VoiceWaveformView: View {
                 let stepX = width / CGFloat(samples.count - 1)
 
                 // 첫 번째 포인트 시작점 세팅
-                let firstY = midY + (samples[0] * (height / 2) * (0.5 - CGFloat.random(in: 0...1)))
-                path.move(to: CGPoint(x: 0, y: firstY))
+                path.move(to: CGPoint(x: 0, y: midY))
 
                 // 샘플들을 부드럽게 지그재그 라인으로 연결 (위아래 반전 진폭 연출)
                 for index in 1..<samples.count {
@@ -209,7 +209,7 @@ struct VoiceWaveformView: View {
                 }
             }
             // 시안처럼 선명하고 얇은 화이트 실선 래핑 (두께 2.0)
-            .stroke(Color.white, style: StrokeStyle(lineWidth: 2.0, lineCap: .round, lineJoin: .round))
+            .stroke(strokeColor, style: StrokeStyle(lineWidth: 2.0, lineCap: .round, lineJoin: .round))
         }
         .frame(height: 60) // 음파 뷰의 최대 상하 폭 제한
     }
