@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "zupzup_m",
+    name: "ZupZupContent",
     platforms: [
         .visionOS(.v26),
         .macOS(.v26),
@@ -14,8 +14,8 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
-            name: "zupzup_m",
-            targets: ["zupzup_m"]),
+            name: "ZupZupContent",
+            targets: ["ZupZupContent"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -25,7 +25,7 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
-            name: "zupzup_m",
+            name: "ZupZupContent",
             dependencies: []),
     ]
 )

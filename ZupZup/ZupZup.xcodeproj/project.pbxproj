@@ -228,7 +228,7 @@
 			mainGroup = 56D795D92FC95B6100807EC5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "3d_ball" */,
+				CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "ZupZupContent" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 56D795E32FC95B6100807EC5 /* Products */;
@@ -647,9 +647,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "3d_ball" */ = {
+		CBF5A7C92FD25E1100BD4418 /* XCLocalSwiftPackageReference "ZupZupContent" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = 3d_ball;
+			relativePath = ZupZupContent;
 		};
 /* End XCLocalSwiftPackageReference section */
 	};
