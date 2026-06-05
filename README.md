@@ -1,4 +1,4 @@
-# :iphone: [Project/App Name]
+# :iphone: [Project/ZupZup]
 [Logo/Cover Image]
 
 [App statement]
@@ -33,4 +33,4 @@ Attach videos if you are available
 
 ## :people_hugging: Authors
 
-@username, @username, @username, @username, @username, @username
+@0sunset0, @dojmj, @quokkaki, @juugii-ho, @yujinjeong1013, @username
