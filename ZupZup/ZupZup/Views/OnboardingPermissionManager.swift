@@ -26,10 +26,29 @@ final class OnboardingPermissionManager {
     }
 
     @MainActor
+    func refreshStatuses() {
+        let result = currentPermissionResult()
+        hasRequiredPermissions = result.requiredGranted
+
+        if result.requiredGranted {
+            message = ""
+            shouldShowSettingsButton = false
+        }
+    }
+
+    @MainActor
     func requestPermissions() async -> Bool {
         isRequesting = true
         shouldShowSettingsButton = false
         message = "권한을 확인하고 있습니다."
+
+        let currentResult = currentPermissionResult()
+        guard !currentResult.requiredGranted else {
+            hasRequiredPermissions = true
+            isRequesting = false
+            message = ""
+            return true
+        }
 
         let result = await requestOnboardingPermissions()
 
@@ -46,12 +65,36 @@ final class OnboardingPermissionManager {
         return false
     }
 
+    private func currentPermissionResult() -> OnboardingPermissionResult {
+        let cameraGranted = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
+        let microphoneGranted = AVAudioApplication.shared.recordPermission == .granted
+        let speechGranted = SFSpeechRecognizer.authorizationStatus() == .authorized
+
+        return makePermissionResult(
+            cameraGranted: cameraGranted,
+            microphoneGranted: microphoneGranted,
+            speechGranted: speechGranted
+        )
+    }
+
     private func requestOnboardingPermissions() async -> OnboardingPermissionResult {
         let cameraGranted = await requestCameraPermission()
         let microphoneGranted = await requestMicrophonePermission()
         let speechGranted = await requestSpeechPermission()
         _ = await requestPhotoAddPermission()
 
+        return makePermissionResult(
+            cameraGranted: cameraGranted,
+            microphoneGranted: microphoneGranted,
+            speechGranted: speechGranted
+        )
+    }
+
+    private func makePermissionResult(
+        cameraGranted: Bool,
+        microphoneGranted: Bool,
+        speechGranted: Bool
+    ) -> OnboardingPermissionResult {
         let missingRequiredPermissions = [
             cameraGranted ? nil : "카메라",
             microphoneGranted ? nil : "마이크",
@@ -79,10 +122,19 @@ final class OnboardingPermissionManager {
     }
 
     private func requestMicrophonePermission() async -> Bool {
-        await withCheckedContinuation { continuation in
-            AVAudioApplication.requestRecordPermission { granted in
-                continuation.resume(returning: granted)
+        switch AVAudioApplication.shared.recordPermission {
+        case .granted:
+            return true
+        case .undetermined:
+            return await withCheckedContinuation { continuation in
+                AVAudioApplication.requestRecordPermission { granted in
+                    continuation.resume(returning: granted)
+                }
             }
+        case .denied:
+            return false
+        @unknown default:
+            return false
         }
     }
 
