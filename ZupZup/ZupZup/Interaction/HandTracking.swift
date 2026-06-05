@@ -65,8 +65,8 @@ final class HandTrackingManager {
             let dy = thumbTip.location.y - indexTip.location.y
             
             pinchCenter = CGPoint(
-                x: thumbTip.location.x + indexTip.location.x / 2,
-                y: thumbTip.location.y + indexTip.location.y / 2
+                x: (thumbTip.location.x + indexTip.location.x) / 2,
+                y: (thumbTip.location.y + indexTip.location.y) / 2
             )
             
             let newDistance = sqrt(dx * dx + dy * dy) //피타고라스 공식

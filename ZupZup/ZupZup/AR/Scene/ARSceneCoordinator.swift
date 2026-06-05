@@ -14,6 +14,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
     private var hasPlacedDemoObjects = false
+    private var lastHandPoseUpdateTime: TimeInterval = 0
     
     init(
         sessionManager: ARSessionManager,
@@ -56,6 +57,11 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) { // 카메라 프레임 업데이트 용
+        let currentTime = Date().timeIntervalSince1970
+        guard currentTime - lastHandPoseUpdateTime > 0.1 else { return }
+        
+        lastHandPoseUpdateTime = currentTime
+        
         HandTrackingManager.shared.updateHandPose(from: frame.capturedImage)
         handleHandGesture()
     }
@@ -94,11 +100,21 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
     
     private func handleHandGesture() {
-        guard let pinchCenter = HandTrackingManager.shared.pinchCenter else { return }
-        guard let screenPoint = placementManager.screenPoint(fromNormalizedPoint: pinchCenter) else { return }
+        let handTrackingManager = HandTrackingManager.shared
         
-        if HandTrackingManager.shared.currentGesture == .pinched {
-            placementManager.selectOrb(at: screenPoint)
+        switch handTrackingManager.currentGesture {
+        case .pinched:
+            guard let pinchCenter = HandTrackingManager.shared.pinchCenter else { return }
+            guard let screenPoint = placementManager.screenPoint(fromNormalizedPoint: pinchCenter) else { return }
+            
+            if placementManager.hasSelectedOrb {
+                placementManager.moveSelectedOrb(to: screenPoint)
+            } else {
+                placementManager.selectOrb(at: screenPoint)
+            }
+            
+        case .apart, .none:
+            placementManager.releaseSelectedOrb()
         }
     }
 }
