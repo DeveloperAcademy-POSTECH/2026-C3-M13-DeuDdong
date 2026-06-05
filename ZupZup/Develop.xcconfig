@@ -1,0 +1,13 @@
+//
+//  Develop.xcconfig
+//  ZupZup
+//
+//  Created by Kimseoyeon on 6/5/26.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+// 팀원분들마다 개개인의 ID를 입력해주시면 됩니다.
+PRODUCT_BUNDLE_IDENTIFIER = -C3-T13.ZupZup
+DEVELOPMENT_TEAM = PM8PVXBRDX
