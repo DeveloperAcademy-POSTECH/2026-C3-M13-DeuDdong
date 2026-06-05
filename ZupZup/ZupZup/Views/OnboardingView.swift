@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct OnboardingView: View {
     var onFinished: () -> Void
@@ -13,6 +14,7 @@ struct OnboardingView: View {
     // 온보딩 단계 제어 상태 (1: 서비스 플로우, 2: 구슬 설명, 3: 권한 허용)
     @State private var currentStep: Int = 1
     @State private var currentCardIndex: Int = 0
+    @State private var permissionManager = OnboardingPermissionManager()
 
     var body: some View {
         ZStack {
@@ -22,19 +24,8 @@ struct OnboardingView: View {
                 OnboardingTopProgressBar(currentStep: currentStep)
                     .padding(.top, 20)
 
-                VStack(spacing: 0) {
-                    switch currentStep {
-                    case 1:
-                        step1ServiceFlowView
-                    case 2:
-                        step2OrbDescriptionView
-                    case 3:
-                        step3PermissionView
-                    default:
-                        EmptyView()
-                    }
-                }
-                .padding(.top, 40)
+                onboardingStepContent
+                    .padding(.top, 40)
 
                 Spacer()
 
@@ -96,23 +87,44 @@ struct OnboardingView: View {
 
                             Button(
                                 action: {
-                                    onFinished()
+                                    Task {
+                                        await handlePermissionPrimaryAction()
+                                    }
                                 },
                                 label: {
-                                    Text("시작하기")
+                                    Text(permissionManager.primaryButtonTitle)
                                         .font(ZZFont.body)
                                         .foregroundStyle(.white)
                                         .frame(width: 250, height: ZZSpacing.bottomButtonHeight)
-                                        .background(ZZColor.brand400)
+                                        .background(permissionManager.isRequesting ? ZZColor.gray4 : ZZColor.brand400)
                                         .clipShape(RoundedRectangle(cornerRadius: ZZSpacing.buttonCornerRadius))
                                 }
                             )
+                            .disabled(permissionManager.isRequesting)
                         }
                         .frame(maxWidth: .infinity)
                     }
                 }
                 .padding(.bottom, 12)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var onboardingStepContent: some View {
+        switch currentStep {
+        case 1:
+            step1ServiceFlowView
+        case 2:
+            step2OrbDescriptionView
+        case 3:
+            ScrollView(showsIndicators: false) {
+                step3PermissionView
+                    .padding(.bottom, 16)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        default:
+            EmptyView()
         }
     }
 
@@ -198,8 +210,8 @@ struct OnboardingView: View {
                         ),
                         PermissionCardData(
                             systemName: "mic.fill",
-                            title: "마이크",
-                            description: "대화 속 상대의 긍정 표현을\n인식하기 위한 권한"
+                            title: "마이크·음성 인식",
+                            description: "대화를 텍스트로 변환해\n긍정 표현을 분류하기 위한 권한"
                         )
                     ]
                 )
@@ -221,7 +233,49 @@ struct OnboardingView: View {
             // 디자인 시스템 300 규격 통일을 위해 기존 screenHorizontal 패딩 대신 고정 가로폭 적용
             // .padding(.horizontal, ZZSpacing.screenHorizontal)
             .frame(width: 300)
+
+            if !permissionManager.message.isEmpty {
+                Text(permissionManager.message)
+                    .font(ZZFont.caption)
+                    .foregroundStyle(permissionManager.shouldShowSettingsButton ? ZZColor.brand500 : ZZColor.gray6)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .frame(width: 300)
+                    .padding(.top, 18)
+            }
+
+            if permissionManager.shouldShowSettingsButton {
+                Button(
+                    action: openAppSettings,
+                    label: {
+                        Text("설정에서 권한 허용하기")
+                            .font(ZZFont.caption)
+                            .foregroundStyle(ZZColor.brand400)
+                            .padding(.top, 8)
+                    }
+                )
+            }
         }
+    }
+
+    @MainActor
+    private func handlePermissionPrimaryAction() async {
+        if permissionManager.hasRequiredPermissions {
+            onFinished()
+            return
+        }
+
+        if await permissionManager.requestPermissions() {
+            onFinished()
+        }
+    }
+
+    private func openAppSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+
+        UIApplication.shared.open(settingsURL)
     }
 }
 
