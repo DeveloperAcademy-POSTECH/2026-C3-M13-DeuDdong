@@ -6,7 +6,6 @@
 import RealityKit
 import Foundation
 import OSLog
-import ZupZupContent
 
 @MainActor
 enum ParticleBurst {
@@ -21,13 +20,7 @@ enum ParticleBurst {
     }
 
     private static func loadEntity(for emotion: EmotionType) async -> Entity? {
-        let name = emotion.particleName
-        do {
-            return try await Entity(named: name, in: ZupZupContentBundle)
-        } catch {
-            Logger.particle.error("'\(name)' 로드 실패: \(error)")
-            return nil
-        }
+        await EntityLoader.load(named: emotion.particleName)
     }
 
     private static func spawn(entity: Entity, at position: SIMD3<Float>, in scene: Scene) -> AnchorEntity {
