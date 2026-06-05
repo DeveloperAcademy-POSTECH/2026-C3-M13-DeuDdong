@@ -1,0 +1,11 @@
+{
+  "pathsToIds" : {
+    "\/zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+    "zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "584A43A6-4386-4285-AB7B-4C54739E212B"
+  },
+  "projectID" : 3465230573307592556,
+  "uuidToIntID" : {
+    "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F" : -8367564950430382204,
+    "584A43A6-4386-4285-AB7B-4C54739E212B" : 2611228442523404562
+  }
+}

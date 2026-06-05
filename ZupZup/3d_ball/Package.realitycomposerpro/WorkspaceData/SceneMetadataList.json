@@ -1,0 +1,57 @@
+{
+  "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F" : {
+    "objectMetadataList" : [
+      [
+        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+        "Root",
+        "love"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+        "Root",
+        "love",
+        "love",
+        "Object_26"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+        "Root",
+        "love",
+        "love"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+        "Root",
+        "love",
+        "love",
+        "Object_26",
+        "Object_26"
+      ],
+      {
+        "disallowsFraming" : false,
+        "isExpanded" : false,
+        "isLocked" : false
+      }
+    ]
+  }
+}
