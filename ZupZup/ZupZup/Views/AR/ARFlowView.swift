@@ -64,7 +64,7 @@ struct ARFlowView: View {
                     // 컨트롤러 요소 탑다운 배치
                     VStack(spacing: 0) {
                         HStack {
-                            ARBackButton { currentStep = "space" }
+                            ARBackButtonBlack { currentStep = "space" }
                             Spacer()
                             ConversationTimerView(remainingSeconds: 131) // 시안의 02:11 하드코딩 매칭
                             Spacer()
@@ -95,7 +95,7 @@ struct ARFlowView: View {
                 ZStack {
                     VStack(spacing: 0) {
                         HStack {
-                            ARBackButton { currentStep = "dialog" }
+                            ARBackButtonBlack { currentStep = "dialog" }
                             Spacer()
                             OrbCountCapsule(current: 5, total: 11, isComplete: false) // 시안 속 5/11 구현
                             Spacer()
