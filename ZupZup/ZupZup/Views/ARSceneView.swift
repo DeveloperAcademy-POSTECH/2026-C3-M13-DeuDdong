@@ -14,17 +14,29 @@ struct ARSceneView: View {
     @State private var emotionRuntime = EmotionRuntime(configuration: .conversation)
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
+    @State private var burstController = DebugBurstController()
     #endif
 
     var body: some View {
         ZStack {
+            #if DEBUG
             ARViewContainer(
                 sessionManager: sessionManager,
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
-                planeState: $planeState //
+                planeState: $planeState,
+                burstController: burstController
             )
-            .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
+            .ignoresSafeArea()
+            #else
+            ARViewContainer(
+                sessionManager: sessionManager,
+                placementManager: placementManager,
+                emotionRuntime: emotionRuntime,
+                planeState: $planeState
+            )
+            .ignoresSafeArea()
+            #endif
 
             #if DEBUG
             VStack(alignment: .leading, spacing: 8) {
@@ -44,6 +56,10 @@ struct ARSceneView: View {
 
                 #if DEBUG
                 HapticDebugView()
+                Button("파티클 터뜨리기") {
+                    burstController.fire()
+                }
+                .buttonStyle(.borderedProminent)
                 #endif
 
                 ARStatusOverlayView(state: planeState)

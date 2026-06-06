@@ -1,11 +1,39 @@
 {
   "pathsToIds" : {
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/AffectionParticle.usda" : "2AC43B47-C4CE-420D-B92B-F8582A6C3809",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/EmpathyParticle.usda" : "87541A76-3E00-4B59-BB91-0B8914A90D95",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/GratitudeParticle.usda" : "41BB31AA-1754-4C8A-8E3E-864029701AD1",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Untitled.usda" : "0D368570-9E7C-41F9-A3CE-A2726E6FCD10",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/particle\/EncouragementParticle.usda" : "C55B6220-E815-431B-A64C-AE7283AE1746",
     "\/zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Particles\/AffectionParticle 1.usda" : "A6B3511A-4825-4A17-9F25-0953071E9F0A",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Particles\/AffectionParticle.usda" : "6D0D2092-1FDF-4085-B88C-E08AEA3B6B16",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Particles\/EmpathyParticle.usda" : "836D6134-5434-4EC9-821D-68D23383812E",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Particles\/EncouragementParticle.usda" : "7786E0AE-79F8-41F3-BE87-502FA8ECAAF1",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Particles\/GratitudeParticle.usda" : "3387744D-E2A3-4625-AA02-CBF2B73F1BF4",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Particles\/PraiseParticle.usda" : "76F07649-37F7-4BC6-8E55-4471592C895D",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "15793E0C-A92F-4F0C-ADD9-2D6346CF286E",
+    "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Particles\/AffectionParticle.usda" : "F71CC138-7060-4531-9152-6E19DD81BFD8",
+    "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Scene.usda" : "CB18D815-595C-4B7C-B815-553586729D86",
     "zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "584A43A6-4386-4285-AB7B-4C54739E212B"
   },
   "projectID" : 3465230573307592556,
   "uuidToIntID" : {
+    "0D368570-9E7C-41F9-A3CE-A2726E6FCD10" : 5800787978740191263,
+    "15793E0C-A92F-4F0C-ADD9-2D6346CF286E" : 2088380950805253851,
+    "2AC43B47-C4CE-420D-B92B-F8582A6C3809" : -152948029329877820,
+    "3387744D-E2A3-4625-AA02-CBF2B73F1BF4" : 1529712694674286179,
+    "41BB31AA-1754-4C8A-8E3E-864029701AD1" : -5515381721662001734,
     "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F" : -8367564950430382204,
-    "584A43A6-4386-4285-AB7B-4C54739E212B" : 2611228442523404562
+    "584A43A6-4386-4285-AB7B-4C54739E212B" : 2611228442523404562,
+    "6D0D2092-1FDF-4085-B88C-E08AEA3B6B16" : 2837599754311031371,
+    "76F07649-37F7-4BC6-8E55-4471592C895D" : 2211608204943820214,
+    "7786E0AE-79F8-41F3-BE87-502FA8ECAAF1" : 767443797124114710,
+    "836D6134-5434-4EC9-821D-68D23383812E" : 1628975564788603364,
+    "87541A76-3E00-4B59-BB91-0B8914A90D95" : 5898750744120669047,
+    "A6B3511A-4825-4A17-9F25-0953071E9F0A" : -5942128853412152772,
+    "C55B6220-E815-431B-A64C-AE7283AE1746" : 2170859742488741577,
+    "CB18D815-595C-4B7C-B815-553586729D86" : 6176534446645772058,
+    "F71CC138-7060-4531-9152-6E19DD81BFD8" : 8438621977738976771
   }
 }
