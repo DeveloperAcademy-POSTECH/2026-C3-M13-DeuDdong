@@ -176,6 +176,34 @@ final class PlacementManager {
         )
     }
     
+    private func normalizedScreenPosition(_ point: CGPoint) -> CGPoint? {
+        screenPoint(fromNormalizedPoint: point)
+    }
+
+    private func fallbackOrbPosition() -> SIMD3<Float> {
+        guard
+            let arView,
+            let frame = arView.session.currentFrame
+        else {
+            return SIMD3<Float>(0, 0, -0.5)
+        }
+
+        let cameraTransform = frame.camera.transform
+        let cameraPosition = SIMD3<Float>(
+            cameraTransform.columns.3.x,
+            cameraTransform.columns.3.y,
+            cameraTransform.columns.3.z
+        )
+
+        let cameraForward = normalize(-SIMD3<Float>(
+            cameraTransform.columns.2.x,
+            cameraTransform.columns.2.y,
+            cameraTransform.columns.2.z
+        ))
+
+        return cameraPosition + cameraForward * 0.7
+    }
+    
     func clearScene() {
         for anchor in sceneAnchors {
             anchor.removeFromParent()
@@ -282,11 +310,10 @@ final class PlacementManager {
         let denominator = simd_dot(rayDirection, planeNormal)
         guard abs(denominator) > 0.0001 else { return nil }
         
-        let t = simd_dot(planePoint - rayOrigin, planeNormal) / denominator
+        let intersectionDistance = simd_dot(planePoint - rayOrigin, planeNormal) / denominator
         
-        guard t >= 0 else { return nil }
+        guard intersectionDistance >= 0 else { return nil }
         
-        return rayOrigin + rayDirection * t
+        return rayOrigin + rayDirection * intersectionDistance
     }
 }
-
