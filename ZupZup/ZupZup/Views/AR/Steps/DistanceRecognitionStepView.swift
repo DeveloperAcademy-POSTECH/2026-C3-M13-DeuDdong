@@ -28,7 +28,7 @@ struct DistanceRecognitionStepView: View {
 
                 HStack {
 
-                    ARBackButton_light {
+                    ARBackButtonLight {
                         print("Back")
                     }
 
@@ -74,17 +74,13 @@ struct DistanceRecognitionStepView: View {
     }
 }
 
-
 struct HoleOverlay: View {
 
     var body: some View {
 
-        GeometryReader { geo in
-
+        GeometryReader {_ in
             ZStack {
-
                 Color.black.opacity(0.55)
-
                 Circle()
                     .frame(width: 280, height: 280)
                     .blendMode(.destinationOut)
@@ -94,7 +90,6 @@ struct HoleOverlay: View {
         .ignoresSafeArea()
     }
 }
-
 
 #Preview {
     DistanceRecognitionStepView()

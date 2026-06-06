@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C187DE82FCC5A6A00660EE9 /* ARKit.framework */; };
-		E72C1E6B2FD25350005F6D4B /* Develop.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = E72C1E6A2FD25350005F6D4B /* Develop.xcconfig */; };
 		CBC1D2732FD2975200EF9A02 /* ZupZupContent in Frameworks */ = {isa = PBXBuildFile; productRef = CBC1D2722FD2975200EF9A02 /* ZupZupContent */; };
+		E72C1E6B2FD25350005F6D4B /* Develop.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = E72C1E6A2FD25350005F6D4B /* Develop.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -273,6 +273,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		CBC106712FD0311600ACAE18 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);

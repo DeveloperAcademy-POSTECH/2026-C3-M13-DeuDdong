@@ -18,7 +18,7 @@ struct SpaceRecognitionStepView: View {
                 // MARK: 상단 영역
 
                 HStack {
-                    ARBackButton_black {
+                    ARBackButtonBlack {
                         print("Back")
                     }
                     Spacer()

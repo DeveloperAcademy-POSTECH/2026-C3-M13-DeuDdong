@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ARHomeButton_black: View {
+struct ARHomeButtonBlack: View {
     var action: () -> Void
 
     var body: some View {
@@ -22,7 +22,7 @@ struct ARHomeButton_black: View {
     }
 }
 
-struct ARHomeButton_light: View {
+struct ARHomeButtonLight: View {
     var action: () -> Void
 
     var body: some View {
@@ -37,7 +37,7 @@ struct ARHomeButton_light: View {
     }
 }
 
-struct ARBackButton_black: View {
+struct ARBackButtonBlack: View {
     var action: () -> Void
 
     var body: some View {
@@ -52,8 +52,7 @@ struct ARBackButton_black: View {
     }
 }
 
-
-struct ARBackButton_light: View {
+struct ARBackButtonLight: View {
     var action: () -> Void
 
     var body: some View {
@@ -347,14 +346,12 @@ struct TimeoutNoticeOverlay: View {
 #Preview {
     ZStack {
         Color.gray.ignoresSafeArea()
-        
         VStack(spacing: 28) {
             HStack {
-                ARHomeButton_black {}
-                ARBackButton_light {}
+                ARHomeButtonBlack {}
+                ARBackButtonLight {}
                 ARHelpButton {}
             }
-            
             OrbCountCapsule(current: 0, total: 11) // 두 번째 시안 테스트 매칭 (0/11)
             ConversationTimerView(remainingSeconds: 10)
             CountdownOverlay(count: 3)
