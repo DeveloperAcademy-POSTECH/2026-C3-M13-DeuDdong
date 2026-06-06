@@ -39,7 +39,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ **Build Succeeded!**'
+              body: '💩✅ 드똥 품질검사 통과. 빌드 성공입니다.'
             })
 
       - name: Post Comment on Failure
@@ -51,5 +51,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '❌ **Build Failed!**'
+              body: '💩❌ 드똥 품질검사 실패. 빌드 실패합니다.'
             })
