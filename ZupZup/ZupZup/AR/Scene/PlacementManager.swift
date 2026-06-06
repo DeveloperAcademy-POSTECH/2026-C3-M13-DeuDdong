@@ -17,11 +17,14 @@ final class PlacementManager {
     
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
-    private var orbEntities: [ModelEntity] = [] //만들어진 구슬 엔티티 배열(실제로 화면에 있는 구슬 객체)
+    private var orbEntities: [ModelEntity] = [] // 만들어진 구슬 엔티티 배열(실제로 화면에 있는 구슬 객체)
+    
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
+    private var selectedOrbDepth: Float?
+    private var selectedOrbScreenOffset = CGPoint.zero
     
-    private(set) var placedOrbs: [OrbData] = [] //구슬의 종류와 좌표값만 따로 저장하는 데이터 모델
+    private(set) var placedOrbs: [OrbData] = [] // 구슬의 종류와 좌표값만 따로 저장하는 데이터 모델
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = [] // 모델 엔티티와 앵커 앤티티 같이 저장
     
     var hasSelectedOrb: Bool {
@@ -35,15 +38,15 @@ final class PlacementManager {
     func placeOrb(emotion: EmotionType, at position: SIMD3<Float>) {
         guard let arView else { return }
         
-        // let orb = OrbEntity.makeOrb(emotion: emotion) //구슬 객체 생성
-        let orb = OrbEntity.makeDebugOrb(emotion: emotion) //디버그용 임시 구슬
+        // let orb = OrbEntity.makeOrb(emotion: emotion) // 구슬 객체 생성
+        let orb = OrbEntity.makeDebugOrb(emotion: emotion) // 디버그용 임시 구슬
         let anchor = AnchorEntity(world: position)
         
         anchor.addChild(orb)
         arView.scene.addAnchor(anchor)
         
         sceneAnchors.append(anchor)
-        orbEntities.append(orb) //관리 배열에 추가
+        orbEntities.append(orb) // 관리 배열에 추가
         orbPairs.append((orb, anchor))
         placedOrbs.append(OrbData(emotion: emotion, position: position)) // id 어쩔?
     }
@@ -53,20 +56,18 @@ final class PlacementManager {
         addToScene(bottle, at: position)
     }
     
-    func selectOrb(at screenPoint: CGPoint) { //화면 좌표에 있는 엔티티 찾기
+    func selectOrb(at screenPoint: CGPoint) { // 화면 좌표에 있는 엔티티 찾기
         guard let arView else { return }
         
-        let selectionThreshold: CGFloat = 70
+        let grabScreenDistance: CGFloat = 138
         
         var nearestPair: (orb: ModelEntity, anchor: AnchorEntity)?
         var nearestDistance: CGFloat = .greatestFiniteMagnitude
         
         for pair in orbPairs {
-            let worldPosition = pair.anchor.position(relativeTo: nil)
+            let worldPosition = pair.orb.position(relativeTo: nil)
             
             guard let orbScreenPoint = arView.project(worldPosition) else { continue }
-            
-            
             
             let dx = screenPoint.x - orbScreenPoint.x
             let dy = screenPoint.y - orbScreenPoint.y
@@ -78,26 +79,70 @@ final class PlacementManager {
             }
         }
         
-        guard let nearestPair, nearestDistance <= selectionThreshold else {
-            selectedOrb = nil
-            selectedOrbAnchor = nil
+        guard let nearestPair, nearestDistance <= grabScreenDistance else {
             logger.debug("선택 가능한 구슬 없음, 가장 가까운 거리: \(nearestDistance)")
             return
         }
         
         selectedOrb = nearestPair.orb
         selectedOrbAnchor = nearestPair.anchor
+        
+        if let orbScreenPoint = arView.project(nearestPair.orb.position(relativeTo: nil)) {
+            selectedOrbScreenOffset = CGPoint(
+                x: orbScreenPoint.x - screenPoint.x,
+                y: orbScreenPoint.y - screenPoint.y
+            )
+        }
+        
+        if let cameraTransform = arView.session.currentFrame?.camera.transform {
+            let cameraPosition = SIMD3<Float>(
+                cameraTransform.columns.3.x,
+                cameraTransform.columns.3.y,
+                cameraTransform.columns.3.z
+            )
+            
+            let cameraForward = normalize(-SIMD3<Float>(
+                cameraTransform.columns.2.x,
+                cameraTransform.columns.2.y,
+                cameraTransform.columns.2.z
+            ))
+            
+            let orbPosition = nearestPair.orb.position(relativeTo: nil)
+        
+            selectedOrbDepth = max(simd_dot(orbPosition - cameraPosition, cameraForward), 0.1)
+        }
+        
+        if selectedOrbDepth == nil {
+            selectedOrbDepth = 0.5
+        }
+        
         logger.debug("가장 가까운 구슬 선택됨: \(nearestPair.orb.name)")
     }
     
+    
     func moveSelectedOrb(to screenPoint: CGPoint) {
-        guard let selectedOrbAnchor else { return }
-        guard let worldPosition = horizontalPlanePosition(from: screenPoint) else {
-            logger.debug("구슬 이동 실패: 바닥 좌표를 찾지 못함 x: \(screenPoint.x), y: \(screenPoint.y)")
-            return }
+        guard let selectedOrb else { return }
         
-        selectedOrbAnchor.position = worldPosition
-        logger.debug("구슬 이동됨 x: \(worldPosition.x), y: \(worldPosition.y), z: \(worldPosition.z)")
+        let targetScreenPoint = CGPoint(
+            x: screenPoint.x + selectedOrbScreenOffset.x,
+            y: screenPoint.y + selectedOrbScreenOffset.y
+        )
+        
+        guard let worldPosition = depthPlanePosition(from: targetScreenPoint) else {
+            logger.debug("구슬 이동 실패")
+            return
+        }
+
+        let currentPosition = selectedOrb.position(relativeTo: nil)
+        let smoothing: Float = 0.25
+
+        let smoothedPosition = simd_mix(
+            currentPosition,
+            worldPosition,
+            SIMD3<Float>(repeating: smoothing)
+        )
+
+        selectedOrb.setPosition(smoothedPosition, relativeTo: nil)
     }
     
     func releaseSelectedOrb() {
@@ -105,15 +150,19 @@ final class PlacementManager {
         
         selectedOrb = nil
         selectedOrbAnchor = nil
+        selectedOrbDepth = nil
+        selectedOrbScreenOffset = .zero
+        
         logger.debug("구슬 놓기 완료")
     }
     
-    func screenPoint(fromNormalizedPoint point: CGPoint) -> CGPoint? { //화면 좌표 시스템 -> iOS 화면의 실제 픽셀 좌표(ScreenPoint)로 변환
+    func screenPoint(fromNormalizedPoint point: CGPoint) -> CGPoint? { // 화면 좌표 시스템 -> iOS 화면의 실제 픽셀 좌표(ScreenPoint)로 변환
         guard let arView else { return nil }
+        
         
         return CGPoint(
             x: point.x * arView.bounds.width,
-            y: (1 - point.y) * arView.bounds.height //Vision 좌표계와 UIKit 화면 좌표계의 y축 방향 다름
+            y: (1 - point.y) * arView.bounds.height // Vision 좌표계와 UIKit 화면 좌표계의 y축 방향 다름
         )
     }
     
@@ -128,20 +177,62 @@ final class PlacementManager {
         placedOrbs.removeAll()
     }
     
-    func horizontalPlanePosition(from screenPoint: CGPoint) -> SIMD3<Float>? { //2D -> 3D
+    func horizontalPlanePosition(from screenPoint: CGPoint) -> SIMD3<Float>? { // 2D -> 3D
         guard let arView else { return nil }
         return PlaneRaycaster.horizontalPlanePosition(from: screenPoint, in: arView)
     }
     
     func placeDemoObjects(on planeAnchor: ARPlaneAnchor) {
-        let center = planeAnchor.worldCenter //인식된 평면의 중심점
-        
-        placeBottle(at: center + SIMD3<Float>(0, 0.1, 0))
-        placeOrb(emotion: .praise, at: center + SIMD3<Float>(-0.25, 0.06, 0.0))
-        placeOrb(emotion: .encouragement, at: center + SIMD3<Float>(0.0, 0.06, 0.0))
-        placeOrb(emotion: .affection, at: center + SIMD3<Float>(0.25, 0.06, 0.0))
-        placeOrb(emotion: .gratitude, at: center + SIMD3<Float>(-0.12, 0.06, 0.25))
-        placeOrb(emotion: .empathy, at: center + SIMD3<Float>(0.12, 0.06, 0.25))
+        guard let center = cameraFrontFloorPosition(floorY: planeAnchor.worldCenter.y) else {
+            return
+        }
+
+        placeBottle(at: center)
+
+        placeOrb(emotion: .praise, at: center + SIMD3<Float>(-0.18, 0.025, 0.02))
+        placeOrb(emotion: .encouragement, at: center + SIMD3<Float>(-0.11, 0.025, 0.08))
+        placeOrb(emotion: .affection, at: center + SIMD3<Float>(0.12, 0.025, 0.07))
+        placeOrb(emotion: .gratitude, at: center + SIMD3<Float>(0.18, 0.025, -0.02))
+        placeOrb(emotion: .empathy, at: center + SIMD3<Float>(-0.05, 0.025, 0.14))
+    }
+    
+    private func cameraFrontFloorPosition(floorY: Float) -> SIMD3<Float>? {
+        guard let arView, let frame = arView.session.currentFrame else { return nil }
+
+        let cameraTransform = frame.camera.transform
+
+        let cameraPosition = SIMD3<Float>(
+            cameraTransform.columns.3.x,
+            cameraTransform.columns.3.y,
+            cameraTransform.columns.3.z
+        )
+
+        let cameraForward = normalize(-SIMD3<Float>(
+            cameraTransform.columns.2.x,
+            cameraTransform.columns.2.y,
+            cameraTransform.columns.2.z
+        ))
+
+        let floorForward = SIMD3<Float>(
+            cameraForward.x,
+            0,
+            cameraForward.z
+        )
+
+        let forwardLength = length(floorForward)
+
+        guard forwardLength > 0.0001 else {
+            return nil
+        }
+
+        let horizontalForward = floorForward / forwardLength
+        let target = cameraPosition + horizontalForward * 0.7
+
+        return SIMD3<Float>(
+            target.x,
+            floorY,
+            target.z
+        )
     }
     
     private func addToScene(_ entity: Entity, at position: SIMD3<Float>) {
@@ -152,4 +243,39 @@ final class PlacementManager {
         arView.scene.addAnchor(anchor)
         sceneAnchors.append(anchor)
     }
+    
+    private func depthPlanePosition(from screenPoint: CGPoint) -> SIMD3<Float>? {
+        guard let arView else { return nil }
+        guard let selectedOrbDepth else { return nil }
+        guard let ray = arView.ray(through: screenPoint) else { return nil }
+        guard let cameraTransform = arView.session.currentFrame?.camera.transform else { return nil }
+    
+        let cameraPosition = SIMD3<Float>(
+            cameraTransform.columns.3.x,
+            cameraTransform.columns.3.y,
+            cameraTransform.columns.3.z
+        )
+        
+        let cameraForword = normalize(-SIMD3<Float>(
+            cameraTransform.columns.2.x,
+            cameraTransform.columns.2.y,
+            cameraTransform.columns.2.z
+        ))
+        
+        let planePoint = cameraPosition + cameraForword * selectedOrbDepth
+        let planeNormal = cameraForword
+        
+        let rayOrigin = ray.origin
+        let rayDirection = normalize(ray.direction)
+        
+        let denominator = simd_dot(rayDirection, planeNormal)
+        guard abs(denominator) > 0.0001 else { return nil }
+        
+        let t = simd_dot(planePoint - rayOrigin, planeNormal) / denominator
+        
+        guard t >= 0 else { return nil }
+        
+        return rayOrigin + rayDirection * t
+    }
 }
+
