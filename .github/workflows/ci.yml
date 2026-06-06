@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project ZupZup.xcodeproj \
+            -scheme ZupZup \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -configuration Debug \
+            | xcpretty
+
+      - name: Post Comment on Success
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '💩✅ 드똥 품질검사 통과. 빌드 성공입니다.'
+            })
+
+      - name: Post Comment on Failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '💩❌ 드똥 품질검사 실패. 빌드 실패합니다.'
+            })

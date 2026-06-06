@@ -25,3 +25,4 @@ DerivedData/
 .build/
 
 Develop.xcconfig
+ZupZup/Develop.xcconfig

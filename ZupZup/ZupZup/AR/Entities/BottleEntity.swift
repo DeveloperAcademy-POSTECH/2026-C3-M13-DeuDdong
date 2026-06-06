@@ -6,7 +6,7 @@
 //
 
 import RealityKit
-import UIKit
+internal import UIKit
 
 enum BottleEntity {
     static func makeBottle() -> ModelEntity {
@@ -25,4 +25,3 @@ enum BottleEntity {
         return bottle
     }
 }
-

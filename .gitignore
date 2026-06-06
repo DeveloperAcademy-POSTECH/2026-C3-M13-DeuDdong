@@ -20,3 +20,7 @@ DerivedData/
 .build/
 
 ZupZup/Develop.xcconfig
+
+# Reality Composer Pro 사용자별 설정
+*.rcuserdata
+PluginData/

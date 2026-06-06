@@ -58,7 +58,7 @@ final class HandTrackingManager {
         do {
             // 핸들러를 통해 요청서(request)를 실행(perform)
             try handler.perform([request])
-            
+
             guard
                 let observation = request.results?.first, // request의 결과중 첫 번째 손을 꺼내서 observation 변수에 담고
                 let thumbTip = try? observation.recognizedPoint(.thumbTip), // 그 손에서 엄지 끝 좌표를 안전하게 추출
@@ -76,7 +76,7 @@ final class HandTrackingManager {
                 )
                 
             }
-            
+
             let dx = thumbTip.location.x - indexTip.location.x
             let dy = thumbTip.location.y - indexTip.location.y
             let newDistance = sqrt(dx * dx + dy * dy) // 피타고라스 공식
@@ -124,5 +124,3 @@ final class HandTrackingManager {
         }
     }
 }
-
-
