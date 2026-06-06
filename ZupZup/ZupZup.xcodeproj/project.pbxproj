@@ -106,12 +106,12 @@
 		56D795D92FC95B6100807EC5 = {
 			isa = PBXGroup;
 			children = (
+				E72C1E6A2FD25350005F6D4B /* Develop.xcconfig */,
 				56D795E42FC95B6100807EC5 /* ZupZup */,
 				56D795F22FC95B6200807EC5 /* ZupZupTests */,
 				56D795FC2FC95B6200807EC5 /* ZupZupUITests */,
 				3C187DE72FCC5A6900660EE9 /* Frameworks */,
 				56D795E32FC95B6100807EC5 /* Products */,
-				E72C1E6A2FD25350005F6D4B /* Develop.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
