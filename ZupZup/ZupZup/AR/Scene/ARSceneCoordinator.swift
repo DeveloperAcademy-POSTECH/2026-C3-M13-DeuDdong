@@ -22,9 +22,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var lastPinchSeenTime: TimeInterval = 0
     private let pinchLostGraceDuration: TimeInterval = 0.3
     private var isHandPoseRequestInFlight = false
-    
+
     private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
-    
+
     init(
         sessionManager: ARSessionManager,
         placementManager: PlacementManager,
@@ -67,53 +67,52 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         onPlaneStateChange(.searching)
         sessionManager.resetSession()
     }
-    
+
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         updatePlaneVisuals(for: anchors, action: .add)
         handlePlaneAnchors(anchors)
     }
-    
+
     func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) { // ARAnchor 업데이트 용
         updatePlaneVisuals(for: anchors, action: .update)
         handlePlaneAnchors(anchors)
     }
-    
+
     func session(_ session: ARSession, didUpdate frame: ARFrame) { // 카메라 프레임 업데이트 용
         let currentTime = Date().timeIntervalSince1970
         guard currentTime - lastHandPoseUpdateTime > 0.1, !isHandPoseRequestInFlight else { return }
-        
+
         lastHandPoseUpdateTime = currentTime
         isHandPoseRequestInFlight = true
-        
+
         let pixelBuffer = frame.capturedImage
-        
+
         handPoseQueue.async { [weak self] in
             let result = HandTrackingManager.detectHandPose(from: pixelBuffer)
-            
+
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                
+
                 defer { // 이 블록 끝나는 마지막 순간에 자동 실행
                     self.isHandPoseRequestInFlight = false
                 }
-                
+
                 HandTrackingManager.shared.apply(result)
                 self.handleHandGesture()
             }
         }
     }
-    
+
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
         for anchor in anchors {
             planeVisualizer?.remove(anchor.identifier)
         }
     }
-    
-    
+
     private func updatePlaneVisuals(for anchors: [ARAnchor], action: PlaneVisualAction) {
         for anchor in anchors {
             guard let planeAnchor = anchor as? ARPlaneAnchor else { continue }
-            
+
             switch action {
             case .add:
                 planeVisualizer?.add(planeAnchor)
@@ -122,23 +121,23 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             }
         }
     }
-    
+
     private func handlePlaneAnchors(_ anchors: [ARAnchor]) {
         guard let horizontalPlane = anchors.compactMap({ $0 as? ARPlaneAnchor })
             .first(where: { $0.alignment == .horizontal }) else {
             return
         }
-        
+
         onPlaneStateChange(.ready)
-        
+
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
         placementManager.placeDemoObjects(on: horizontalPlane)
     }
-    
+
     private func handleHandGesture() {
         let handTrackingManager = HandTrackingManager.shared
-        
+
         switch handTrackingManager.currentGesture {
         case .pinched:
             guard let indexTipPoint = handTrackingManager.indexTipPoint,
@@ -146,38 +145,38 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             else {
                 return
             }
-            
+
             lastPinchSeenTime = Date().timeIntervalSince1970
-            
+
             if !wasPinching {
                 placementManager.selectOrb(at: screenPoint)
                 wasPinching = true
                 return
             }
-            
+
             if placementManager.hasSelectedOrb {
                 placementManager.moveSelectedOrb(to: screenPoint)
             }
-            
+
             wasPinching = true
-            
+
         case .apart:
             releaseIfNeeded()
-            
+
         case .none:
             let elapsedSincePinch = Date().timeIntervalSince1970 - lastPinchSeenTime
-            
+
             if elapsedSincePinch > pinchLostGraceDuration {
                 releaseIfNeeded()
             }
         }
     }
-    
+
     private func releaseIfNeeded() {
         if wasPinching || placementManager.hasSelectedOrb {
             placementManager.releaseSelectedOrb()
         }
-        
+
         wasPinching = false
     }
 }
