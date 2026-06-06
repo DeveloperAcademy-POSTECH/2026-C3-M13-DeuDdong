@@ -15,6 +15,12 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var onPlaneStateChange: (ARState) -> Void
     private var hasPlacedDemoObjects = false
     private var lastHandPoseUpdateTime: TimeInterval = 0
+    private var wasPinching = false
+    private var lastPinchSeenTime: TimeInterval = 0
+    private let pinchLostGraceDuration: TimeInterval = 0.3
+    private var isHandPoseRequestInFlight = false
+    
+    private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
     
     init(
         sessionManager: ARSessionManager,
@@ -58,12 +64,27 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) { // 카메라 프레임 업데이트 용
         let currentTime = Date().timeIntervalSince1970
-        guard currentTime - lastHandPoseUpdateTime > 0.1 else { return }
+        guard currentTime - lastHandPoseUpdateTime > 0.1, !isHandPoseRequestInFlight else { return }
         
         lastHandPoseUpdateTime = currentTime
+        isHandPoseRequestInFlight = true
         
-        HandTrackingManager.shared.updateHandPose(from: frame.capturedImage)
-        handleHandGesture()
+        let pixelBuffer = frame.capturedImage
+        
+        handPoseQueue.async { [weak self] in
+            let result = HandTrackingManager.detectHandPose(from: pixelBuffer)
+            
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                
+                defer { // 이 블록 끝나는 마지막 순간에 자동 실행
+                    self.isHandPoseRequestInFlight = false
+                }
+                
+                HandTrackingManager.shared.apply(result)
+                self.handleHandGesture()
+            }
+        }
     }
     
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
@@ -104,21 +125,46 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         
         switch handTrackingManager.currentGesture {
         case .pinched:
-            guard let pinchCenter = HandTrackingManager.shared.pinchCenter else { return }
-            guard let screenPoint = placementManager.screenPoint(fromNormalizedPoint: pinchCenter) else { return }
+            guard let indexTipPoint = handTrackingManager.indexTipPoint,
+                  let screenPoint = placementManager.screenPoint(fromNormalizedPoint: indexTipPoint)
+            else {
+                return
+            }
+            
+            lastPinchSeenTime = Date().timeIntervalSince1970
+            
+            if !wasPinching {
+                placementManager.selectOrb(at: screenPoint)
+                wasPinching = true
+                return
+            }
             
             if placementManager.hasSelectedOrb {
                 placementManager.moveSelectedOrb(to: screenPoint)
-            } else {
-                placementManager.selectOrb(at: screenPoint)
             }
             
-        case .apart, .none:
-            placementManager.releaseSelectedOrb()
+            wasPinching = true
+            
+        case .apart:
+            releaseIfNeeded()
+            
+        case .none:
+            let elapsedSincePinch = Date().timeIntervalSince1970 - lastPinchSeenTime
+            
+            if elapsedSincePinch > pinchLostGraceDuration {
+                releaseIfNeeded()
+            }
         }
     }
+    
+    private func releaseIfNeeded() {
+        if wasPinching || placementManager.hasSelectedOrb {
+            placementManager.releaseSelectedOrb()
+        }
+        
+        wasPinching = false
+    }
 }
-
 
 private enum PlaneVisualAction {
     case add
