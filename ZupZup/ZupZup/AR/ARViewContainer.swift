@@ -27,7 +27,7 @@ struct ARViewContainer: UIViewRepresentable {
             emotionRuntime: emotionRuntime
         ) { state in
             planeState = state
-        }
+            }
     }
 
     func makeUIView(context: Context) -> ARView {
