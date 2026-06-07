@@ -17,17 +17,34 @@ struct ARSceneView: View {
     @State private var isConversationStarted = false
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
+    @State private var burstController = DebugBurstController()
+    @State private var orbPlacementController = DebugOrbPlacementController()
+    @State private var gridController = DebugGridController()
+    @State private var isGridVisible = true
     #endif
 
     var body: some View {
         ZStack {
+            #if DEBUG
             ARViewContainer(
                 sessionManager: sessionManager,
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
-                planeState: $planeState //
+                planeState: $planeState,
+                burstController: burstController,
+                orbPlacementController: orbPlacementController,
+                gridController: gridController
             )
-            .ignoresSafeArea() // 카메라 전체 화면 덮으려고 넣음
+            .ignoresSafeArea()
+            #else
+            ARViewContainer(
+                sessionManager: sessionManager,
+                placementManager: placementManager,
+                emotionRuntime: emotionRuntime,
+                planeState: $planeState
+            )
+            .ignoresSafeArea()
+            #endif
 
             #if DEBUG
             VStack(alignment: .leading, spacing: 8) {
@@ -47,6 +64,18 @@ struct ARSceneView: View {
 
                 #if DEBUG
                 HapticDebugView()
+                Button("파티클 터뜨리기") {
+                    burstController.fire()
+                }
+                .buttonStyle(.borderedProminent)
+                Button("구슬 물리 테스트") {
+                    orbPlacementController.fire()
+                }
+                .buttonStyle(.borderedProminent)
+                Button(isGridVisible ? "그리드 끄기" : "그리드 켜기") {
+                    isGridVisible = gridController.toggleVisibility()
+                }
+                .buttonStyle(.bordered)
                 #endif
 
                 ARStatusOverlayView(state: planeState)

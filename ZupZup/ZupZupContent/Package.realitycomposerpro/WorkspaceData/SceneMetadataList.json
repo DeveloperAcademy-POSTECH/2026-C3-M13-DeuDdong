@@ -1,9 +1,43 @@
 {
+  "15793E0C-A92F-4F0C-ADD9-2D6346CF286E" : {
+    "objectMetadataList" : [
+      [
+        "15793E0C-A92F-4F0C-ADD9-2D6346CF286E",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "3387744D-E2A3-4625-AA02-CBF2B73F1BF4" : {
+    "objectMetadataList" : [
+      [
+        "3387744D-E2A3-4625-AA02-CBF2B73F1BF4",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
   "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F" : {
     "objectMetadataList" : [
       [
         "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
         "Root",
+        "love"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+        "Root",
+        "love",
         "love"
       ],
       {
@@ -33,16 +67,6 @@
         "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
         "Root",
         "love",
-        "love"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
-        "Root",
-        "love",
         "love",
         "Object_26",
         "Object_26"
@@ -50,6 +74,66 @@
       {
         "disallowsFraming" : false,
         "isExpanded" : false,
+        "isLocked" : false
+      }
+    ]
+  },
+  "6D0D2092-1FDF-4085-B88C-E08AEA3B6B16" : {
+    "objectMetadataList" : [
+      [
+        "6D0D2092-1FDF-4085-B88C-E08AEA3B6B16",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "76F07649-37F7-4BC6-8E55-4471592C895D" : {
+    "objectMetadataList" : [
+      [
+        "76F07649-37F7-4BC6-8E55-4471592C895D",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "7786E0AE-79F8-41F3-BE87-502FA8ECAAF1" : {
+    "objectMetadataList" : [
+      [
+        "7786E0AE-79F8-41F3-BE87-502FA8ECAAF1",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "A6B3511A-4825-4A17-9F25-0953071E9F0A" : {
+    "objectMetadataList" : [
+      [
+        "A6B3511A-4825-4A17-9F25-0953071E9F0A",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "F71CC138-7060-4531-9152-6E19DD81BFD8" : {
+    "objectMetadataList" : [
+      [
+        "F71CC138-7060-4531-9152-6E19DD81BFD8",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
         "isLocked" : false
       }
     ]

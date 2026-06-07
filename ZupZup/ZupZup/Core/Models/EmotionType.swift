@@ -5,7 +5,7 @@
 //  Created by 승민 on 5/29/26.
 //
 
-import UIKit
+internal import UIKit
 
     // 감정 타입은 정해진 감정에 맞게 네이밍 했는데, 원하시면 바꿔도 됩니다~!~!
 enum EmotionType: String, CaseIterable, Identifiable {

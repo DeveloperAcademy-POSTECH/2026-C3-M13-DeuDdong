@@ -12,15 +12,16 @@ jobs:
     runs-on: macos-latest
     permissions:
       pull-requests: write
+
     steps:
       - uses: actions/checkout@v4
 
-      # SwiftLint 실행 (에러가 나도 빌드 단계로 넘어가도록 설정)
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
       - name: Run SwiftLint
         run: swiftlint
-        continue-on-error: true
 
-      # 대상 기기를 iPhone 17 Pro로 변경한 Build 단계
       - name: Build
         run: |
           xcodebuild build \
