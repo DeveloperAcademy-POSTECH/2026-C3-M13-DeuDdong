@@ -78,6 +78,11 @@ struct ARSceneView: View {
                 .buttonStyle(.bordered)
                 #endif
 
+                if planeState == .ready {
+                    ConversationAudioLevelOverlay(speechState: emotionRuntime.speechState)
+                        .padding(.bottom, 8)
+                }
+
                 ARStatusOverlayView(state: planeState)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 28)
