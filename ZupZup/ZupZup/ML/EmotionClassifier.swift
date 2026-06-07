@@ -171,7 +171,9 @@ final class EmotionClassifier: EmotionClassifying {
                     emotionConfidence: 0,
                     emotionConfidenceAvailable: false,
                     candidateEmotion: nil,
-                    decisionReason: polarityResult.confidenceAvailable ? "model:polarity-gate" : "model:polarity-gate:no-probability",
+                    decisionReason: polarityResult.confidenceAvailable
+                        ? "model:polarity-gate"
+                        : "model:polarity-gate:no-probability",
                     createdAt: Date()
                 )
             }
@@ -189,7 +191,9 @@ final class EmotionClassifier: EmotionClassifying {
                 emotionConfidence: positiveResult.confidence,
                 emotionConfidenceAvailable: positiveResult.confidenceAvailable,
                 candidateEmotion: candidate,
-                decisionReason: positiveResult.confidenceAvailable ? "model:positive-type" : "model:positive-type:no-probability",
+                decisionReason: positiveResult.confidenceAvailable
+                    ? "model:positive-type"
+                    : "model:positive-type:no-probability",
                 createdAt: Date()
             )
         } catch {

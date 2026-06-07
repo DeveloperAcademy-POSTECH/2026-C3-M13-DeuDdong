@@ -230,8 +230,8 @@ final class FaceTracker: FaceTracking {
     }
 
     private func distance(_ lhs: CGPoint, _ rhs: CGPoint) -> Double {
-        let dx = lhs.x - rhs.x
-        let dy = lhs.y - rhs.y
-        return sqrt(Double(dx * dx + dy * dy))
+        let xDistance = lhs.x - rhs.x
+        let yDistance = lhs.y - rhs.y
+        return sqrt(Double(xDistance * xDistance + yDistance * yDistance))
     }
 }
