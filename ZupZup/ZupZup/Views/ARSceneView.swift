@@ -14,7 +14,7 @@ struct ARSceneView: View {
     @State private var emotionRuntime = EmotionRuntime(configuration: .conversation)
     @State private var countdownCuePlayer = ConversationCountdownCuePlayer()
     @State private var countdownValue: Int?
-    @State private var didStartConversation = false
+    @State private var isConversationStarted = false
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     #endif
@@ -80,23 +80,23 @@ struct ARSceneView: View {
 
     @MainActor
     private func startConversationAfterCountdown() async {
-        guard !didStartConversation else { return }
+        guard !isConversationStarted else { return }
 
         countdownCuePlayer.speakIntro()
 
         for count in stride(from: 3, through: 1, by: -1) {
             countdownValue = count
             countdownCuePlayer.playTick()
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            try? await Task.sleep(for: .seconds(1))
 
-            guard !Task.isCancelled else {
+            if Task.isCancelled {
                 countdownValue = nil
                 return
             }
         }
 
         countdownValue = nil
-        didStartConversation = true
+        isConversationStarted = true
         await emotionRuntime.start()
     }
 }
