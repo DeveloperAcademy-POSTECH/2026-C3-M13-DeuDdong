@@ -10,8 +10,10 @@ internal import UIKit
 
 @MainActor
 enum BottleEntity {
+    private static let assetName = "Bottle"
+
     static func makeBottle() async -> Entity {
-        if let loaded = await EntityLoader.load(named: "Bottle") {
+        if let loaded = await EntityLoader.load(named: assetName) {
             return loaded
         }
         return makePlaceholderBottle()

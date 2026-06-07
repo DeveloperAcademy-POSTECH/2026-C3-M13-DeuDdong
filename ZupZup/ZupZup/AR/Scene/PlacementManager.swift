@@ -14,6 +14,7 @@ import OSLog
 @MainActor
 final class PlacementManager {
     private static let bottleCameraOffset = SIMD3<Float>(0, -0.1, -0.5)
+    private static let bottleAnchorName = "BottleCameraAnchor"
 
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
@@ -71,7 +72,7 @@ final class PlacementManager {
             let bottle = await BottleEntity.makeBottle()
 
             let anchor = AnchorEntity(.camera)
-            anchor.name = "BottleCameraAnchor"
+            anchor.name = Self.bottleAnchorName
             bottle.position = Self.bottleCameraOffset
 
             anchor.addChild(bottle)
