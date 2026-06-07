@@ -102,7 +102,7 @@ struct ARSceneView: View {
                 .buttonStyle(.bordered)
                 #endif
 
-                if planeState == .ready {
+                if planeState == .ready && isConversationStarted {
                     ConversationAudioLevelOverlay(speechState: emotionRuntime.speechState)
                         .padding(.bottom, 8)
                 }
