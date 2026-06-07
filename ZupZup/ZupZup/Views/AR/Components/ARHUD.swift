@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ARHomeButton: View {
+struct ARHomeButtonBlack: View {
     var action: () -> Void
 
     var body: some View {
@@ -22,7 +22,22 @@ struct ARHomeButton: View {
     }
 }
 
-struct ARBackButton: View {
+struct ARHomeButtonLight: View {
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "house.fill")
+                .font(.system(size: 20, weight: .semibold)) // 기존 CircularIconButton 크기에 맞춤
+                .foregroundStyle(ZZColor.gray0)              // 아이콘 색상 고정
+                .frame(width: 44, height: 44)               // 일반적인 상단 히트박스 원형 크기
+                .background(ZZColor.gray3.opacity(0.5))     // 배경 원 색상 + 투명도 50%
+                .clipShape(Circle())
+        }
+    }
+}
+
+struct ARBackButtonBlack: View {
     var action: () -> Void
 
     var body: some View {
@@ -32,6 +47,21 @@ struct ARBackButton: View {
                 .foregroundStyle(ZZColor.gray0)
                 .frame(width: 44, height: 44)
                 .background(ZZColor.gray7.opacity(0.5))
+                .clipShape(Circle())
+        }
+    }
+}
+
+struct ARBackButtonLight: View {
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(ZZColor.gray0)
+                .frame(width: 44, height: 44)
+                .background(ZZColor.gray3.opacity(0.5))
                 .clipShape(Circle())
         }
     }
@@ -316,14 +346,12 @@ struct TimeoutNoticeOverlay: View {
 #Preview {
     ZStack {
         Color.gray.ignoresSafeArea()
-
         VStack(spacing: 28) {
             HStack {
-                ARHomeButton {}
-                ARBackButton {}
+                ARHomeButtonBlack {}
+                ARBackButtonLight {}
                 ARHelpButton {}
             }
-
             OrbCountCapsule(current: 0, total: 11) // 두 번째 시안 테스트 매칭 (0/11)
             ConversationTimerView(remainingSeconds: 10)
             CountdownOverlay(count: 3)

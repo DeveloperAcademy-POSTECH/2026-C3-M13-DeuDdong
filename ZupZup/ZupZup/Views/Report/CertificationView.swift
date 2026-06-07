@@ -1,3 +1,5 @@
+// 인증샷 화면인데 할지말지 확정 아님!!
+
 import SwiftUI
 
 struct CertificationView: View {

@@ -13,9 +13,13 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let placementManager: PlacementManager
     private let emotionRuntime: EmotionRuntimeManaging
     private let handTrackingManager = HandTrackingManager.shared
+    private let orbSpawnManager = OrbSpawnManager()
+    private let orbPhysicsController = OrbPhysicsController()
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
+    private weak var arView: ARView?
     private var hasPlacedDemoObjects = false
+    private var lastOrbPhysicsUpdateTime: CFTimeInterval?
     private var lastHandPoseUpdateTime: TimeInterval = 0 // 마지막으로 AI 검사를 완료한 시각
     private var lastFaceTrackingUpdateTime: TimeInterval = 0
     init(
@@ -29,8 +33,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         self.emotionRuntime = emotionRuntime
         self.onPlaneStateChange = onPlaneStateChange
     }
-        // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
+
     func install(on arView: ARView) {
+        self.arView = arView
         sessionManager.attach(to: arView)
         placementManager.attach(to: arView)
         planeVisualizer = PlaneVisualizer(arView: arView)
@@ -38,13 +43,33 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         sessionManager.startSession()
     }
 
+    #if DEBUG
+    func triggerDebugBurst(emotion: EmotionType = .affection) {
+        guard let arView else { return }
+        let col2 = arView.cameraTransform.matrix.columns.2
+        let forward = SIMD3<Float>(col2.x, col2.y, col2.z)
+        let position = arView.cameraTransform.translation + forward * -3.0
+        ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
+    }
+
+    func triggerDebugOrbPlacement() {
+        createPhysicsOrb(for: nil)
+    }
+
+    func toggleGridVisibility() -> Bool {
+        planeVisualizer?.toggleVisible() ?? true
+    }
+    #endif
+
     func updatePlaneStateHandler(_ handler: @escaping (ARState) -> Void) {
         onPlaneStateChange = handler
     }
 
     func resetScene() {
         hasPlacedDemoObjects = false
+        lastOrbPhysicsUpdateTime = nil
         planeVisualizer?.removeAll()
+        orbPhysicsController.removeAll(from: arView)
         placementManager.clearScene()
         onPlaneStateChange(.searching)
         sessionManager.resetSession()
@@ -63,6 +88,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     // handTrackingManager와 ARView 연결
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let currentTime = Date().timeIntervalSince1970 // 현재 시간 체크(스톱워치 확인)
+        updatePhysicsOrbsIfNeeded(now: currentTime)
         updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
 
         // (현재 시간 - 마지막으로 검사한 시간)이 0.1초보다 작거나 같으면 아래 코드 실행하지 말고 이 프레임 버리기
@@ -110,10 +136,41 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
 
         onPlaneStateChange(.ready)
+        placementManager.createInvisiblePhysicsFloor(at: horizontalPlane.worldCenter)
 
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
         placementManager.placeDemoObjects(on: horizontalPlane)
+    }
+
+    private func createPhysicsOrb(for emotion: EmotionType?) {
+        guard placementManager.hasFloor,
+              let arView,
+              let trackedOrb = orbSpawnManager.createOrb(
+                in: arView,
+                floorY: placementManager.floorY,
+                emotion: emotion
+              ) else {
+            return
+        }
+
+        orbPhysicsController.addOrb(trackedOrb, in: arView)
+    }
+
+    private func updatePhysicsOrbsIfNeeded(now: CFTimeInterval) {
+        guard orbPhysicsController.hasOrbs else {
+            lastOrbPhysicsUpdateTime = nil
+            return
+        }
+
+        let deltaTime = Float(min(max(now - (lastOrbPhysicsUpdateTime ?? now), 0), 1.0 / 20.0))
+        lastOrbPhysicsUpdateTime = now
+        orbPhysicsController.updateOrbs(
+            floorY: placementManager.floorY,
+            deltaTime: deltaTime,
+            now: now,
+            playAreaCenter: placementManager.playAreaCenter
+        )
     }
 }
 
