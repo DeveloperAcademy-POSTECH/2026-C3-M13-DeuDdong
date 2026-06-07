@@ -15,6 +15,10 @@ struct ARSceneView: View {
     @State private var countdownCuePlayer = ConversationCountdownCuePlayer()
     @State private var countdownValue: Int?
     @State private var isConversationStarted = false
+    @State private var remainingConversationSeconds = 180
+    @State private var secondsWithoutOrb = 0
+    @State private var trackedOrbCount = 0
+    @State private var showsPraisePrompt = false
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     @State private var burstController = DebugBurstController()
@@ -59,6 +63,26 @@ struct ARSceneView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             #endif
 
+            if isConversationStarted {
+                VStack(spacing: 8) {
+                    ConversationTimerView(remainingSeconds: remainingConversationSeconds)
+
+                    if showsPraisePrompt {
+                        StatusToast(
+                            text: "칭찬의 한마디를 해보세요",
+                            systemName: "heart.text.square.fill",
+                            isWarning: false
+                        )
+                        .padding(.horizontal, ZZSpacing.screenHorizontal)
+                        .transition(.opacity)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, 28)
+                .allowsHitTesting(false)
+            }
+
             VStack(spacing: 12) {
                 Spacer(minLength: 0)
 
@@ -78,7 +102,7 @@ struct ARSceneView: View {
                 .buttonStyle(.bordered)
                 #endif
 
-                if planeState == .ready {
+                if planeState == .ready && isConversationStarted {
                     ConversationAudioLevelOverlay(speechState: emotionRuntime.speechState)
                         .padding(.bottom, 8)
                 }
@@ -132,6 +156,40 @@ struct ARSceneView: View {
         countdownValue = nil
         isConversationStarted = true
         await emotionRuntime.start()
+        await runConversationTimer()
+    }
+
+    @MainActor
+    private func runConversationTimer() async {
+        remainingConversationSeconds = 180
+        secondsWithoutOrb = 0
+        trackedOrbCount = emotionRuntime.emittedOrbEvents.count
+        showsPraisePrompt = false
+
+        while remainingConversationSeconds > 0 {
+            try? await Task.sleep(for: .seconds(1))
+
+            if Task.isCancelled {
+                return
+            }
+
+            remainingConversationSeconds -= 1
+            updatePraisePromptState()
+        }
+    }
+
+    private func updatePraisePromptState() {
+        let currentOrbCount = emotionRuntime.emittedOrbEvents.count
+
+        if currentOrbCount > trackedOrbCount {
+            trackedOrbCount = currentOrbCount
+            secondsWithoutOrb = 0
+            showsPraisePrompt = false
+            return
+        }
+
+        secondsWithoutOrb += 1
+        showsPraisePrompt = secondsWithoutOrb >= 60
     }
 }
 
