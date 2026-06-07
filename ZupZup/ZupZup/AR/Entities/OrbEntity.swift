@@ -32,7 +32,6 @@ enum OrbEntity {
         )
 
         orb.name = "Orb_\(emotion.rawValue)"
-        PhysicsSetup.applyDynamicBody(to: orb, shape: shape) // collision shape 넣어야지 레이를 쐈을 때 구슬이 맞음
         return orb
     }
 
