@@ -11,7 +11,6 @@ import OSLog
 class HapticManager {
     static let shared = HapticManager()
 
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ZupZup", category: "Haptic")
     private var engine: CHHapticEngine?
     private var engineError: HapticError?
 
@@ -25,7 +24,7 @@ class HapticManager {
             self.engine = engine
 
             engine.stoppedHandler = { [weak self] reason in
-                self?.logger.info("햅틱 엔진 정지: \(reason.rawValue, privacy: .public)")
+                Logger.haptic.info("햅틱 엔진 정지: \(reason.rawValue, privacy: .public)")
                 self?.restartEngine()
             }
 
@@ -36,7 +35,7 @@ class HapticManager {
             try engine.start()
         } catch {
             engineError = .engineFailed
-            logger.error("햅틱 엔진 생성/시작 실패: \(error.localizedDescription, privacy: .public)")
+            Logger.haptic.error("햅틱 엔진 생성/시작 실패: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -64,7 +63,7 @@ class HapticManager {
 
     private func play(events: [CHHapticEvent]) {
         guard let engine else {
-            logger.error("햅틱 재생 실패: \((self.engineError ?? .engineFailed).localizedDescription)")
+            Logger.haptic.error("햅틱 재생 실패: \((self.engineError ?? .engineFailed).localizedDescription)")
              return
         }
         do {
@@ -72,7 +71,7 @@ class HapticManager {
             let player = try engine.makePlayer(with: pattern)
             try player.start(atTime: 0)
         } catch {
-            logger.error("햅틱 재생 실패: \(error.localizedDescription)")
+            Logger.haptic.error("햅틱 재생 실패: \(error.localizedDescription)")
         }
     }
 }

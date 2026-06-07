@@ -6,7 +6,7 @@
 //
 
 import RealityKit
-import UIKit
+internal import UIKit
 
 enum GridTexture {
     static let resource: TextureResource = {

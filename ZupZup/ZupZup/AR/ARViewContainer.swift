@@ -14,6 +14,9 @@ struct ARViewContainer: UIViewRepresentable {
     let placementManager: PlacementManager
     let emotionRuntime: EmotionRuntimeManaging
     @Binding var planeState: ARState
+    #if DEBUG
+    let burstController: DebugBurstController
+    #endif
 
     func makeCoordinator() -> ARSceneCoordinator {
         ARSceneCoordinator(
@@ -32,6 +35,11 @@ struct ARViewContainer: UIViewRepresentable {
             automaticallyConfigureSession: false
             )
         context.coordinator.install(on: arView)
+        #if DEBUG
+        burstController.trigger = { [weak coordinator = context.coordinator] in
+            coordinator?.triggerDebugBurst()
+        }
+        #endif
         return arView
     }
 
