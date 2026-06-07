@@ -15,6 +15,9 @@ struct ARSceneView: View {
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     @State private var burstController = DebugBurstController()
+    @State private var orbPlacementController = DebugOrbPlacementController()
+    @State private var gridController = DebugGridController()
+    @State private var isGridVisible = true
     #endif
 
     var body: some View {
@@ -25,7 +28,9 @@ struct ARSceneView: View {
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
                 planeState: $planeState,
-                burstController: burstController
+                burstController: burstController,
+                orbPlacementController: orbPlacementController,
+                gridController: gridController
             )
             .ignoresSafeArea()
             #else
@@ -60,6 +65,14 @@ struct ARSceneView: View {
                     burstController.fire()
                 }
                 .buttonStyle(.borderedProminent)
+                Button("구슬 물리 테스트") {
+                    orbPlacementController.fire()
+                }
+                .buttonStyle(.borderedProminent)
+                Button(isGridVisible ? "그리드 끄기" : "그리드 켜기") {
+                    isGridVisible = gridController.toggleVisibility()
+                }
+                .buttonStyle(.bordered)
                 #endif
 
                 ARStatusOverlayView(state: planeState)

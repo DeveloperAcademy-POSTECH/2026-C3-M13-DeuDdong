@@ -16,6 +16,8 @@ struct ARViewContainer: UIViewRepresentable {
     @Binding var planeState: ARState
     #if DEBUG
     let burstController: DebugBurstController
+    let orbPlacementController: DebugOrbPlacementController
+    let gridController: DebugGridController
     #endif
 
     func makeCoordinator() -> ARSceneCoordinator {
@@ -23,9 +25,9 @@ struct ARViewContainer: UIViewRepresentable {
             sessionManager: sessionManager,
             placementManager: placementManager,
             emotionRuntime: emotionRuntime
-        ) {
-                state in planeState = state
-            }
+        ) { state in
+            planeState = state
+        }
     }
 
     func makeUIView(context: Context) -> ARView {
@@ -39,13 +41,19 @@ struct ARViewContainer: UIViewRepresentable {
         burstController.trigger = { [weak coordinator = context.coordinator] in
             coordinator?.triggerDebugBurst()
         }
+        orbPlacementController.trigger = { [weak coordinator = context.coordinator] in
+            coordinator?.triggerDebugOrbPlacement()
+        }
+        gridController.toggle = { [weak coordinator = context.coordinator] in
+            coordinator?.toggleGridVisibility() ?? true
+        }
         #endif
         return arView
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {
-        context.coordinator.updatePlaneStateHandler {
-            state in planeState = state
+        context.coordinator.updatePlaneStateHandler { state in
+            planeState = state
         }
     }
 
