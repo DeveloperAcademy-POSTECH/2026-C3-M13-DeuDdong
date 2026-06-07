@@ -14,6 +14,8 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let emotionRuntime: EmotionRuntimeManaging
     private var lastFaceTrackingUpdateTime: TimeInterval = 0
     private let handTrackingManager = HandTrackingManager.shared
+    private let orbSpawnManager = OrbSpawnManager()
+    private let orbPhysicsController = OrbPhysicsController()
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
     private weak var arView: ARView?
@@ -26,6 +28,8 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
     private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
 
+    private var lastOrbPhysicsUpdateTime: CFTimeInterval?
+    private var lastFaceTrackingUpdateTime: TimeInterval = 0
     init(
         sessionManager: ARSessionManager,
         placementManager: PlacementManager,
@@ -37,7 +41,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         self.emotionRuntime = emotionRuntime
         self.onPlaneStateChange = onPlaneStateChange
     }
-    // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
+
     func install(on arView: ARView) {
         self.arView = arView
         sessionManager.attach(to: arView)
@@ -55,6 +59,14 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         let position = arView.cameraTransform.translation + forward * -3.0
         ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
     }
+
+    func triggerDebugOrbPlacement() {
+        createPhysicsOrb(for: nil)
+    }
+
+    func toggleGridVisibility() -> Bool {
+        planeVisualizer?.toggleVisible() ?? true
+    }
     #endif
 
     func updatePlaneStateHandler(_ handler: @escaping (ARState) -> Void) {
@@ -63,7 +75,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
     func resetScene() {
         hasPlacedDemoObjects = false
+        lastOrbPhysicsUpdateTime = nil
         planeVisualizer?.removeAll()
+        orbPhysicsController.removeAll(from: arView)
         placementManager.clearScene()
         onPlaneStateChange(.searching)
         sessionManager.resetSession()
@@ -81,7 +95,8 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let currentTime = Date().timeIntervalSince1970
-
+        updatePhysicsOrbsIfNeeded(now: currentTime)
+        updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
         updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
         updateHandTrackingIfNeeded(from: frame, currentTime: currentTime)
     }
@@ -151,6 +166,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
 
         onPlaneStateChange(.ready)
+        placementManager.createInvisiblePhysicsFloor(at: horizontalPlane.worldCenter)
 
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
@@ -200,6 +216,34 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
 
         wasPinching = false
+    private func createPhysicsOrb(for emotion: EmotionType?) {
+        guard placementManager.hasFloor,
+              let arView,
+              let trackedOrb = orbSpawnManager.createOrb(
+                in: arView,
+                floorY: placementManager.floorY,
+                emotion: emotion
+              ) else {
+            return
+        }
+
+        orbPhysicsController.addOrb(trackedOrb, in: arView)
+    }
+
+    private func updatePhysicsOrbsIfNeeded(now: CFTimeInterval) {
+        guard orbPhysicsController.hasOrbs else {
+            lastOrbPhysicsUpdateTime = nil
+            return
+        }
+
+        let deltaTime = Float(min(max(now - (lastOrbPhysicsUpdateTime ?? now), 0), 1.0 / 20.0))
+        lastOrbPhysicsUpdateTime = now
+        orbPhysicsController.updateOrbs(
+            floorY: placementManager.floorY,
+            deltaTime: deltaTime,
+            now: now,
+            playAreaCenter: placementManager.playAreaCenter
+        )
     }
 }
 

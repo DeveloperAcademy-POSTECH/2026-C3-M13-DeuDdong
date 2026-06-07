@@ -15,17 +15,22 @@ import OSLog
 final class PlacementManager {
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
-
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
     private var selectedOrbDepth: Float?
     private var selectedOrbScreenOffset = CGPoint.zero
-
-    private(set) var placedOrbs: [OrbData] = [] // 구슬의 종류와 좌표값만 따로 저장하는 데이터 모델
-    private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = [] // 모델 엔티티와 앵커 앤티티 같이 저장
+    private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
 
     var hasSelectedOrb: Bool {
         selectedOrb != nil
+
+    private var invisibleFloorEntity: Entity?
+    private(set) var placedOrbs: [OrbData] = []
+    private(set) var playAreaCenter: SIMD3<Float>?
+    private(set) var floorY: Float?
+
+    var hasFloor: Bool {
+        invisibleFloorEntity != nil
     }
 
     func attach(to arView: ARView) {
@@ -195,6 +200,9 @@ final class PlacementManager {
         sceneAnchors.removeAll()
         orbPairs.removeAll()
         placedOrbs.removeAll()
+        invisibleFloorEntity = nil
+        playAreaCenter = nil
+        floorY = nil
     }
 
     func horizontalPlanePosition(from screenPoint: CGPoint) -> SIMD3<Float>? { // 2D -> 3D
@@ -254,6 +262,28 @@ final class PlacementManager {
             floorY,
             target.z
         )
+    }
+
+    func createInvisiblePhysicsFloor(at position: SIMD3<Float>) {
+        guard let arView, invisibleFloorEntity == nil else {
+            return
+        }
+
+        let floorSize = SIMD3<Float>(12.0, 0.04, 12.0)
+        let collisionShape = ShapeResource.generateBox(size: floorSize)
+        let floorEntity = Entity()
+        floorEntity.name = "InvisiblePhysicsFloor"
+        OrbPhysicsSettings.applyStaticBody(to: floorEntity, shape: collisionShape)
+
+        let anchor = AnchorEntity(world: position)
+        anchor.name = "InvisibleFloorAnchor"
+        anchor.addChild(floorEntity)
+
+        arView.scene.addAnchor(anchor)
+        sceneAnchors.append(anchor)
+        invisibleFloorEntity = floorEntity
+        playAreaCenter = position
+        floorY = position.y
     }
 
     private func addToScene(_ entity: Entity, at position: SIMD3<Float>) {
