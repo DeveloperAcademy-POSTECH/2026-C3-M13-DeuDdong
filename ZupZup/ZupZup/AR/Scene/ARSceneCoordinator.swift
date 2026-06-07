@@ -25,11 +25,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var lastPinchSeenTime: TimeInterval = 0
     private let pinchLostGraceDuration: TimeInterval = 0.3
     private var isHandPoseRequestInFlight = false
-
     private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
-
     private var lastOrbPhysicsUpdateTime: CFTimeInterval?
-    private var lastFaceTrackingUpdateTime: TimeInterval = 0
+
     init(
         sessionManager: ARSessionManager,
         placementManager: PlacementManager,
@@ -216,6 +214,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
 
         wasPinching = false
+    }
     private func createPhysicsOrb(for emotion: EmotionType?) {
         guard placementManager.hasFloor,
               let arView,
