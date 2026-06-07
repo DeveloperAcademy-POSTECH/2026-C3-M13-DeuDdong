@@ -23,8 +23,8 @@ struct ARViewContainer: UIViewRepresentable {
             sessionManager: sessionManager,
             placementManager: placementManager,
             emotionRuntime: emotionRuntime
-        ) {
-                state in planeState = state
+        ) { state in
+            planeState = state
             }
     }
 
@@ -44,8 +44,8 @@ struct ARViewContainer: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {
-        context.coordinator.updatePlaneStateHandler {
-            state in planeState = state
+        context.coordinator.updatePlaneStateHandler { state in
+            planeState = state
         }
     }
 

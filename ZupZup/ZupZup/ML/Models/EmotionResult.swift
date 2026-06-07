@@ -75,7 +75,8 @@ struct EmotionResult: Equatable {
     var confidenceSummary: String {
         let polarityMark = polarityConfidenceAvailable ? percentage(polarityConfidence) : "N/A"
         let emotionMark = emotionConfidenceAvailable ? percentage(emotionConfidence) : "N/A"
-        return "polarity=\(polarity.rawValue)(\(polarityMark)), emotion=\(displayEmotion?.koreanLabel ?? "없음")(\(emotionMark))"
+        let emotionLabel = displayEmotion?.koreanLabel ?? "없음"
+        return "polarity=\(polarity.rawValue)(\(polarityMark)), emotion=\(emotionLabel)(\(emotionMark))"
     }
 
     var debugSummary: String {

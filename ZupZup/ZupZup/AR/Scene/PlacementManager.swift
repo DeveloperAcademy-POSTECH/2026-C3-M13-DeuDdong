@@ -17,7 +17,6 @@ final class PlacementManager {
 
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
-    private var orbEntities: [ModelEntity] = [] // 만들어진 구슬 엔티티 배열(실제로 화면에 있는 구슬 객체)
 
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
@@ -46,7 +45,6 @@ final class PlacementManager {
         arView.scene.addAnchor(anchor)
 
         sceneAnchors.append(anchor)
-        orbEntities.append(orb) // 관리 배열에 추가
         orbPairs.append((orb, anchor))
         placedOrbs.append(OrbData(emotion: emotion, position: position)) // id 어쩔?
     }
@@ -79,9 +77,9 @@ final class PlacementManager {
 
             guard let orbScreenPoint = arView.project(worldPosition) else { continue }
 
-            let dx = screenPoint.x - orbScreenPoint.x
-            let dy = screenPoint.y - orbScreenPoint.y
-            let distance = sqrt(dx * dx + dy * dy)
+            let xDistance = screenPoint.x - orbScreenPoint.x
+            let yDistance = screenPoint.y - orbScreenPoint.y
+            let distance = sqrt(xDistance * xDistance + yDistance * yDistance)
 
             if distance < nearestDistance {
                 nearestDistance = distance
@@ -197,7 +195,6 @@ final class PlacementManager {
         }
 
         sceneAnchors.removeAll()
-        orbEntities.removeAll()
         orbPairs.removeAll()
         placedOrbs.removeAll()
     }

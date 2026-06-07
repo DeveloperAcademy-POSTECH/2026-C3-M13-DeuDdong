@@ -74,9 +74,9 @@ final class HandTrackingManager {
 
             }
 
-            let dx = thumbTip.location.x - indexTip.location.x
-            let dy = thumbTip.location.y - indexTip.location.y
-            let newDistance = sqrt(dx * dx + dy * dy) // 피타고라스 공식
+            let xDistance = thumbTip.location.x - indexTip.location.x
+            let yDistance = thumbTip.location.y - indexTip.location.y
+            let newDistance = sqrt(xDistance * xDistance + yDistance * yDistance) // 피타고라스 공식
 
             let gesture: HandGestureState
 
