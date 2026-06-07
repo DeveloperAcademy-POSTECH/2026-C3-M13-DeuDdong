@@ -1,5 +1,5 @@
 {
-  "advancedEditorSelectedIdentifier" : "ShaderGraphEditorPluginID",
+  "advancedEditorSelectedIdentifier" : "ProjectBrowser",
   "openSceneRelativePaths" : [
     "AffectionBall.usda",
     "PraiseBall.usda"
@@ -1307,5 +1307,5 @@
   "sceneViewportBackgroundColors" : {
 
   },
-  "selectedSceneRelativePath" : "PraiseBall.usda"
+  "selectedSceneRelativePath" : "AffectionBall.usda"
 }
