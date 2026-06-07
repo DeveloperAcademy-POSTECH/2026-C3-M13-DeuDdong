@@ -7,12 +7,13 @@
 
 import ARKit
 import RealityKit
-import UIKit
+internal import UIKit
 
 final class PlaneVisualizer {
     private var anchors: [UUID: AnchorEntity] = [:]
     private var meshes: [UUID: ModelEntity] = [:]
     private weak var arView: ARView?
+    private var isVisible = true
 
     init(arView: ARView) {
         self.arView = arView
@@ -25,6 +26,7 @@ final class PlaneVisualizer {
         let mesh = makeMesh(for: planeAnchor)
 
         anchorEntity.addChild(mesh)
+        anchorEntity.isEnabled = isVisible
         arView.scene.addAnchor(anchorEntity)
         anchors[planeAnchor.identifier] = anchorEntity
         meshes[planeAnchor.identifier] = mesh
@@ -40,7 +42,21 @@ final class PlaneVisualizer {
 
         let mesh = makeMesh(for: planeAnchor)
         anchorEntity.addChild(mesh)
+        anchorEntity.isEnabled = isVisible
         meshes[planeAnchor.identifier] = mesh
+    }
+
+    @discardableResult
+    func toggleVisible() -> Bool {
+        setVisible(!isVisible)
+        return isVisible
+    }
+
+    func setVisible(_ visible: Bool) {
+        isVisible = visible
+        for anchor in anchors.values {
+            anchor.isEnabled = visible
+        }
     }
 
     func remove(_ identifier: UUID) {

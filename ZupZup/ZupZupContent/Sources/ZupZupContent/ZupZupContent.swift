@@ -1,3 +1,3 @@
 import Foundation
 
-public let ZupZupContentBundle = Bundle.module
+public let zupZupContentBundle = Bundle.module

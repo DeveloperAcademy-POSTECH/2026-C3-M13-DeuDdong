@@ -14,7 +14,14 @@ import simd
 final class PlacementManager {
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
+    private var invisibleFloorEntity: Entity?
     private(set) var placedOrbs: [OrbData] = []
+    private(set) var playAreaCenter: SIMD3<Float>?
+    private(set) var floorY: Float?
+
+    var hasFloor: Bool {
+        invisibleFloorEntity != nil
+    }
 
     func attach(to arView: ARView) {
         self.arView = arView
@@ -48,6 +55,9 @@ final class PlacementManager {
 
         sceneAnchors.removeAll()
         placedOrbs.removeAll()
+        invisibleFloorEntity = nil
+        playAreaCenter = nil
+        floorY = nil
     }
 
     func horizontalPlanePosition(from screenPoint: CGPoint) -> SIMD3<Float>? {
@@ -64,6 +74,28 @@ final class PlacementManager {
         placeOrb(emotion: .affection, at: center + SIMD3<Float>(0.11, 0.03, 0.07))
         placeOrb(emotion: .gratitude, at: center + SIMD3<Float>(0.12, 0.04, 0.08))
         placeOrb(emotion: .empathy, at: center + SIMD3<Float>(0.3, 0.09, 0.1))
+    }
+
+    func createInvisiblePhysicsFloor(at position: SIMD3<Float>) {
+        guard let arView, invisibleFloorEntity == nil else {
+            return
+        }
+
+        let floorSize = SIMD3<Float>(12.0, 0.04, 12.0)
+        let collisionShape = ShapeResource.generateBox(size: floorSize)
+        let floorEntity = Entity()
+        floorEntity.name = "InvisiblePhysicsFloor"
+        OrbPhysicsSettings.applyStaticBody(to: floorEntity, shape: collisionShape)
+
+        let anchor = AnchorEntity(world: position)
+        anchor.name = "InvisibleFloorAnchor"
+        anchor.addChild(floorEntity)
+
+        arView.scene.addAnchor(anchor)
+        sceneAnchors.append(anchor)
+        invisibleFloorEntity = floorEntity
+        playAreaCenter = position
+        floorY = position.y
     }
 
     private func addToScene(_ entity: Entity, at position: SIMD3<Float>) {
