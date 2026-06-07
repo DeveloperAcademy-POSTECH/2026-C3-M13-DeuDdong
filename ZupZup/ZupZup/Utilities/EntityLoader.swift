@@ -14,10 +14,10 @@ enum EntityLoader {
         do {
             let entity = try await Entity(named: name, in: ZupZupContentBundle)
             let elapsed = Date().timeIntervalSince(start) * 1000
-            Logger.ar.info("'\(name)' 로드 완료: \(String(format: "%.1f", elapsed))ms")
+            Logger.arScene.info("'\(name)' 로드 완료: \(String(format: "%.1f", elapsed))ms")
             return entity
         } catch {
-            Logger.ar.error("'\(name)' 로드 실패: \(error)")
+            Logger.arScene.error("'\(name)' 로드 실패: \(error)")
             return nil
         }
     }

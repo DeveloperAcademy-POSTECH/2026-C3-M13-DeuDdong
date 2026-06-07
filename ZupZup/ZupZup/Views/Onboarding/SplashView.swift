@@ -12,16 +12,19 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            ZZColor.gray0.ignoresSafeArea()
+            Image("splash")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
 
             Text("zup\nzup")
-                .font(.system(size: 80, weight: .black, design: .rounded))
+                .font(.system(size: 80, weight: .black))
                 .foregroundStyle(ZZColor.brand400)
                 .multilineTextAlignment(.center)
-                .lineSpacing(-8)
+                .lineSpacing(-12)
         }
         .task {
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             onFinished()
         }
     }
