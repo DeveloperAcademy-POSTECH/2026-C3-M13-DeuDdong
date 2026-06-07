@@ -15,6 +15,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let handTrackingManager = HandTrackingManager.shared
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
+    private weak var arView: ARView?
     private var hasPlacedDemoObjects = false
     private var lastHandPoseUpdateTime: TimeInterval = 0 // 마지막으로 AI 검사를 완료한 시각
     private var lastFaceTrackingUpdateTime: TimeInterval = 0
@@ -31,12 +32,23 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
         // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
     func install(on arView: ARView) {
+        self.arView = arView
         sessionManager.attach(to: arView)
         placementManager.attach(to: arView)
         planeVisualizer = PlaneVisualizer(arView: arView)
         arView.session.delegate = self
         sessionManager.startSession()
     }
+
+    #if DEBUG
+    func triggerDebugBurst(emotion: EmotionType = .affection) {
+        guard let arView else { return }
+        let col2 = arView.cameraTransform.matrix.columns.2
+        let forward = SIMD3<Float>(col2.x, col2.y, col2.z)
+        let position = arView.cameraTransform.translation + forward * -3.0
+        ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
+    }
+    #endif
 
     func updatePlaneStateHandler(_ handler: @escaping (ARState) -> Void) {
         onPlaneStateChange = handler

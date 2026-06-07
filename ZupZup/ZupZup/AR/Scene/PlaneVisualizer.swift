@@ -7,7 +7,7 @@
 
 import ARKit
 import RealityKit
-import UIKit
+internal import UIKit
 
 final class PlaneVisualizer {
     private var anchors: [UUID: AnchorEntity] = [:]
