@@ -90,7 +90,7 @@ extension ARTalkingView {
 
                 HStack {
 
-                    ARBackButtonBlack {
+                    ARBackButtonDark {
                         print("Back")
                     }
 
@@ -167,7 +167,7 @@ extension ARTalkingView {
                     // 좌우 버튼
                     HStack {
 
-                        ARHomeButtonBlack {
+                        ARHomeButtonDark {
 
                             withAnimation {
                                 showHomeExitOverlay = true

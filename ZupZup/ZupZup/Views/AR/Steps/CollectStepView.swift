@@ -237,7 +237,7 @@ struct ARCollectView: View {
 
                 HStack {
 
-                    ARHomeButtonBlack {
+                    ARHomeButtonDark {
                         print("Home")
                     }
 

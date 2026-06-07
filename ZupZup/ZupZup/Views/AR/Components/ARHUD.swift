@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-struct ARHomeButtonBlack: View {
+struct ARHomeButtonDark: View {
     var action: () -> Void
 
     var body: some View {
@@ -38,7 +38,7 @@ struct ARHomeButtonLight: View {
     }
 }
 
-struct ARBackButtonBlack: View {
+struct ARBackButtonDark: View {
     var action: () -> Void
 
     var body: some View {
@@ -333,8 +333,8 @@ struct TimeoutNoticeOverlay: View {
 
         VStack(spacing: 28) {
             HStack {
-                ARHomeButtonBlack {}
-                ARBackButtonBlack {}
+                ARHomeButtonDark {}
+                ARBackButtonDark {}
                 ARHelpButton {}
             }
 

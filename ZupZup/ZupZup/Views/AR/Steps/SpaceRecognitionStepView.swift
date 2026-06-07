@@ -25,7 +25,7 @@ struct SpaceRecognitionStepView: View {
 
                 HStack {
 
-                    ARBackButtonBlack {
+                    ARBackButtonDark {
                         print("Back")
                     }
 
