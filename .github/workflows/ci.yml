@@ -24,6 +24,7 @@ jobs:
 
       - name: Build
         run: |
+          cd ZupZup
           xcodebuild build \
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
