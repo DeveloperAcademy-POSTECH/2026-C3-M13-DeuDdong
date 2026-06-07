@@ -13,8 +13,6 @@ import OSLog
 
 @MainActor
 final class PlacementManager {
-    private let logger = Logger(subsystem: "ZupZup", category: "Placement")
-
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
 
@@ -88,7 +86,7 @@ final class PlacementManager {
         }
 
         guard let nearestPair, nearestDistance <= grabScreenDistance else {
-            logger.debug("선택 가능한 구슬 없음, 가장 가까운 거리: \(nearestDistance)")
+            Logger.placement.debug("선택 가능한 구슬 없음, 가장 가까운 거리: \(nearestDistance)")
             return
         }
 
@@ -123,7 +121,7 @@ final class PlacementManager {
         if selectedOrbDepth == nil {
             selectedOrbDepth = 0.5
         }
-        logger.debug("가장 가까운 구슬 선택됨: \(nearestPair.orb.name)")
+        Logger.placement.debug("가장 가까운 구슬 선택됨: \(nearestPair.orb.name)")
     }
     func moveSelectedOrb(to screenPoint: CGPoint) {
         guard let selectedOrb else { return }
@@ -132,7 +130,7 @@ final class PlacementManager {
             y: screenPoint.y + selectedOrbScreenOffset.y
         )
         guard let worldPosition = depthPlanePosition(from: targetScreenPoint) else {
-            logger.debug("구슬 이동 실패")
+            Logger.placement.debug("구슬 이동 실패")
             return
         }
 
@@ -153,7 +151,7 @@ final class PlacementManager {
         selectedOrbAnchor = nil
         selectedOrbDepth = nil
         selectedOrbScreenOffset = .zero
-        logger.debug("구슬 놓기 완료")
+        Logger.placement.debug("구슬 놓기 완료")
     }
     func screenPoint(fromNormalizedPoint point: CGPoint) -> CGPoint? { // 화면 좌표 시스템 -> iOS 화면의 실제 픽셀 좌표(ScreenPoint)로 변환
         guard let arView else { return nil }

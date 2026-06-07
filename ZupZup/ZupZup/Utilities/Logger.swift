@@ -11,4 +11,5 @@ extension Logger {
     static let particle = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ZupZup", category: "Particle")
     static let haptic = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ZupZup", category: "Haptic")
     static let arScene = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ZupZup", category: "AR")
+    static let placement = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ZupZup", category: "Placement")
 }
