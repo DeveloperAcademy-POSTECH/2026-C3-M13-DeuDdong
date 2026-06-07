@@ -1,4 +1,3 @@
 import Foundation
 
-// swiftlint:disable:next identifier_name
-public let ZupZupContentBundle = Bundle.module
+public let zupZupContentBundle = Bundle.module
