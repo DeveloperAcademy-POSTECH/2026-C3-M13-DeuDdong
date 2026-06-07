@@ -20,14 +20,14 @@ final class PlacementManager {
     private var selectedOrbDepth: Float?
     private var selectedOrbScreenOffset = CGPoint.zero
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
-
-    var hasSelectedOrb: Bool {
-        selectedOrb != nil
-
     private var invisibleFloorEntity: Entity?
     private(set) var placedOrbs: [OrbData] = []
     private(set) var playAreaCenter: SIMD3<Float>?
     private(set) var floorY: Float?
+
+    var hasSelectedOrb: Bool {
+        selectedOrb != nil
+    }
 
     var hasFloor: Bool {
         invisibleFloorEntity != nil
