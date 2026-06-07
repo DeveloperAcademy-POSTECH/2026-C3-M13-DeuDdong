@@ -26,6 +26,8 @@ jobs:
         run: |
           set -o pipefail
       
+          cd ZupZup
+      
           xcodebuild build \
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
