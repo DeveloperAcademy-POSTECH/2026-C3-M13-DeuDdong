@@ -1,6 +1,8 @@
 //
-//  SpaceRecognitionStepView.swift
-//  ZupZup
+//  AR_1.swift
+//  Zupzup
+//
+//  Created by Kimseoyeon on 6/5/26.
 //
 
 import SwiftUI
@@ -13,18 +15,24 @@ struct SpaceRecognitionStepView: View {
 
         ZStack {
 
+            // Preview용 배경
+            Color.gray
+                .ignoresSafeArea()
+
             VStack {
 
                 // MARK: 상단 영역
 
                 HStack {
-                    ARBackButtonBlack {
+
+                    ARBackButtonDark {
                         print("Back")
                     }
+
                     Spacer()
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 79)
+                .padding(.top, 78)
 
                 Spacer()
             }
@@ -67,7 +75,7 @@ struct SpaceRecognitionStepView: View {
                                 .scaledToFit()
                                 .frame(width: 50)
                                 .offset(
-                                    x: moveRight ? 80 : -80,
+                                    x: moveRight ? 70 : -70,
                                     y: 35
                                 )
                                 .rotationEffect(
@@ -81,7 +89,6 @@ struct SpaceRecognitionStepView: View {
                         }
 
                         // MARK: 안내 문구
-
                         Spacer()
                         Text("격자 무늬가 나올 때까지\n바닥을 바라봐주세요")
                             .font(ZZFont.subheadline)

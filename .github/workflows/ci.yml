@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check Xcode Version
+        run: |
+          xcodebuild -version
+          swift --version
+
       - name: Install SwiftLint
         run: brew install swiftlint
 
@@ -24,7 +29,10 @@ jobs:
 
       - name: Build
         run: |
+          set -o pipefail
+
           cd ZupZup
+
           xcodebuild build \
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
