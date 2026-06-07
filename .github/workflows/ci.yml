@@ -37,8 +37,7 @@ jobs:
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-            -configuration Debug \
-            | xcpretty
+            -configuration Debug
 
       - name: Post Comment on Success
         if: success() && github.event_name == 'pull_request'
