@@ -28,7 +28,7 @@ struct AutoCollectView: View {
                 HStack {
 
                     ARHomeButtonDark {
-                        print("Home")
+                        showHomeExitOverlay = true
                     }
 
                     Spacer()
@@ -80,6 +80,21 @@ struct AutoCollectView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
             .ignoresSafeArea(edges: .bottom)
+            
+                if showHomeExitOverlay {
+
+                    HomeExitOverlay(
+
+                        cancelAction: {
+                            showHomeExitOverlay = false
+                        },
+
+                        confirmAction: {
+                            print("Go Home")
+                        }
+                    )
+                    .zIndex(999)
+                }
         }
         .ignoresSafeArea()
     }

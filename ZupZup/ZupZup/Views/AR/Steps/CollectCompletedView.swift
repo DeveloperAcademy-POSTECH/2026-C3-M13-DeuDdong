@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct CollectCompletedView: View {
+    @State private var showHomeExitOverlay = false
 
     let currentOrbCount: Int
     let totalOrbCount: Int
@@ -28,7 +29,7 @@ struct CollectCompletedView: View {
                 HStack {
 
                     ARHomeButtonDark {
-                        print("Home")
+                        showHomeExitOverlay = true
                     }
 
                     Spacer()
@@ -84,6 +85,20 @@ struct CollectCompletedView: View {
             }
             .ignoresSafeArea()
             .allowsHitTesting(false)
+            
+            if showHomeExitOverlay {
+                    HomeExitOverlay(
+
+                        cancelAction: {
+                            showHomeExitOverlay = false
+                        },
+
+                        confirmAction: {
+                            print("Go Home")
+                        }
+                    )
+                    .zIndex(999)
+                }
         }
         .ignoresSafeArea()
     }
