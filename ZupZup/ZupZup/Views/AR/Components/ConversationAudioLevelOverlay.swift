@@ -14,8 +14,6 @@ struct ConversationAudioLevelOverlay: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            VoiceWaveformView(samples: waveformSamples, strokeColor: waveformColor)
-                .padding(.horizontal, -20)
 
             if shouldShowLowAudioWarning {
                 StatusToast(
