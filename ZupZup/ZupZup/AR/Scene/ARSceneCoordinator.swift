@@ -12,12 +12,23 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let sessionManager: ARSessionManager
     private let placementManager: PlacementManager
     private let emotionRuntime: EmotionRuntimeManaging
+    private var lastFaceTrackingUpdateTime: TimeInterval = 0
     private let handTrackingManager = HandTrackingManager.shared
+    private let orbSpawnManager = OrbSpawnManager()
+    private let orbPhysicsController = OrbPhysicsController()
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
     private weak var arView: ARView?
     private var hasPlacedDemoObjects = false
-    private var lastHandPoseUpdateTime: TimeInterval = 0 // 마지막으로 AI 검사를 완료한 시각
+    private var lastHandPoseUpdateTime: TimeInterval = 0
+    private var wasPinching = false
+    private var lastPinchSeenTime: TimeInterval = 0
+    private let pinchLostGraceDuration: TimeInterval = 0.3
+    private var isHandPoseRequestInFlight = false
+
+    private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
+
+    private var lastOrbPhysicsUpdateTime: CFTimeInterval?
     private var lastFaceTrackingUpdateTime: TimeInterval = 0
     init(
         sessionManager: ARSessionManager,
@@ -30,7 +41,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         self.emotionRuntime = emotionRuntime
         self.onPlaneStateChange = onPlaneStateChange
     }
-        // ARSceneCoordinator는 두뇌같은 역할이죠. 그치만 멍청한 친구 같아요. 왜 자꾸 말을 안 듣니?
+
     func install(on arView: ARView) {
         self.arView = arView
         sessionManager.attach(to: arView)
@@ -48,6 +59,14 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         let position = arView.cameraTransform.translation + forward * -3.0
         ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
     }
+
+    func triggerDebugOrbPlacement() {
+        createPhysicsOrb(for: nil)
+    }
+
+    func toggleGridVisibility() -> Bool {
+        planeVisualizer?.toggleVisible() ?? true
+    }
     #endif
 
     func updatePlaneStateHandler(_ handler: @escaping (ARState) -> Void) {
@@ -56,7 +75,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
     func resetScene() {
         hasPlacedDemoObjects = false
+        lastOrbPhysicsUpdateTime = nil
         planeVisualizer?.removeAll()
+        orbPhysicsController.removeAll(from: arView)
         placementManager.clearScene()
         onPlaneStateChange(.searching)
         sessionManager.resetSession()
@@ -67,38 +88,61 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         handlePlaneAnchors(anchors)
     }
 
-    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
+    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) { // ARAnchor 업데이트 용
         updatePlaneVisuals(for: anchors, action: .update)
         handlePlaneAnchors(anchors)
     }
 
-    // handTrackingManager와 ARView 연결
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        let currentTime = Date().timeIntervalSince1970 // 현재 시간 체크(스톱워치 확인)
+        let currentTime = Date().timeIntervalSince1970
+        updatePhysicsOrbsIfNeeded(now: currentTime)
         updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
-
-        // (현재 시간 - 마지막으로 검사한 시간)이 0.1초보다 작거나 같으면 아래 코드 실행하지 말고 이 프레임 버리기
-        guard currentTime - lastHandPoseUpdateTime > 0.1 else { return }
-
-        // gurad문 무사히 통과했다면 마지막 검사시간을 지금 시간으로 업데이트
-        lastHandPoseUpdateTime = currentTime
-        // 이 프레임의 이미지 데이터를 AI엔진에게 전달해서 손가락 분석
-        handTrackingManager.updateHandPose(from: frame.capturedImage)
-    }
-
-    private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
-        guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
-
-        lastFaceTrackingUpdateTime = currentTime
-        _ = emotionRuntime.updateFaceTracking(
-            in: frame.capturedImage,
-            orientation: .right
-        )
+        updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
+        updateHandTrackingIfNeeded(from: frame, currentTime: currentTime)
     }
 
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
         for anchor in anchors {
             planeVisualizer?.remove(anchor.identifier)
+        }
+    }
+    
+    private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
+        guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
+
+        lastFaceTrackingUpdateTime = currentTime
+
+        _ = emotionRuntime.updateFaceTracking(
+            in: frame.capturedImage,
+            orientation: .right
+        )
+    }
+    
+    private func updateHandTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
+        guard currentTime - lastHandPoseUpdateTime > 0.1,
+              !isHandPoseRequestInFlight
+        else {
+            return
+        }
+
+        lastHandPoseUpdateTime = currentTime
+        isHandPoseRequestInFlight = true
+
+        let pixelBuffer = frame.capturedImage
+
+        handPoseQueue.async { [weak self] in
+            let result = HandTrackingManager.detectHandPose(from: pixelBuffer)
+
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+
+                defer {
+                    self.isHandPoseRequestInFlight = false
+                }
+
+                HandTrackingManager.shared.apply(result)
+                self.handleHandGesture()
+            }
         }
     }
 
@@ -122,10 +166,84 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
 
         onPlaneStateChange(.ready)
+        placementManager.createInvisiblePhysicsFloor(at: horizontalPlane.worldCenter)
 
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
         placementManager.placeDemoObjects(on: horizontalPlane)
+    }
+
+    private func handleHandGesture() {
+        let handTrackingManager = HandTrackingManager.shared
+
+        switch handTrackingManager.currentGesture {
+        case .pinched:
+            guard let indexTipPoint = handTrackingManager.indexTipPoint,
+                  let screenPoint = placementManager.screenPoint(fromNormalizedPoint: indexTipPoint)
+            else {
+                return
+            }
+
+            lastPinchSeenTime = Date().timeIntervalSince1970
+
+            if !wasPinching {
+                placementManager.selectOrb(at: screenPoint)
+                wasPinching = true
+                return
+            }
+
+            if placementManager.hasSelectedOrb {
+                placementManager.moveSelectedOrb(to: screenPoint)
+            }
+
+            wasPinching = true
+
+        case .apart:
+            releaseIfNeeded()
+
+        case .none:
+            let elapsedSincePinch = Date().timeIntervalSince1970 - lastPinchSeenTime
+
+            if elapsedSincePinch > pinchLostGraceDuration {
+                releaseIfNeeded()
+            }
+        }
+    }
+
+    private func releaseIfNeeded() {
+        if wasPinching || placementManager.hasSelectedOrb {
+            placementManager.releaseSelectedOrb()
+        }
+
+        wasPinching = false
+    private func createPhysicsOrb(for emotion: EmotionType?) {
+        guard placementManager.hasFloor,
+              let arView,
+              let trackedOrb = orbSpawnManager.createOrb(
+                in: arView,
+                floorY: placementManager.floorY,
+                emotion: emotion
+              ) else {
+            return
+        }
+
+        orbPhysicsController.addOrb(trackedOrb, in: arView)
+    }
+
+    private func updatePhysicsOrbsIfNeeded(now: CFTimeInterval) {
+        guard orbPhysicsController.hasOrbs else {
+            lastOrbPhysicsUpdateTime = nil
+            return
+        }
+
+        let deltaTime = Float(min(max(now - (lastOrbPhysicsUpdateTime ?? now), 0), 1.0 / 20.0))
+        lastOrbPhysicsUpdateTime = now
+        orbPhysicsController.updateOrbs(
+            floorY: placementManager.floorY,
+            deltaTime: deltaTime,
+            now: now,
+            playAreaCenter: placementManager.playAreaCenter
+        )
     }
 }
 
