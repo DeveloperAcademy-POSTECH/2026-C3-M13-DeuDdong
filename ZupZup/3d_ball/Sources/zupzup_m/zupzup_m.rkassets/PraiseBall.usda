@@ -1,0 +1,265 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (494.60.2)"
+    }
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def "clov" (
+        active = true
+        references = @clov.usdz@
+    )
+    {
+        float3 xformOp:scale = (0.005, 0.005, 0.005)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_materials"
+        {
+            over "Material_2_005"
+            {
+                token outputs:mtlx:surface.connect = </Root/clov/_materials/Material_2_005/PreviewSurface.outputs:out>
+                token outputs:realitykit:vertex
+                token outputs:surface.connect = </Root/clov/_materials/Material_2_005/Principled_BSDF.outputs:surface>
+                float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (347.9453, 83.44531)
+                int ui:nodegraph:realitykit:subgraphOutputs:stackingOrder = 206
+
+                over "Principled_BSDF" (
+                    active = false
+                )
+                {
+                }
+
+                def Shader "PreviewSurface"
+                {
+                    uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                    float inputs:clearcoatRoughness = 0.5
+                    color3f inputs:diffuseColor = (0.5403607, 1, 0.19207199) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                    color3f inputs:emissiveColor.connect = </Root/clov/_materials/Material_2_005/Add.outputs:out>
+                    float inputs:ior = 5
+                    float inputs:metallic = 1
+                    float3 inputs:normal
+                    float inputs:occlusion = 1
+                    float inputs:opacity
+                    float inputs:roughness = 0.1
+                    token outputs:out
+                    float2 ui:nodegraph:node:pos = (98.17578, 67.94141)
+                    int ui:nodegraph:node:stackingOrder = 249
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced"]
+                }
+
+                def Shader "Noise3D"
+                {
+                    uniform token info:id = "ND_noise3d_float"
+                    float inputs:amplitude
+                    float inputs:pivot
+                    float3 inputs:position.connect = </Root/clov/_materials/Material_2_005/Multiply.outputs:out>
+                    float outputs:out
+                    float2 ui:nodegraph:node:pos = (-267.9043, 146.09511)
+                    int ui:nodegraph:node:stackingOrder = 202
+                }
+
+                def Shader "Multiply"
+                {
+                    uniform token info:id = "ND_multiply_vector3FA"
+                    float3 inputs:in1.connect = </Root/clov/_materials/Material_2_005/Position.outputs:out>
+                    float inputs:in2.connect = </Root/clov/_materials/Material_2_005/Noise_Scale.outputs:out>
+                    float3 outputs:out
+                    float2 ui:nodegraph:node:pos = (-439.96857, 144.22966)
+                    int ui:nodegraph:node:stackingOrder = 202
+                }
+
+                def Shader "Add"
+                {
+                    uniform token info:id = "ND_add_color3FA"
+                    color3f inputs:in1.connect = </Root/clov/_materials/Material_2_005/ConstantColor3.outputs:out>
+                    float inputs:in2.connect = </Root/clov/_materials/Material_2_005/Noise3D.outputs:out>
+                    color3f outputs:out
+                    float2 ui:nodegraph:node:pos = (-92.03656, 54.69226)
+                    int ui:nodegraph:node:stackingOrder = 202
+                }
+
+                def Shader "Noise_Scale"
+                {
+                    uniform token info:id = "ND_constant_float"
+                    float inputs:value = 13
+                    float outputs:out
+                    float2 ui:nodegraph:node:pos = (-626.2231, 199.86668)
+                    int ui:nodegraph:node:stackingOrder = 247
+                }
+
+                def Shader "ConstantColor3"
+                {
+                    uniform token info:id = "ND_constant_color3"
+                    color3f inputs:value = (0.69501257, 0.9018945, 0.20842445) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                    color3f outputs:out
+                    float2 ui:nodegraph:node:pos = (-284.23395, 0.03829956)
+                    int ui:nodegraph:node:stackingOrder = 246
+                }
+
+                def Shader "Position"
+                {
+                    uniform token info:id = "ND_position_vector3"
+                    string inputs:space = "world"
+                    float3 outputs:out
+                    float2 ui:nodegraph:node:pos = (-648.14923, 104.39049)
+                    int ui:nodegraph:node:stackingOrder = 224
+                }
+            }
+
+            over "Material_2_004"
+            {
+                token outputs:mtlx:surface.connect = </Root/clov/_materials/Material_2_004/PreviewSurface.outputs:out>
+                token outputs:realitykit:vertex
+                token outputs:surface.connect = </Root/clov/_materials/Material_2_004/Principled_BSDF.outputs:surface>
+                float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (116.62062, 112.905334)
+                int ui:nodegraph:realitykit:subgraphOutputs:stackingOrder = 12
+
+                over "Principled_BSDF" (
+                    active = false
+                )
+                {
+                }
+
+                def Shader "PreviewSurface"
+                {
+                    uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                    float inputs:clearcoat
+                    float inputs:clearcoatRoughness = 0
+                    color3f inputs:diffuseColor = (0.6439037, 1, 0.00866227) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                    color3f inputs:emissiveColor.connect = </Root/clov/_materials/Material_2_004/Add.outputs:out>
+                    float inputs:ior
+                    float inputs:metallic = 1
+                    float3 inputs:normal = (0, 0, 1)
+                    float inputs:occlusion = 1
+                    float inputs:opacity = 0.4
+                    float inputs:roughness = 0.01
+                    token outputs:out
+                    float2 ui:nodegraph:node:pos = (-138.01274, 147.18004)
+                    int ui:nodegraph:node:stackingOrder = 269
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced"]
+                }
+
+                def Shader "ConstantColor3"
+                {
+                    uniform token info:id = "ND_constant_color3"
+                    color3f inputs:value = (0.79710716, 0.91265625, 0.45067304) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                    color3f outputs:out
+                    float2 ui:nodegraph:node:pos = (-510.7803, 42.551502)
+                    int ui:nodegraph:node:stackingOrder = 276
+                }
+
+                def Shader "Noise3D"
+                {
+                    uniform token info:id = "ND_noise3d_float"
+                    float inputs:amplitude
+                    float inputs:pivot
+                    float3 inputs:position.connect = </Root/clov/_materials/Material_2_004/Multiply.outputs:out>
+                    float outputs:out
+                    float2 ui:nodegraph:node:pos = (-494.45062, 188.6083)
+                    int ui:nodegraph:node:stackingOrder = 234
+                }
+
+                def Shader "Add"
+                {
+                    uniform token info:id = "ND_add_color3FA"
+                    prepend color3f inputs:in1.connect = </Root/clov/_materials/Material_2_004/ConstantColor3.outputs:out>
+                    float inputs:in2.connect = </Root/clov/_materials/Material_2_004/Noise3D.outputs:out>
+                    color3f outputs:out
+                    float2 ui:nodegraph:node:pos = (-318.58292, 97.20546)
+                    int ui:nodegraph:node:stackingOrder = 201
+                }
+
+                def Shader "Position"
+                {
+                    uniform token info:id = "ND_position_vector3"
+                    string inputs:space = "world"
+                    float3 outputs:out
+                    float2 ui:nodegraph:node:pos = (-874.6955, 146.90369)
+                    int ui:nodegraph:node:stackingOrder = 201
+                }
+
+                def Shader "Noise_Scale"
+                {
+                    uniform token info:id = "ND_constant_float"
+                    float inputs:value = 13
+                    float outputs:out
+                    float2 ui:nodegraph:node:pos = (-852.7694, 242.3799)
+                    int ui:nodegraph:node:stackingOrder = 274
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["inputs:value"]
+                }
+
+                def Shader "Multiply"
+                {
+                    uniform token info:id = "ND_multiply_vector3FA"
+                    prepend float3 inputs:in1.connect = </Root/clov/_materials/Material_2_004/Position.outputs:out>
+                    float inputs:in2.connect = </Root/clov/_materials/Material_2_004/Noise_Scale.outputs:out>
+                    float3 outputs:out
+                    float2 ui:nodegraph:node:pos = (-666.51483, 186.74286)
+                    int ui:nodegraph:node:stackingOrder = 201
+                }
+            }
+        }
+
+        over "clov"
+        {
+            quatf xformOp:orient = (0.99999994, 0, 0, 0)
+            float3 xformOp:scale = (0.1, 0.1, 0.1)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            over "Object_18"
+            {
+                quatf xformOp:orient = (0.99999994, 0, 0, 0)
+                float3 xformOp:scale = (0.99999994, 0.99999994, 0.99999994)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+
+            over "Object_18_001"
+            {
+                quatf xformOp:orient = (0.99999994, 0, 0, 0)
+                float3 xformOp:scale = (0.99999994, 0.99999994, 0.99999994)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+
+            over "Object_18_002"
+            {
+                quatf xformOp:orient = (0.99999994, 0, 0, 0)
+                float3 xformOp:scale = (0.99999994, 0.99999994, 0.99999994)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+
+            over "Object_18_003"
+            {
+                quatf xformOp:orient = (0.99999994, 0, 0, 0)
+                float3 xformOp:scale = (0.99999994, 0.99999994, 0.99999994)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+
+            over "Object_18_004"
+            {
+                quatf xformOp:orient = (0.99999994, 0, 0, 0)
+                float3 xformOp:scale = (0.99999994, 0.99999994, 0.99999994)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+        }
+    }
+}
+

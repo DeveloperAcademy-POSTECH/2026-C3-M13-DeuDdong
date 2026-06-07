@@ -1,11 +1,31 @@
 {
   "pathsToIds" : {
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/AffectionBall.usda" : "972EE4DE-3C93-4366-8E10-97EF19CE56F1",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/PraiseBall.usda" : "3BC015D7-B4A4-4AAE-B7DC-ADEC98EFD0BB",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Untitled.usda" : "F9E0667C-C28D-4B4D-AB1E-E83C6A621BD5",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/affectionBall.usda" : "2AAD8FB8-B921-42E3-90AF-A6FB4A037195",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/affection_ball.usda" : "2C11819C-4E5B-41B7-AA0C-AC7115243EEE",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/love.usda" : "EB1E5D2D-99BB-4324-8ED2-D8EB6ADBE514",
+    "\/3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/praiseBall.usda" : "27D3026E-E4E3-410C-8F45-25B8E8E9DB6E",
     "\/zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "07EB5D0C-9FD4-40AB-8115-848CF457676D",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/love.usda" : "BD7C1070-E975-4967-A5B4-44FB3583670F",
+    "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/praiseBall.usda" : "7B16BA2E-15EF-448A-BF3F-321B2269D6AF",
     "zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "584A43A6-4386-4285-AB7B-4C54739E212B"
   },
   "projectID" : 3465230573307592556,
   "uuidToIntID" : {
+    "07EB5D0C-9FD4-40AB-8115-848CF457676D" : -920703329657492911,
+    "27D3026E-E4E3-410C-8F45-25B8E8E9DB6E" : -5998083836327924229,
+    "2AAD8FB8-B921-42E3-90AF-A6FB4A037195" : -6493979056834064204,
+    "2C11819C-4E5B-41B7-AA0C-AC7115243EEE" : 8529749587869714549,
+    "3BC015D7-B4A4-4AAE-B7DC-ADEC98EFD0BB" : 8821774966912727730,
     "45AFEA7E-747A-4DB6-B7C0-E43F5CD3666F" : -8367564950430382204,
-    "584A43A6-4386-4285-AB7B-4C54739E212B" : 2611228442523404562
+    "584A43A6-4386-4285-AB7B-4C54739E212B" : 2611228442523404562,
+    "7B16BA2E-15EF-448A-BF3F-321B2269D6AF" : 8520814452651896968,
+    "972EE4DE-3C93-4366-8E10-97EF19CE56F1" : -4571819842067247352,
+    "BD7C1070-E975-4967-A5B4-44FB3583670F" : -6640452629331513842,
+    "EB1E5D2D-99BB-4324-8ED2-D8EB6ADBE514" : -5761891528657060901,
+    "F9E0667C-C28D-4B4D-AB1E-E83C6A621BD5" : -1039192819930571660
   }
 }

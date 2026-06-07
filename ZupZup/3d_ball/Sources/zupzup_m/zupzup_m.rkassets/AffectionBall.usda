@@ -1,0 +1,116 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (494.60.2)"
+    }
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def "affectionBall" (
+        active = true
+        references = @affectionBall.usdz@
+    )
+    {
+        float3 xformOp:scale = (1, 1, 1)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "love10"
+        {
+            over "_materials"
+            {
+                over "Material_2_017"
+                {
+                    float inputs:Fractal_Scale (
+                        customData = {
+                            dictionary realitykit = {
+                                float2 positionInSubgraph = (-305.77435, 247.52939)
+                                int stackingOrderInSubgraph = 528
+                            }
+                        }
+                    )
+                    float inputs:Noise_Scale = 13 (
+                        customData = {
+                            dictionary realitykit = {
+                                float2 positionInSubgraph = (-306.52292, 244.90433)
+                                int stackingOrderInSubgraph = 530
+                            }
+                        }
+                    )
+
+                    over "Multiply"
+                    {
+                        float inputs:in2.connect = </Root/affectionBall/love10/_materials/Material_2_017.inputs:Noise_Scale>
+                    }
+
+                    over "Position"
+                    {
+                        float2 ui:nodegraph:node:pos = (-252.0363, 137.57295)
+                        int ui:nodegraph:node:stackingOrder = 516
+                    }
+
+                    over "PreviewSurface"
+                    {
+                        float inputs:clearcoatRoughness = 0
+                        color3f inputs:diffuseColor = (1, 0.584363, 0.71150595) (
+                            colorSpace = "srgb_displayp3"
+                        )
+                        color3f inputs:emissiveColor.connect = </Root/affectionBall/love10/_materials/Material_2_017/Add.outputs:out>
+                        float inputs:metallic = 1
+                        float3 inputs:normal = (0, 0, 1)
+                        float inputs:occlusion = 1
+                        int ui:nodegraph:node:stackingOrder = 535
+                    }
+                }
+
+                over "Material_2_003"
+                {
+                    float inputs:Fractal_Scale (
+                        customData = {
+                            dictionary realitykit = {
+                                float2 positionInSubgraph = (-429.69208, 51.827484)
+                                int stackingOrderInSubgraph = 464
+                            }
+                        }
+                    )
+                    float inputs:Noise_Scale = 7 (
+                        customData = {
+                            dictionary realitykit = {
+                                float2 positionInSubgraph = (-358.6999, 114.003265)
+                                int stackingOrderInSubgraph = 466
+                            }
+                        }
+                    )
+
+                    over "Multiply"
+                    {
+                        float inputs:in2.connect = </Root/affectionBall/love10/_materials/Material_2_003.inputs:Noise_Scale>
+                    }
+
+                    over "Position"
+                    {
+                        float2 ui:nodegraph:node:pos = (-334.88348, 0.5540314)
+                        int ui:nodegraph:node:stackingOrder = 460
+                    }
+
+                    over "ConstantColor3"
+                    {
+                        float2 ui:nodegraph:node:pos = (-27.039703, -44.762375)
+                        int ui:nodegraph:node:stackingOrder = 462
+                    }
+
+                    over "PreviewSurface"
+                    {
+                        float inputs:opacity = 1
+                        float inputs:opacityThreshold = 0
+                        int ui:nodegraph:node:stackingOrder = 465
+                    }
+                }
+            }
+        }
+    }
+}
+
