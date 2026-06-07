@@ -12,6 +12,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let sessionManager: ARSessionManager
     private let placementManager: PlacementManager
     private let emotionRuntime: EmotionRuntimeManaging
+    private var lastFaceTrackingUpdateTime: TimeInterval = 0
     private let handTrackingManager = HandTrackingManager.shared
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
@@ -78,9 +79,36 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         handlePlaneAnchors(anchors)
     }
 
-    func session(_ session: ARSession, didUpdate frame: ARFrame) { // 카메라 프레임 업데이트 용
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
         let currentTime = Date().timeIntervalSince1970
-        guard currentTime - lastHandPoseUpdateTime > 0.1, !isHandPoseRequestInFlight else { return }
+
+        updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
+        updateHandTrackingIfNeeded(from: frame, currentTime: currentTime)
+    }
+
+    func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
+        for anchor in anchors {
+            planeVisualizer?.remove(anchor.identifier)
+        }
+    }
+    
+    private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
+        guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
+
+        lastFaceTrackingUpdateTime = currentTime
+
+        _ = emotionRuntime.updateFaceTracking(
+            in: frame.capturedImage,
+            orientation: .right
+        )
+    }
+    
+    private func updateHandTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
+        guard currentTime - lastHandPoseUpdateTime > 0.1,
+              !isHandPoseRequestInFlight
+        else {
+            return
+        }
 
         lastHandPoseUpdateTime = currentTime
         isHandPoseRequestInFlight = true
@@ -93,19 +121,13 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             Task { @MainActor [weak self] in
                 guard let self else { return }
 
-                defer { // 이 블록 끝나는 마지막 순간에 자동 실행
+                defer {
                     self.isHandPoseRequestInFlight = false
                 }
 
                 HandTrackingManager.shared.apply(result)
                 self.handleHandGesture()
             }
-        }
-    }
-
-    func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
-        for anchor in anchors {
-            planeVisualizer?.remove(anchor.identifier)
         }
     }
 

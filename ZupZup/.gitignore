@@ -15,7 +15,7 @@ DerivedData/
 
 # 인증서/키
 
-* .p12
+*.p12
 *.p8
 *.cer
 *.mobileprovision

@@ -31,7 +31,6 @@
 
 /* Begin PBXFileReference section */
 		3C187DE82FCC5A6A00660EE9 /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
-		3CDC6B622FCEA323000EBF53 /* Develop.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Develop.xcconfig; sourceTree = "<group>"; };
 		56D795E22FC95B6100807EC5 /* ZupZup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZupZup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D795EF2FC95B6200807EC5 /* ZupZupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZupZupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D795F92FC95B6200807EC5 /* ZupZupUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZupZupUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
