@@ -5,87 +5,94 @@
 //  Created by Kimseoyeon on 6/5/26.
 //
 
+
 import SwiftUI
 
 struct DistanceRecognitionStepView: View {
 
+    private let guideSize: CGFloat = 280
+
     var body: some View {
 
-        ZStack {
+        GeometryReader { geometry in
 
-            // MARK: Preview용 AR 배경
+            let centerY = geometry.size.height * 0.42
 
-            Color.gray
+            ZStack {
+
+                // MARK: 전체 화면 오버레이
+
+                ZStack {
+
+                    ZZColor.gray9.opacity(0.8)
+
+                    Circle()
+                        .frame(
+                            width: guideSize,
+                            height: guideSize
+                        )
+                        .position(
+                            x: geometry.size.width / 2,
+                            y: centerY
+                        )
+                        .blendMode(.destinationOut)
+                }
+                .compositingGroup()
                 .ignoresSafeArea()
 
-            // MARK: 어두운 오버레이
+                // MARK: Face Guide Ring
 
-            HoleOverlay()
+                FaceGuideRing(
+                    progress: 1.0,
+                    size: 300
+                )
+                .position(
+                    x: geometry.size.width / 2,
+                    y: centerY
+                )
 
-            VStack {
+                // MARK: Back Button
 
-                // MARK: 상단
-
-                HStack {
-
-                    ARBackButtonLight {
-                        print("Back")
+                VStack {
+                    HStack {
+                        ARBackButtonLight {
+                            print("Back")
+                        }
+                        Spacer()
                     }
 
                     Spacer()
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
+                .padding(.leading, 16)
+                .padding(.top, 78)
 
-                Spacer()
+                // MARK: Title
 
-                // MARK: 제목
-
-                Text("상대와의 거리 인식")
-                    .font(ZZFont.headline)
-                    .foregroundStyle(.white)
-
-                Spacer()
-
-                // MARK: 얼굴 가이드
-
-                ZStack {
-
-                    Circle()
-                        .fill(.clear)
-                        .frame(width: 280, height: 280)
-
-                    FaceGuideRing(progress: 1.0)
+                VStack {
+                    Text("상대와의 거리 인식")
+                        .font(ZZFont.title)
+                        .foregroundStyle(.white)
+                    Spacer()
                 }
+                .padding(.top, 165)
 
-                Spacer()
+                // MARK: Instruction
 
-                // MARK: 안내문
+                VStack {
 
-                Text("상대의 얼굴을\n원 안에 맞춰주세요")
-                    .font(ZZFont.subheadline)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
+                    Spacer()
 
-                Spacer()
-                    .frame(height: 120)
+                    Text("상대의 얼굴을\n원 안에 맞춰주세요")
+                        .font(ZZFont.subheadline)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 280)
+                }
             }
-        }
-    }
-}
-
-struct HoleOverlay: View {
-
-    var body: some View {
-
-        GeometryReader {_ in
-            ZStack {
-                Color.black.opacity(0.55)
-                Circle()
-                    .frame(width: 280, height: 280)
-                    .blendMode(.destinationOut)
-            }
-            .compositingGroup()
+            .frame(
+                width: geometry.size.width,
+                height: geometry.size.height
+            )
         }
         .ignoresSafeArea()
     }

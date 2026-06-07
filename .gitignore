@@ -19,6 +19,7 @@ DerivedData/
 # SPM 캐시
 .build/
 
+Develop.xcconfig
 ZupZup/Develop.xcconfig
 
 # Reality Composer Pro 사용자별 설정
