@@ -15,13 +15,18 @@
     "3d_ball\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "15793E0C-A92F-4F0C-ADD9-2D6346CF286E",
     "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Particles\/AffectionParticle.usda" : "F71CC138-7060-4531-9152-6E19DD81BFD8",
     "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Particles\/EmpathyParticle.usda" : "BDB7C1B9-CA12-47F2-9CFD-60A07F3CAED5",
+    "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Particles\/EncouragementParticle.usda" : "18F40BA1-D306-434C-B1EB-D1FF396D406D",
+    "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Particles\/GratitudeParticle.usda" : "E7808B80-15F8-45F1-B1A3-52A141AF4345",
+    "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Particles\/PraiseParticle.usda" : "0025DF58-19C7-461D-BCCC-09FE7FCA2A10",
     "ZupZupContent\/Sources\/ZupZupContent\/ZupZupContent.rkassets\/Scene.usda" : "CB18D815-595C-4B7C-B815-553586729D86",
     "zupzup_m\/Sources\/zupzup_m\/zupzup_m.rkassets\/Scene.usda" : "584A43A6-4386-4285-AB7B-4C54739E212B"
   },
   "projectID" : 3465230573307592556,
   "uuidToIntID" : {
+    "0025DF58-19C7-461D-BCCC-09FE7FCA2A10" : 2560125224485394679,
     "0D368570-9E7C-41F9-A3CE-A2726E6FCD10" : 5800787978740191263,
     "15793E0C-A92F-4F0C-ADD9-2D6346CF286E" : 2088380950805253851,
+    "18F40BA1-D306-434C-B1EB-D1FF396D406D" : 8665401264363184807,
     "2AC43B47-C4CE-420D-B92B-F8582A6C3809" : -152948029329877820,
     "3387744D-E2A3-4625-AA02-CBF2B73F1BF4" : 1529712694674286179,
     "41BB31AA-1754-4C8A-8E3E-864029701AD1" : -5515381721662001734,
@@ -36,6 +41,7 @@
     "BDB7C1B9-CA12-47F2-9CFD-60A07F3CAED5" : 728497509869541527,
     "C55B6220-E815-431B-A64C-AE7283AE1746" : 2170859742488741577,
     "CB18D815-595C-4B7C-B815-553586729D86" : 6176534446645772058,
+    "E7808B80-15F8-45F1-B1A3-52A141AF4345" : 2007251548184191037,
     "F71CC138-7060-4531-9152-6E19DD81BFD8" : 8438621977738976771
   }
 }

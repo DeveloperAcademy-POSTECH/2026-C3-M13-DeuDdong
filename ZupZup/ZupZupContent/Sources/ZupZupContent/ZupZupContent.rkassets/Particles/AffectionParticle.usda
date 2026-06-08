@@ -25,7 +25,7 @@ def Xform "Root"
                 bool isLocalFields = 0
                 float particleSpeed = 1
                 float particleSpeedVariation = 1
-                float3 shapeSize = (0.5, 0.1, 0.1)
+                float3 shapeSize = (0.1, 0.1, 0.1)
 
                 def RealityKitStruct "mainEmitter"
                 {

@@ -39,7 +39,7 @@ final class OrbSpawnManager {
         anchor.name = "OrbAnchor_\(orbEmotion.rawValue)"
         anchor.addChild(orbEntity)
         arView.scene.addAnchor(anchor)
-
+        ParticleBurst.burst(for: orbEmotion, at: spawnPosition, in: arView.scene)
         return TrackedOrb(anchor: anchor, entity: orbEntity)
     }
 }

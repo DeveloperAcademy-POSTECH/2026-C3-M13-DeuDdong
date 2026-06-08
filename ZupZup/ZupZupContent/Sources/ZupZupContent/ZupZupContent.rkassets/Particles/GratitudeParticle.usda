@@ -18,9 +18,9 @@ def Xform "Root"
 
             def RealityKitStruct "currentState"
             {
-                int64 burstCount = 50
+                int64 burstCount = 500
                 token emitterShape = "Sphere"
-                bool isEmitting = 1
+                bool isEmitting = 0
                 float particleSpeed = 1
                 float particleSpeedVariation = 1
 
@@ -45,3 +45,4 @@ def Xform "Root"
         }
     }
 }
+

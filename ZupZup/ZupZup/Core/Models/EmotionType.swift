@@ -32,7 +32,6 @@ enum EmotionType: String, CaseIterable, Identifiable {
             UIColor.systemPurple
         }
     }
-    
     var imageName: String {
         switch self {
         case .affection:
