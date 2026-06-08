@@ -95,7 +95,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         let currentTime = Date().timeIntervalSince1970
         updatePhysicsOrbsIfNeeded(now: currentTime)
         updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
-        updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
         updateHandTrackingIfNeeded(from: frame, currentTime: currentTime)
     }
 
@@ -104,7 +103,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             planeVisualizer?.remove(anchor.identifier)
         }
     }
-    
     private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
         guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
 
@@ -115,7 +113,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             orientation: .right
         )
     }
-    
     private func updateHandTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
         guard currentTime - lastHandPoseUpdateTime > 0.1,
               !isHandPoseRequestInFlight
