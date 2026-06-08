@@ -42,6 +42,7 @@ protocol EmotionRuntimeManaging: AnyObject {
     var latestResult: EmotionResult? { get }
     var latestOrbEvent: EmotionOrbEvent? { get }
     var latestFaceTrackingResult: FaceTrackingResult? { get }
+    var emittedOrbEventCount: Int { get }
     var debugSummary: String { get }
     var onOrbEvent: ((EmotionOrbEvent) -> Void)? { get set }
 

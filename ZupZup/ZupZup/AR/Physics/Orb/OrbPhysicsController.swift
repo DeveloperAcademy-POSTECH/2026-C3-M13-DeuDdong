@@ -2,7 +2,7 @@
 //  OrbPhysicsController.swift
 //  ZupZup
 //
-// 물리 작용 전반 담당 컨트롤러 파일, tracked orb 목록 및 2초 후 dynamic 전환과 개수 제한을 관리
+// 물리 작용 전반 담당 컨트롤러 파일, tracked orb 목록 및 낙하 전환을 관리
 
 import Foundation
 import RealityKit
@@ -17,9 +17,8 @@ final class OrbPhysicsController {
         !trackedOrbs.isEmpty
     }
 
-    func addOrb(_ trackedOrb: TrackedOrb, in arView: ARView) {
+    func addOrb(_ trackedOrb: TrackedOrb) {
         trackedOrbs.append(trackedOrb)
-        removeOldestOrbIfNeeded(from: arView)
         feedbackPresenter.playSparklePulse(on: trackedOrb.entity)
         releaseOrbAfterWaitingPeriod(trackedOrb)
     }
@@ -45,13 +44,6 @@ final class OrbPhysicsController {
             arView?.scene.removeAnchor(trackedOrb.anchor)
         }
         trackedOrbs.removeAll()
-    }
-
-    private func removeOldestOrbIfNeeded(from arView: ARView) {
-        while trackedOrbs.count > OrbPhysicsSettings.maximumOrbCount {
-            let oldestOrb = trackedOrbs.removeFirst()
-            arView.scene.removeAnchor(oldestOrb.anchor)
-        }
     }
 
     private func releaseOrbAfterWaitingPeriod(_ trackedOrb: TrackedOrb) {

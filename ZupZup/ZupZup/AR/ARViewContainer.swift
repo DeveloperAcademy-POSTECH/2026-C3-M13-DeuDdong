@@ -13,7 +13,9 @@ struct ARViewContainer: UIViewRepresentable {
     let sessionManager: ARSessionManager
     let placementManager: PlacementManager
     let emotionRuntime: EmotionRuntimeManaging
+    let orbEventPlacementController: OrbEventPlacementController
     @Binding var planeState: ARState
+    @Binding var isPlaneVisualizationVisible: Bool
     #if DEBUG
     let burstController: DebugBurstController
     let orbPlacementController: DebugOrbPlacementController
@@ -37,12 +39,16 @@ struct ARViewContainer: UIViewRepresentable {
             automaticallyConfigureSession: false
             )
         context.coordinator.install(on: arView)
+        context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
+        orbEventPlacementController.trigger = { [weak coordinator = context.coordinator] event in
+            coordinator?.placeOrb(event: event)
+        }
         #if DEBUG
         burstController.trigger = { [weak coordinator = context.coordinator] in
             coordinator?.triggerDebugBurst()
         }
-        orbPlacementController.trigger = { [weak coordinator = context.coordinator] in
-            coordinator?.triggerDebugOrbPlacement()
+        orbPlacementController.trigger = { [weak coordinator = context.coordinator] count in
+            coordinator?.triggerDebugOrbPlacement(count: count)
         }
         gridController.toggle = { [weak coordinator = context.coordinator] in
             coordinator?.toggleGridVisibility() ?? true
@@ -52,6 +58,7 @@ struct ARViewContainer: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {
+        context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
         context.coordinator.updatePlaneStateHandler { state in
             planeState = state
         }

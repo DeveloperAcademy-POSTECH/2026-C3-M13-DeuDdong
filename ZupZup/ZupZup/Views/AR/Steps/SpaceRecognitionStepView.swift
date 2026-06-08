@@ -9,15 +9,21 @@ import SwiftUI
 
 struct SpaceRecognitionStepView: View {
 
+    var isReady = false
+    var showsPreviewBackground = true
+    var backAction: () -> Void = {}
+    var nextAction: () -> Void = {}
+
     @State private var moveRight = false
 
     var body: some View {
 
         ZStack {
 
-            // Preview용 배경
-            Color.gray
-                .ignoresSafeArea()
+            if showsPreviewBackground {
+                Color.gray
+                    .ignoresSafeArea()
+            }
 
             VStack {
 
@@ -25,9 +31,7 @@ struct SpaceRecognitionStepView: View {
 
                 HStack {
 
-                    ARBackButtonDark {
-                        print("Back")
-                    }
+                    ARBackButtonDark(action: backAction)
 
                     Spacer()
                 }
@@ -90,10 +94,17 @@ struct SpaceRecognitionStepView: View {
 
                         // MARK: 안내 문구
                         Spacer()
-                        Text("격자 무늬가 나올 때까지\n바닥을 바라봐주세요")
+                        Text(isReady ? "바닥 평면 인식이 완료되었습니다" : "격자 무늬가 나올 때까지\n바닥을 바라봐주세요")
                             .font(ZZFont.subheadline)
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
+
+                        PrimaryButton(
+                            title: "다음",
+                            isEnabled: isReady,
+                            action: nextAction
+                        )
+                        .padding(.horizontal, ZZSpacing.screenHorizontal)
 
                         Spacer()
                     }

@@ -24,6 +24,26 @@ enum PhysicsSetup {
         ))
     }
 
+    static func applyKinematicBody(to entity: ModelEntity, shape: ShapeResource, mass: Float = 0.05) {
+        let material = PhysicsMaterialResource.generate(
+            staticFriction: 0.92,
+            dynamicFriction: 0.86,
+            restitution: 0.04
+        )
+
+        entity.components.set(CollisionComponent(shapes: [shape]))
+        entity.components.set(PhysicsBodyComponent(
+            shapes: [shape],
+            mass: mass,
+            material: material,
+            mode: .kinematic
+        ))
+        entity.components.set(PhysicsMotionComponent(
+            linearVelocity: .zero,
+            angularVelocity: .zero
+        ))
+    }
+
     static func applyStaticBody(to entity: ModelEntity, shape: ShapeResource) {
         entity.components.set(CollisionComponent(shapes: [shape]))
         entity.components.set(PhysicsBodyComponent(

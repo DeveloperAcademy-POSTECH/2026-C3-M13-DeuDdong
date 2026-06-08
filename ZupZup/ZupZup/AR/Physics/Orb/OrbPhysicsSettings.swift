@@ -7,9 +7,8 @@
 import RealityKit
 
 enum OrbPhysicsSettings {
-    static let orbRadius: Float = 0.025
+    static let orbRadius: Float = 0.035
     static let orbMass: Float = 0.18
-    static let maximumOrbCount = 8
     static let playAreaRadius: Float = 0.8
     static let floorSettleTolerance: Float = 0.025
     static let bounceCatchTolerance: Float = 0.12
