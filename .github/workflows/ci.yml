@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: macos-latest
+    runs-on: macos-26
     permissions:
       pull-requests: write
 
@@ -27,6 +27,13 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint
 
+      - name: Create Develop.xcconfig
+        run: |
+          cat > ZupZup/Develop.xcconfig <<EOF
+          PRODUCT_BUNDLE_IDENTIFIER = C3-T13.ZupZup
+          DEVELOPMENT_TEAM =
+          EOF
+
       - name: Build
         run: |
           set -o pipefail
@@ -36,8 +43,9 @@ jobs:
           xcodebuild build \
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-            -configuration Debug
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Post Comment on Success
         if: success() && github.event_name == 'pull_request'
