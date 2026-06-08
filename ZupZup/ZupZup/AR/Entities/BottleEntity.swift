@@ -6,32 +6,22 @@
 //
 
 import RealityKit
-internal import UIKit
 
 @MainActor
 enum BottleEntity {
-    private static let assetName = "Bottle"
+    private static let assetName = "Balls/Bottle"
+    private static let targetWidth: Float = 0.25
 
     static func makeBottle() async -> Entity {
-        if let loaded = await EntityLoader.load(named: assetName) {
-            return loaded
+        guard let loaded = await EntityLoader.load(named: assetName) else {
+            fatalError("Failed to load \(assetName)")
         }
-        return makePlaceholderBottle()
-    }
 
-    private static func makePlaceholderBottle() -> ModelEntity {
-        let size = SIMD3<Float>(0.2, 0.2, 0.2)
-        let mesh = MeshResource.generateBox(size: size, cornerRadius: 0.02)
-        let material = SimpleMaterial(
-            color: UIColor.systemGreen.withAlphaComponent(0.22),
-            roughness: 0.2,
-            isMetallic: false
-        )
-        let bottle = ModelEntity(mesh: mesh, materials: [material])
-        let shape = ShapeResource.generateBox(size: size)
+        let width = loaded.visualBounds(relativeTo: nil).extents.x
+        if width > 0 {
+            loaded.scale = SIMD3<Float>(repeating: targetWidth / width)
+        }
 
-        bottle.name = "BottlePlaceholder"
-        PhysicsSetup.applyStaticBody(to: bottle, shape: shape)
-        return bottle
+        return loaded
     }
 }
