@@ -52,9 +52,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     #if DEBUG
     func triggerDebugBurst(emotion: EmotionType = .affection) {
         guard let arView else { return }
-        let col2 = arView.cameraTransform.matrix.columns.2
-        let forward = SIMD3<Float>(col2.x, col2.y, col2.z)
-        let position = arView.cameraTransform.translation + forward * -3.0
+        let cameraTransform = arView.cameraTransform
+        let forward = cameraTransform.matrix.columns.2
+        let position = cameraTransform.translation - SIMD3<Float>(forward.x, forward.y, forward.z) * 1.5
         ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
     }
 

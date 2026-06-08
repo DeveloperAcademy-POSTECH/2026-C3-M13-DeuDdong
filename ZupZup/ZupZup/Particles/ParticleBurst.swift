@@ -4,30 +4,40 @@
 //
 
 import RealityKit
-import Foundation
 import OSLog
 
 @MainActor
 enum ParticleBurst {
+    private static var cachedEmitters: [EmotionType: (anchor: AnchorEntity, entity: Entity)] = [:]
 
     static func burst(for emotion: EmotionType, at position: SIMD3<Float>, in scene: Scene) {
         Task {
-            guard let entity = await loadEntity(for: emotion) else { return }
-            let anchor = spawn(entity: entity, at: position, in: scene)
-            triggerBurstEffect(on: entity)
-            try await scheduleRemoval(of: anchor)
+            guard let cached = await cachedEmitter(for: emotion, in: scene) else { return }
+
+            cached.anchor.move(to: Transform(translation: position), relativeTo: nil)
+            triggerBurstEffect(on: cached.entity)
         }
+    }
+
+    private static func cachedEmitter(for emotion: EmotionType, in scene: Scene) async -> (anchor: AnchorEntity, entity: Entity)? {
+        if let cached = cachedEmitters[emotion] {
+            return cached
+        }
+
+        guard let entity = await loadEntity(for: emotion) else { return nil }
+
+        let anchor = AnchorEntity(world: .zero)
+        entity.position = .zero
+        anchor.addChild(entity)
+        scene.addAnchor(anchor)
+
+        let cached = (anchor: anchor, entity: entity)
+        cachedEmitters[emotion] = cached
+        return cached
     }
 
     private static func loadEntity(for emotion: EmotionType) async -> Entity? {
         await EntityLoader.load(named: emotion.particleName)
-    }
-
-    private static func spawn(entity: Entity, at position: SIMD3<Float>, in scene: Scene) -> AnchorEntity {
-        let anchor = AnchorEntity(world: position)
-        anchor.addChild(entity)
-        scene.addAnchor(anchor)
-        return anchor
     }
 
     private static func triggerBurstEffect(on entity: Entity) {
@@ -51,10 +61,5 @@ enum ParticleBurst {
             }
         }
         return nil
-    }
-
-    private static func scheduleRemoval(of anchor: AnchorEntity) async throws {
-        try await Task.sleep(for: .seconds(2))
-        anchor.removeFromParent()
     }
 }
