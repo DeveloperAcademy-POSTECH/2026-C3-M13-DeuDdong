@@ -145,12 +145,12 @@ struct OnboardingPermissionStepView: View {
             PermissionCardData(
                 systemName: "camera.fill",
                 title: "카메라",
-                description: "AR 환경에서 공간을 인식하고,\n구슬을 환경 위에 쌓기 위한 권한"
+                description: "AR 환경에서 공간을 인식하고,구슬을 환경 위에 쌓기 위한 권한"
             ),
             PermissionCardData(
                 systemName: "mic.fill",
                 title: "마이크·음성 인식",
-                description: "대화를 텍스트로 변환해\n긍정 표현을 분류하기 위한 권한"
+                description: "대화를 텍스트로 변환해 긍정 표현을 분류하기 위한 권한"
             )
         ]
     }

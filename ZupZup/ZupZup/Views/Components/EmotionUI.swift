@@ -56,8 +56,8 @@ extension EmotionType {
     var swiftUIColor: Color {
         switch self {
         case .affection: return ZZColor.emotionRed
-        case .encouragement: return ZZColor.emotionYellow
-        case .praise: return ZZColor.emotionGreen
+        case .encouragement: return ZZColor.emotionGreen
+        case .praise: return ZZColor.emotionYellow
         case .gratitude: return ZZColor.emotionBlue
         case .empathy: return ZZColor.emotionPurple
         }
@@ -87,7 +87,7 @@ struct EmotionRow: View {
                     .foregroundStyle(ZZColor.brand400)
 
                 Text(": \(type.description)")
-                    .font(ZZFont.caption)
+                    .font(ZZFont.smallCaption)
                     .foregroundStyle(ZZColor.gray9)
             }
 
@@ -102,27 +102,24 @@ struct EmotionRow: View {
 }
 
 struct EmotionOrbPreview: View {
+
     let type: EmotionType
     var size: CGFloat = 48
 
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [.white.opacity(0.95), type.swiftUIColor.opacity(0.88), type.swiftUIColor],
-                        center: .topLeading,
-                        startRadius: 2,
-                        endRadius: size
-                    )
-                )
 
-            Image(systemName: type.symbolName)
-                .font(.system(size: size * 0.38, weight: .bold))
-                .foregroundStyle(.white.opacity(0.88))
-        }
-        .frame(width: size, height: size)
-        .shadow(color: type.swiftUIColor.opacity(0.30), radius: 8, y: 4)
+        Image(type.imageName)
+            .resizable()
+            .scaledToFit()
+            .frame(
+                width: size,
+                height: size
+            )
+            .shadow(
+                color: type.swiftUIColor.opacity(0.25),
+                radius: 8,
+                y: 4
+            )
     }
 }
 

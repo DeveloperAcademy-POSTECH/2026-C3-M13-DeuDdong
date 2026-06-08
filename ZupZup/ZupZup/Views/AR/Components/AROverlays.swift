@@ -292,12 +292,14 @@ struct CollectionCompleteOverlay: View {
                     Text("자세한 수집 결과를 확인하세요")
                         .font(ZZFont.body)
                         .foregroundStyle(.white)
+                        .padding(.bottom, 30)
 
                     Image("FullBallGlass")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 280)
+                        .frame(width: 300)
                         .padding(.top, 12)
+                        .padding(.bottom, 70)
                 }
 
                 VStack {
