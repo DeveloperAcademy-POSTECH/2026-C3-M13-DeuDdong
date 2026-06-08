@@ -37,7 +37,8 @@ jobs:
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
             -destination 'generic/platform=iOS Simulator' \
-            -configuration Debug
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Post Comment on Success
         if: success() && github.event_name == 'pull_request'
