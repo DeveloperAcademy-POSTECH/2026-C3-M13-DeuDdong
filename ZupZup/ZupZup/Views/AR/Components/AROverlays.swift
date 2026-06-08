@@ -293,7 +293,7 @@ struct CollectionCompleteOverlay: View {
                         .font(ZZFont.body)
                         .foregroundStyle(.white)
 
-                    Image("result_jar")
+                    Image("FullBallGlass")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 280)
