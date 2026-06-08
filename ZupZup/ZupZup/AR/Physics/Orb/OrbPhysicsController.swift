@@ -56,7 +56,7 @@ final class OrbPhysicsController {
 
     private func releaseOrbAfterWaitingPeriod(_ trackedOrb: TrackedOrb) {
         Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            try? await Task.sleep(nanoseconds: OrbPhysicsSettings.releaseDelayNanoseconds)
 
             guard trackedOrbs.contains(where: { $0 === trackedOrb }) else {
                 return
@@ -73,7 +73,7 @@ final class OrbPhysicsController {
             body.mode = .dynamic
             trackedOrb.entity.components.set(body)
             trackedOrb.entity.components.set(PhysicsMotionComponent(
-                linearVelocity: .zero,
+                linearVelocity: OrbPhysicsSettings.initialDropVelocity,
                 angularVelocity: .zero
             ))
         }

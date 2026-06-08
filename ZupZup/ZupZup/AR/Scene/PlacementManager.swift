@@ -287,6 +287,7 @@ final class PlacementManager {
         let collisionShape = ShapeResource.generateBox(size: floorSize)
         let floorEntity = Entity()
         floorEntity.name = "InvisiblePhysicsFloor"
+        floorEntity.position.y = -(floorSize.y / 2)
         OrbPhysicsSettings.applyStaticBody(to: floorEntity, shape: collisionShape)
 
         let anchor = AnchorEntity(world: position)

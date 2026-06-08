@@ -32,7 +32,7 @@ struct CameraOrbSpawnProvider: OrbSpawnProviding {
         var spawnPosition = cameraPosition + cameraForward * 0.5 + cameraDown * 0.15
 
         if let floorY {
-            spawnPosition.y = max(spawnPosition.y, floorY + 0.25)
+            spawnPosition.y = max(spawnPosition.y, floorY + OrbPhysicsSettings.minimumSpawnHeightAboveFloor)
         }
 
         return spawnPosition

@@ -11,15 +11,20 @@ enum OrbPhysicsSettings {
     static let orbMass: Float = 0.18
     static let maximumOrbCount = 8
     static let playAreaRadius: Float = 0.8
+    static let floorSettleTolerance: Float = 0.025
+    static let bounceCatchTolerance: Float = 0.12
     static let settledVelocityThreshold: Float = 0.025
     static let settledAngularVelocityThreshold: Float = 0.2
+    static let releaseDelayNanoseconds: UInt64 = 260_000_000
+    static let initialDropVelocity = SIMD3<Float>(0, -0.75, 0)
+    static let minimumSpawnHeightAboveFloor: Float = 0.18
 
     static var orbPhysicsMaterial: PhysicsMaterialResource {
-        .generate(staticFriction: 0.92, dynamicFriction: 0.86, restitution: 0.04)
+        .generate(staticFriction: 0.98, dynamicFriction: 0.96, restitution: 0)
     }
 
     static var floorPhysicsMaterial: PhysicsMaterialResource {
-        .generate(staticFriction: 0.8, dynamicFriction: 0.6, restitution: 0.2)
+        .generate(staticFriction: 0.98, dynamicFriction: 0.96, restitution: 0)
     }
 
     static var settledOrbPhysicsMaterial: PhysicsMaterialResource {
