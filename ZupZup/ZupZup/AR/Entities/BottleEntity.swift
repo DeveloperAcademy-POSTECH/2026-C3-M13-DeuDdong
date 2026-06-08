@@ -17,10 +17,7 @@ enum BottleEntity {
             fatalError("Failed to load \(assetName)")
         }
 
-        let width = loaded.visualBounds(relativeTo: nil).extents.x
-        if width > 0 {
-            loaded.scale = SIMD3<Float>(repeating: targetWidth / width)
-        }
+        EntitySizing.scale(loaded, toFit: .width, target: targetWidth)
 
         return loaded
     }
