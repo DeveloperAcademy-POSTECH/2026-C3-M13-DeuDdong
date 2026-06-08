@@ -32,4 +32,23 @@ enum EmotionType: String, CaseIterable, Identifiable {
             UIColor.systemPurple
         }
     }
+    
+    var imageName: String {
+        switch self {
+        case .affection:
+            return "AffectionBall"
+
+        case .empathy:
+            return "EmpathyBall"
+
+        case .encouragement:
+            return "EncouragementBall"
+
+        case .gratitude:
+            return "GratitudeBall"
+
+        case .praise:
+            return "PraiseBall"
+        }
+    }
 }

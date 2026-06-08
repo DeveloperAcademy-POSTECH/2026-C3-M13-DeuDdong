@@ -4,34 +4,56 @@ import CoreMotion
 
 // MARK: - SpriteKit Physics Scene
 class OrbPhysicsScene: SKScene {
+
     private let motionManager = CMMotionManager()
 
-    // 구슬 클릭 시 SwiftUI 레이어로 이벤트를 전달하기 위한 콜백
     var onOrbSelected: ((EmotionType) -> Void)?
 
     override func didMove(to view: SKView) {
-        self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
-        self.physicsBody?.friction = 0.3
-        self.physicsBody?.restitution = 0.15
-        self.backgroundColor = .clear
+
+        physicsBody = SKPhysicsBody(
+            edgeLoopFrom: frame
+        )
+
+        physicsBody?.friction = 0.3
+        physicsBody?.restitution = 0.15
+
+        backgroundColor = .clear
 
         let emotionTypes = EmotionType.allCases
+
         let orbSize: CGFloat = 90
 
         for (index, type) in emotionTypes.enumerated() {
-            let orb = SKShapeNode(circleOfRadius: orbSize / 2)
-            orb.fillColor = UIColor(type.swiftUIColor)
-            orb.strokeColor = .white.withAlphaComponent(0.6)
-            orb.lineWidth = 2.0
 
-            // 터치 이벤트 발생 시 식별자로 사용하기 위해 name 속성 지정
+            let orb = SKSpriteNode(
+                imageNamed: type.imageName
+            )
+
+            orb.size = CGSize(
+                width: orbSize,
+                height: orbSize
+            )
+
             orb.name = type.rawValue
 
-            let startX = CGFloat(60 + (index % 3) * 65)
-            let startY = CGFloat(160 + (index / 3) * 100)
-            orb.position = CGPoint(x: startX, y: startY)
+            let startX = CGFloat(
+                55 + (index % 3) * 75
+            )
 
-            let physicsBody = SKPhysicsBody(circleOfRadius: orbSize / 2)
+            let startY = CGFloat(
+                170 + (index / 3) * 110
+            )
+
+            orb.position = CGPoint(
+                x: startX,
+                y: startY
+            )
+
+            let physicsBody = SKPhysicsBody(
+                circleOfRadius: orbSize * 0.42
+            )
+
             physicsBody.isDynamic = true
             physicsBody.mass = 0.4
             physicsBody.friction = 0.25
@@ -39,36 +61,65 @@ class OrbPhysicsScene: SKScene {
             physicsBody.allowsRotation = true
 
             orb.physicsBody = physicsBody
-            self.addChild(orb)
+
+            addChild(orb)
         }
 
         startMonitoringAcceleration()
     }
 
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        let clickedNode = self.atPoint(location)
+    override func touchesBegan(
+        _ touches: Set<UITouch>,
+        with event: UIEvent?
+    ) {
 
-        // 클릭된 노드가 감정 구슬인 경우 처리
-        if let nodeName = clickedNode.name, let emotion = EmotionType(rawValue: nodeName) {
-            // 터치 피드백을 위한 순간적 튕김 물리 효과
-            clickedNode.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 30))
+        guard let touch = touches.first else {
+            return
+        }
+
+        let location = touch.location(in: self)
+
+        let clickedNode = atPoint(location)
+
+        if let nodeName = clickedNode.name,
+           let emotion = EmotionType(rawValue: nodeName) {
+
+            clickedNode.physicsBody?.applyImpulse(
+                CGVector(dx: 0, dy: 30)
+            )
 
             onOrbSelected?(emotion)
         }
     }
 
-    // CoreMotion 가속도계를 활용한 실시간 중력 방향 업데이트
     private func startMonitoringAcceleration() {
-        if motionManager.isAccelerometerAvailable {
-            motionManager.accelerometerUpdateInterval = 1.0 / 60.0
-            motionManager.startAccelerometerUpdates(to: .main) { [weak self] (data, _) in
-                guard let self = self, let acceleration = data?.acceleration else { return }
-                let gravityX = CGFloat(acceleration.x) * 9.8 * 2.3
-                let gravityY = CGFloat(acceleration.y) * 9.8 * 2.3
-                self.physicsWorld.gravity = CGVector(dx: gravityX, dy: gravityY)
+
+        guard motionManager.isAccelerometerAvailable else {
+            return
+        }
+
+        motionManager.accelerometerUpdateInterval = 1.0 / 60.0
+
+        motionManager.startAccelerometerUpdates(
+            to: .main
+        ) { [weak self] data, _ in
+
+            guard let self = self,
+                  let acceleration = data?.acceleration
+            else {
+                return
             }
+
+            let gravityX =
+                CGFloat(acceleration.x) * 9.8 * 2.3
+
+            let gravityY =
+                CGFloat(acceleration.y) * 9.8 * 2.3
+
+            self.physicsWorld.gravity = CGVector(
+                dx: gravityX,
+                dy: gravityY
+            )
         }
     }
 

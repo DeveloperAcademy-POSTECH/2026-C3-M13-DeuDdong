@@ -48,33 +48,48 @@ struct ReportBottleChartView: View {
 }
 
 struct ReportBubbleView: View {
+
     let type: EmotionType
     let count: Int
     let size: CGFloat
 
     var body: some View {
+
         ZStack {
-            Circle()
-                .fill(type.swiftUIColor.opacity(0.25))
-                .frame(width: size, height: size)
 
-            Circle()
-                .stroke(type.swiftUIColor, lineWidth: 2)
-                .frame(width: size, height: size)
+            Image(type.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(
+                    width: size,
+                    height: size
+                )
+                .opacity(0.8)
 
-            VStack(spacing: 4) {
-                Image(systemName: type.symbolName)
-                    .font(.system(size: size * 0.24, weight: .bold))
-                    .foregroundStyle(type.swiftUIColor)
+            VStack(spacing: 2) {
 
                 Text(type.compactTitle)
-                    .font(.system(size: size * 0.13, weight: .bold))
-                    .foregroundStyle(ZZColor.gray10)
+                    .font(
+                        .system(
+                            size: size * 0.13,
+                            weight: .bold
+                        )
+                    )
+                    .foregroundStyle(.white)
 
                 Text("\(count)개")
-                    .font(.system(size: size * 0.14, weight: .black))
-                    .foregroundStyle(type.swiftUIColor)
+                    .font(
+                        .system(
+                            size: size * 0.15,
+                            weight: .black
+                        )
+                    )
+                    .foregroundStyle(.white)
             }
+            .shadow(
+                color: .black.opacity(0.5),
+                radius: 4
+                )
         }
     }
 }
