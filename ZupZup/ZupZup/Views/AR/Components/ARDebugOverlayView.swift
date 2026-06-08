@@ -35,6 +35,53 @@ struct ARDebugOverlayView: View {
         }
     }
 }
+
+struct DeveloperDebugPanelView: View {
+    let gesture: HandGestureState
+    let distance: CGFloat
+    let runtime: EmotionRuntime
+    var burstAction: () -> Void
+    var testOrbAction: () -> Void
+    var addOrbAction: () -> Void
+    var addFiveOrbsAction: () -> Void
+
+    var body: some View {
+        ZStack {
+            VStack(alignment: .leading, spacing: 8) {
+                ARDebugOverlayView(gesture: gesture, distance: distance)
+                MLDebugOverlayView(runtime: runtime)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+            VStack(spacing: 10) {
+                Spacer(minLength: 0)
+                HapticDebugView()
+                Button("파티클 터뜨리기", action: burstAction)
+                    .buttonStyle(.borderedProminent)
+                Button("구슬 물리 테스트", action: testOrbAction)
+                    .buttonStyle(.borderedProminent)
+                debugOrbControls
+            }
+            .padding(.bottom, 78)
+        }
+    }
+
+    private var debugOrbControls: some View {
+        HStack(spacing: 8) {
+            Button("구슬 +1", action: addOrbAction)
+                .buttonStyle(.borderedProminent)
+            Button("구슬 +5", action: addFiveOrbsAction)
+                .buttonStyle(.bordered)
+            Text("생성 제한 없음")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.black.opacity(0.45), in: Capsule())
+    }
+}
 #endif
 
 struct MLDebugOverlayView: View {
@@ -52,7 +99,7 @@ struct MLDebugOverlayView: View {
 
                 Spacer(minLength: 0)
 
-                Text("구슬 \(runtime.emittedOrbEvents.count)")
+                Text("구슬 \(runtime.emittedOrbEventCount)")
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.secondary)
             }

@@ -14,6 +14,7 @@ import Vision
 struct FaceTrackingCandidate: Identifiable, Equatable {
     let id: UUID
     let faceCenter: CGPoint
+    let faceBounds: CGRect
     let mouthCenter: CGPoint
     let mouthPoints: [CGPoint]
     let mouthActivity: Double
@@ -43,6 +44,7 @@ final class FaceTracker: FaceTracking {
 
     private struct FaceDetection {
         let center: CGPoint
+        let bounds: CGRect
         let mouthCenter: CGPoint
         let mouthPoints: [CGPoint]
         let mouthActivity: Double
@@ -86,6 +88,7 @@ final class FaceTracker: FaceTracking {
 
         return FaceDetection(
             center: center,
+            bounds: observation.boundingBox,
             mouthCenter: mouthCenter,
             mouthPoints: mouthPoints,
             mouthActivity: mouthActivity
@@ -102,43 +105,48 @@ final class FaceTracker: FaceTracking {
         for detection in detections {
             let id = nearestTrackedFaceID(to: detection.center, excluding: usedIDs) ?? UUID()
             usedIDs.insert(id)
-
-            var face = trackedFaces[id] ?? TrackedFace(
-                id: id,
-                center: detection.center,
-                previousMouthActivity: detection.mouthActivity,
-                smoothedSpeechScore: 0,
-                lastSeen: now
-            )
-
-            let movementDelta = distance(face.center, detection.center) * 0.18
-                + abs(detection.mouthActivity - face.previousMouthActivity) * 2.6
-            let rawSpeechScore = min(1, detection.mouthActivity * 0.18 + movementDelta)
-            let smoothed = face.smoothedSpeechScore * 0.58 + rawSpeechScore * 0.42
-
-            face.center = detection.center
-            face.previousMouthActivity = detection.mouthActivity
-            face.smoothedSpeechScore = smoothed
-            face.lastSeen = now
-            trackedFaces[id] = face
-
-            candidates.append(
-                FaceTrackingCandidate(
-                    id: id,
-                    faceCenter: detection.center,
-                    mouthCenter: detection.mouthCenter,
-                    mouthPoints: detection.mouthPoints,
-                    mouthActivity: detection.mouthActivity,
-                    speechScore: smoothed,
-                    speakerConfidence: 0,
-                    isLikelySpeaking: false,
-                    lastSeen: now
-                )
-            )
+            candidates.append(candidate(for: detection, id: id, seenAt: now))
         }
 
         removeStaleFaces(now: now)
+        return FaceTrackingResult(capturedAt: now, candidates: resolvedSpeakerCandidates(from: candidates))
+    }
 
+    private func candidate(for detection: FaceDetection, id: UUID, seenAt now: Date) -> FaceTrackingCandidate {
+        var face = trackedFaces[id] ?? TrackedFace(
+            id: id,
+            center: detection.center,
+            previousMouthActivity: detection.mouthActivity,
+            smoothedSpeechScore: 0,
+            lastSeen: now
+        )
+
+        let movementDelta = distance(face.center, detection.center) * 0.18
+            + abs(detection.mouthActivity - face.previousMouthActivity) * 2.6
+        let rawSpeechScore = min(1, detection.mouthActivity * 0.18 + movementDelta)
+        let smoothed = face.smoothedSpeechScore * 0.58 + rawSpeechScore * 0.42
+
+        face.center = detection.center
+        face.previousMouthActivity = detection.mouthActivity
+        face.smoothedSpeechScore = smoothed
+        face.lastSeen = now
+        trackedFaces[id] = face
+
+        return FaceTrackingCandidate(
+            id: id,
+            faceCenter: detection.center,
+            faceBounds: detection.bounds,
+            mouthCenter: detection.mouthCenter,
+            mouthPoints: detection.mouthPoints,
+            mouthActivity: detection.mouthActivity,
+            speechScore: smoothed,
+            speakerConfidence: 0,
+            isLikelySpeaking: false,
+            lastSeen: now
+        )
+    }
+
+    private func resolvedSpeakerCandidates(from candidates: [FaceTrackingCandidate]) -> [FaceTrackingCandidate] {
         let threshold = candidates.count <= 1 ? 0.12 : 0.15
         let likelySpeakerID = candidates.max { $0.speechScore < $1.speechScore }
             .flatMap { $0.speechScore >= threshold ? $0.id : nil }
@@ -146,10 +154,11 @@ final class FaceTracker: FaceTracking {
         let topScore = sortedScores.first ?? 0
         let runnerUpScore = sortedScores.dropFirst().first ?? 0
         let speakerConfidence = min(1, max(0, topScore * 0.75 + (topScore - runnerUpScore) * 0.25))
-        let resolvedCandidates = candidates.map { candidate in
+        return candidates.map { candidate in
             FaceTrackingCandidate(
                 id: candidate.id,
                 faceCenter: candidate.faceCenter,
+                faceBounds: candidate.faceBounds,
                 mouthCenter: candidate.mouthCenter,
                 mouthPoints: candidate.mouthPoints,
                 mouthActivity: candidate.mouthActivity,
@@ -159,8 +168,6 @@ final class FaceTracker: FaceTracking {
                 lastSeen: candidate.lastSeen
             )
         }
-
-        return FaceTrackingResult(capturedAt: now, candidates: resolvedCandidates)
     }
 
     private func mouthActivityScore(from observation: VNFaceObservation) -> Double? {

@@ -34,6 +34,7 @@ final class OrbSpawnManager {
             floorY: floorY
         )
         let orbEntity = OrbEntity.makeWaitingOrb(emotion: orbEmotion)
+        orbEntity.position = .zero
 
         let anchor = AnchorEntity(world: spawnPosition)
         anchor.name = "OrbAnchor_\(orbEmotion.rawValue)"

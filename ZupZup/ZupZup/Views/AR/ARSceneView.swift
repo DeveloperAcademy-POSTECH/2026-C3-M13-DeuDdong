@@ -1,29 +1,31 @@
-//
-//  ARSceneView.swift -> AR MainView!!!
-//  ZupZup
-//
-//  Created by 승민 on 5/29/26.
-//
-
 import SwiftUI
 
 struct ARSceneView: View {
+    var onFinishConversation: () -> Void = {}
+    var onReturnHome: () -> Void = {}
     @State private var planeState: ARState = .searching
     @State private var sessionManager = ARSessionManager()
     @State private var placementManager = PlacementManager()
     @State private var emotionRuntime = EmotionRuntime(configuration: .conversation)
     @State private var countdownCuePlayer = ConversationCountdownCuePlayer()
+    @State private var orbEventPlacementController = OrbEventPlacementController()
+    @State private var conversationFlowTask: Task<Void, Never>?
     @State private var countdownValue: Int?
     @State private var isConversationStarted = false
+    @State private var hasConfirmedSpaceRecognition = false
+    @State private var hasLockedSpeakerRecognition = false
+    @State private var hasStartedConversationFlow = false
+    @State private var isConversationFinished = false
     @State private var remainingConversationSeconds = 180
     @State private var secondsWithoutOrb = 0
-    @State private var trackedOrbCount = 0
+    @State private var trackedOrbEventID: UUID?
     @State private var showsPraisePrompt = false
+    @State private var activeOverlay: AROverlayType?
+    @State private var isPlaneVisualizationVisible = true
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     @State private var orbPlacementController = DebugOrbPlacementController()
     @State private var gridController = DebugGridController()
-    @State private var isGridVisible = true
     #endif
 
     var body: some View {
@@ -33,7 +35,9 @@ struct ARSceneView: View {
                 sessionManager: sessionManager,
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
+                orbEventPlacementController: orbEventPlacementController,
                 planeState: $planeState,
+                isPlaneVisualizationVisible: $isPlaneVisualizationVisible,
                 orbPlacementController: orbPlacementController,
                 gridController: gridController
             )
@@ -43,23 +47,51 @@ struct ARSceneView: View {
                 sessionManager: sessionManager,
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
-                planeState: $planeState
+                orbEventPlacementController: orbEventPlacementController,
+                planeState: $planeState,
+                isPlaneVisualizationVisible: $isPlaneVisualizationVisible
             )
             .ignoresSafeArea()
             #endif
 
             #if DEBUG
-            VStack(alignment: .leading, spacing: 8) {
-                ARDebugOverlayView(
+            if shouldShowDeveloperDebug {
+                DeveloperDebugPanelView(
                     gesture: handTrackingManager.currentGesture,
-                    distance: handTrackingManager.distance
+                    distance: handTrackingManager.distance,
+                    runtime: emotionRuntime,
+                    testOrbAction: { orbPlacementController.fire() },
+                    addOrbAction: { orbPlacementController.fire() },
+                    addFiveOrbsAction: { orbPlacementController.fire(count: 5) }
                 )
-
-                MLDebugOverlayView(runtime: emotionRuntime)
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             #endif
+
+            if shouldShowSpaceRecognition {
+                SpaceRecognitionStepView(
+                    isReady: planeState == .ready,
+                    showsPreviewBackground: false,
+                    backAction: resetRecognitionFlow,
+                    nextAction: confirmSpaceRecognition
+                )
+                .transition(.opacity)
+            }
+
+            if shouldShowSpeakerRecognition {
+                DistanceRecognitionStepView(
+                    progress: speakerRecognitionProgress,
+                    isReady: isSpeakerRecognitionReady,
+                    showsPreviewBackground: false,
+                    backAction: resetRecognitionFlow,
+                    nextAction: confirmSpeakerRecognition
+                )
+                .transition(.opacity)
+            }
+
+            if shouldShowMouthTrackingOverlay {
+                MouthTrackingOverlay(result: emotionRuntime.latestFaceTrackingResult)
+                    .transition(.opacity)
+            }
 
             if isConversationStarted {
                 VStack(spacing: 8) {
@@ -83,58 +115,153 @@ struct ARSceneView: View {
 
             VStack(spacing: 12) {
                 Spacer(minLength: 0)
-
-                #if DEBUG
-                HapticDebugView()
-                .buttonStyle(.borderedProminent)
-                Button("구슬 물리 테스트") {
-                    orbPlacementController.fire()
-                }
-                .buttonStyle(.borderedProminent)
-                Button(isGridVisible ? "그리드 끄기" : "그리드 켜기") {
-                    isGridVisible = gridController.toggleVisibility()
-                }
-                .buttonStyle(.bordered)
-                #endif
-
                 if planeState == .ready && isConversationStarted {
                     ConversationAudioLevelOverlay(speechState: emotionRuntime.speechState)
                         .padding(.bottom, 8)
                 }
 
-                ARStatusOverlayView(state: planeState)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 28)
+                if !shouldShowSpaceRecognition && !shouldShowSpeakerRecognition {
+                    ARStatusOverlayView(state: planeState)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 28)
+                }
             }
 
             if let countdownValue {
                 CountdownOverlay(count: countdownValue)
                     .transition(.opacity)
             }
+
+            activeOverlayView
         }
+        .preventsIdleTimer()
         .onAppear {
             if !sessionManager.isWorldTrackingSupported {
                 planeState = .unsupported //
             }
 
             emotionRuntime.onOrbEvent = { event in
-                placementManager.placeOrb(event: event)
+                orbEventPlacementController.fire(event)
             }
         }
-        .task {
-            await startConversationAfterCountdown()
-        }
         .onDisappear {
+            conversationFlowTask?.cancel()
+            conversationFlowTask = nil
             countdownCuePlayer.stop()
             emotionRuntime.stop()
             emotionRuntime.onOrbEvent = nil
         }
     }
+}
+
+private extension ARSceneView {
+    private var shouldShowSpaceRecognition: Bool {
+        !hasConfirmedSpaceRecognition && !hasStartedConversationFlow && !isConversationFinished
+    }
+
+    private var shouldShowSpeakerRecognition: Bool {
+        planeState == .ready
+            && hasConfirmedSpaceRecognition
+            && !hasLockedSpeakerRecognition
+            && !hasStartedConversationFlow
+            && !isConversationFinished
+            && countdownValue == nil
+            && activeOverlay == nil
+    }
+
+    private var shouldShowMouthTrackingOverlay: Bool {
+        planeState == .ready && hasConfirmedSpaceRecognition && !isConversationFinished
+    }
+
+    #if DEBUG
+    private var shouldShowDeveloperDebug: Bool {
+        hasStartedConversationFlow && !isConversationFinished
+    }
+    #endif
+
+    private var speakerRecognitionProgress: Double {
+        min(1, currentSpeakerRecognitionScore / 0.58)
+    }
+
+    private var isSpeakerRecognitionReady: Bool {
+        hasLockedSpeakerRecognition || (shouldShowSpeakerRecognition && currentSpeakerRecognitionScore >= 0.58)
+    }
+
+    private var currentSpeakerRecognitionScore: Double {
+        guard planeState == .ready else { return 0 }
+        guard let result = emotionRuntime.latestFaceTrackingResult else { return 0 }
+
+        return result.candidates
+            .map(speakerRecognitionScore(for:))
+            .max() ?? 0
+    }
+
+    @ViewBuilder
+    private var activeOverlayView: some View {
+        switch activeOverlay {
+        case .conversationEnd:
+            ConversationEndOverlay(
+                cancelAction: { activeOverlay = nil },
+                confirmAction: onFinishConversation
+            )
+        case .noOrb:
+            NoOrbOverlay(
+                restartAction: restartConversationFlow,
+                homeAction: onReturnHome
+            )
+        case .none:
+            EmptyView()
+        default:
+            EmptyView()
+        }
+    }
+
+    private func speakerRecognitionScore(for candidate: FaceTrackingCandidate) -> Double {
+        let guideCenter = CGPoint(x: 0.5, y: 0.42)
+        let xDistance = candidate.faceCenter.x - guideCenter.x
+        let yDistance = candidate.faceCenter.y - guideCenter.y
+        let centerDistance = sqrt(Double(xDistance * xDistance + yDistance * yDistance))
+        let centerScore = max(0, 1 - centerDistance / 0.42)
+        let faceWidth = Double(candidate.faceBounds.width)
+        let sizeScore = min(1, max(0, (faceWidth - 0.09) / 0.13))
+        let detectionBonus = 0.18
+
+        return min(1, detectionBonus + centerScore * 0.52 + sizeScore * 0.30)
+    }
+
+    private func startConversationFlowIfNeeded() {
+        guard conversationFlowTask == nil, isSpeakerRecognitionReady else { return }
+
+        withAnimation(.easeOut(duration: 0.12)) {
+            hasLockedSpeakerRecognition = true
+        }
+        conversationFlowTask = Task { @MainActor in
+            await startConversationAfterCountdown()
+            conversationFlowTask = nil
+        }
+    }
+
+    private func confirmSpaceRecognition() {
+        guard planeState == .ready else { return }
+        withAnimation(.easeOut(duration: 0.12)) {
+            hasConfirmedSpaceRecognition = true
+            isPlaneVisualizationVisible = false
+        }
+    }
+
+    private func confirmSpeakerRecognition() {
+        if isSpeakerRecognitionReady { startConversationFlowIfNeeded() }
+    }
 
     @MainActor
     private func startConversationAfterCountdown() async {
-        guard !isConversationStarted else { return }
+        guard !isConversationStarted,
+              !hasStartedConversationFlow,
+              !isConversationFinished else {
+            return
+        }
 
+        hasStartedConversationFlow = true
         countdownCuePlayer.speakIntro()
 
         for count in stride(from: 3, through: 1, by: -1) {
@@ -144,6 +271,7 @@ struct ARSceneView: View {
 
             if Task.isCancelled {
                 countdownValue = nil
+                hasStartedConversationFlow = false
                 return
             }
         }
@@ -158,7 +286,7 @@ struct ARSceneView: View {
     private func runConversationTimer() async {
         remainingConversationSeconds = 180
         secondsWithoutOrb = 0
-        trackedOrbCount = emotionRuntime.emittedOrbEvents.count
+        trackedOrbEventID = emotionRuntime.latestOrbEvent?.id
         showsPraisePrompt = false
 
         while remainingConversationSeconds > 0 {
@@ -171,13 +299,14 @@ struct ARSceneView: View {
             remainingConversationSeconds -= 1
             updatePraisePromptState()
         }
+
+        finishConversation(showOverlay: true)
     }
 
     private func updatePraisePromptState() {
-        let currentOrbCount = emotionRuntime.emittedOrbEvents.count
-
-        if currentOrbCount > trackedOrbCount {
-            trackedOrbCount = currentOrbCount
+        let currentOrbEventID = emotionRuntime.latestOrbEvent?.id
+        if let currentOrbEventID, currentOrbEventID != trackedOrbEventID {
+            trackedOrbEventID = currentOrbEventID
             secondsWithoutOrb = 0
             showsPraisePrompt = false
             return
@@ -186,8 +315,48 @@ struct ARSceneView: View {
         secondsWithoutOrb += 1
         showsPraisePrompt = secondsWithoutOrb >= 60
     }
-}
 
-#Preview {
-    ARSceneView()
+    private func finishConversation(showOverlay: Bool) {
+        emotionRuntime.stop()
+        countdownCuePlayer.stop()
+        isConversationStarted = false
+        isConversationFinished = true
+        showsPraisePrompt = false
+        countdownValue = nil
+
+        guard showOverlay else { return }
+        activeOverlay = emotionRuntime.emittedOrbEventCount == 0 ? .noOrb : .conversationEnd
+    }
+
+    private func restartConversationFlow() {
+        conversationFlowTask?.cancel()
+        conversationFlowTask = nil
+        activeOverlay = nil
+        isConversationFinished = false
+        hasConfirmedSpaceRecognition = true
+        isPlaneVisualizationVisible = false
+        hasLockedSpeakerRecognition = false
+        hasStartedConversationFlow = false
+        isConversationStarted = false
+        remainingConversationSeconds = 180
+        secondsWithoutOrb = 0
+        trackedOrbEventID = emotionRuntime.latestOrbEvent?.id
+        showsPraisePrompt = false
+        startConversationFlowIfNeeded()
+    }
+
+    private func resetRecognitionFlow() {
+        conversationFlowTask?.cancel()
+        conversationFlowTask = nil
+        activeOverlay = nil
+        countdownCuePlayer.stop()
+        countdownValue = nil
+        hasConfirmedSpaceRecognition = false
+        isPlaneVisualizationVisible = true
+        hasLockedSpeakerRecognition = false
+        hasStartedConversationFlow = false
+        isConversationFinished = false
+        isConversationStarted = false
+        emotionRuntime.stop()
+    }
 }

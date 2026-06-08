@@ -14,26 +14,20 @@ final class OrbFeedbackPresenter {
             var brightTransform = baseTransform
             brightTransform.scale = SIMD3<Float>(repeating: 1.18)
 
-            let pulseCount = 4
-            for _ in 0..<pulseCount {
-                orbEntity.move(
-                    to: brightTransform,
-                    relativeTo: orbEntity.parent,
-                    duration: 0.18,
-                    timingFunction: .easeInOut
-                )
-                try? await Task.sleep(nanoseconds: 180_000_000)
+            orbEntity.move(
+                to: brightTransform,
+                relativeTo: orbEntity.parent,
+                duration: 0.1,
+                timingFunction: .easeInOut
+            )
+            try? await Task.sleep(nanoseconds: 100_000_000)
 
-                orbEntity.move(
-                    to: baseTransform,
-                    relativeTo: orbEntity.parent,
-                    duration: 0.32,
-                    timingFunction: .easeInOut
-                )
-                try? await Task.sleep(nanoseconds: 320_000_000)
-            }
-
-            orbEntity.move(to: baseTransform, relativeTo: orbEntity.parent, duration: 0.1)
+            orbEntity.move(
+                to: baseTransform,
+                relativeTo: orbEntity.parent,
+                duration: 0.12,
+                timingFunction: .easeInOut
+            )
         }
     }
 }

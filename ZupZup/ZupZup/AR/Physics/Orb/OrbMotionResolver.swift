@@ -61,8 +61,8 @@ final class OrbMotionResolver {
         let horizontalVelocity = SIMD2<Float>(motion.linearVelocity.x, motion.linearVelocity.z)
         let horizontalSpeed = length(horizontalVelocity)
 
-        if horizontalSpeed > 0.35 {
-            let scale = max(0.35 / horizontalSpeed, 0.4)
+        if horizontalSpeed > 0.12 {
+            let scale = max(0.12 / horizontalSpeed, 0.35)
             motion.linearVelocity.x *= scale
             motion.linearVelocity.z *= scale
         }
@@ -103,10 +103,10 @@ final class OrbMotionResolver {
             return
         }
 
-        let worldPosition = trackedOrb.entity.position(relativeTo: nil)
-        trackedOrb.entity.setPosition(
-            SIMD3<Float>(worldPosition.x, floorY + OrbPhysicsSettings.orbRadius, worldPosition.z),
-            relativeTo: nil
+        let worldPosition = orbWorldPosition(trackedOrb)
+        setOrbWorldPosition(
+            trackedOrb,
+            SIMD3<Float>(worldPosition.x, floorY + OrbPhysicsSettings.orbRadius, worldPosition.z)
         )
 
         var body = trackedOrb.entity.components[PhysicsBodyComponent.self] ?? PhysicsBodyComponent(
@@ -123,12 +123,6 @@ final class OrbMotionResolver {
         ))
     }
 
-    private func randomHorizontalDrift() -> SIMD2<Float> {
-        let angle = Float.random(in: 0..<(Float.pi * 2))
-        let speed = Float.random(in: 0.035...0.075)
-        return SIMD2<Float>(cos(angle) * speed, sin(angle) * speed)
-    }
-
     private func handleFirstFloorTouchIfNeeded(
         _ trackedOrb: TrackedOrb,
         floorY: Float?,
@@ -139,26 +133,41 @@ final class OrbMotionResolver {
         }
 
         let floorContactY = floorY + OrbPhysicsSettings.orbRadius
-        let worldPosition = trackedOrb.entity.position(relativeTo: nil)
+        let worldPosition = orbWorldPosition(trackedOrb)
 
-        guard worldPosition.y <= floorContactY + 0.012 else {
+        guard shouldSettleOnFloor(trackedOrb, floorContactY: floorContactY) else {
             return
         }
 
         trackedOrb.hasBounced = true
-        trackedOrb.state = .bounced
+        trackedOrb.state = .settled
         trackedOrb.touchedFloorTime = now
+        trackedOrb.settledTime = now
 
-        trackedOrb.entity.setPosition(
-            SIMD3<Float>(worldPosition.x, floorContactY, worldPosition.z),
-            relativeTo: nil
+        setOrbWorldPosition(
+            trackedOrb,
+            SIMD3<Float>(worldPosition.x, floorContactY, worldPosition.z)
         )
 
-        let drift = randomHorizontalDrift()
-        trackedOrb.entity.components.set(PhysicsMotionComponent(
-            linearVelocity: SIMD3<Float>(drift.x, 0.22, drift.y),
-            angularVelocity: SIMD3<Float>(drift.y * 8.0, 0, -drift.x * 8.0)
-        ))
+        keepOrbSettled(trackedOrb, floorY: floorY)
+    }
+
+    private func shouldSettleOnFloor(
+        _ trackedOrb: TrackedOrb,
+        floorContactY: Float
+    ) -> Bool {
+        let worldPosition = orbWorldPosition(trackedOrb)
+
+        if worldPosition.y <= floorContactY + OrbPhysicsSettings.floorSettleTolerance {
+            return true
+        }
+
+        guard let motion = trackedOrb.entity.components[PhysicsMotionComponent.self] else {
+            return false
+        }
+
+        let isLowBounce = worldPosition.y <= floorContactY + OrbPhysicsSettings.bounceCatchTolerance
+        return isLowBounce && motion.linearVelocity.y > 0
     }
 
     private func clampOrbToFloorIfNeeded(_ trackedOrb: TrackedOrb, floorY: Float?) {
@@ -167,15 +176,15 @@ final class OrbMotionResolver {
         }
 
         let floorContactY = floorY + OrbPhysicsSettings.orbRadius
-        let worldPosition = trackedOrb.entity.position(relativeTo: nil)
+        let worldPosition = orbWorldPosition(trackedOrb)
 
         guard worldPosition.y < floorContactY else {
             return
         }
 
-        trackedOrb.entity.setPosition(
-            SIMD3<Float>(worldPosition.x, floorContactY, worldPosition.z),
-            relativeTo: nil
+        setOrbWorldPosition(
+            trackedOrb,
+            SIMD3<Float>(worldPosition.x, floorContactY, worldPosition.z)
         )
 
         guard var motion = trackedOrb.entity.components[PhysicsMotionComponent.self] else {
@@ -184,5 +193,13 @@ final class OrbMotionResolver {
 
         motion.linearVelocity.y = max(motion.linearVelocity.y, 0)
         trackedOrb.entity.components.set(motion)
+    }
+
+    private func orbWorldPosition(_ trackedOrb: TrackedOrb) -> SIMD3<Float> {
+        trackedOrb.entity.position(relativeTo: nil)
+    }
+
+    private func setOrbWorldPosition(_ trackedOrb: TrackedOrb, _ position: SIMD3<Float>) {
+        trackedOrb.entity.setPosition(position, relativeTo: nil)
     }
 }
