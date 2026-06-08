@@ -21,7 +21,6 @@ struct ARSceneView: View {
     @State private var showsPraisePrompt = false
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
-    @State private var burstController = DebugBurstController()
     @State private var orbPlacementController = DebugOrbPlacementController()
     @State private var gridController = DebugGridController()
     @State private var isGridVisible = true
@@ -35,7 +34,6 @@ struct ARSceneView: View {
                 placementManager: placementManager,
                 emotionRuntime: emotionRuntime,
                 planeState: $planeState,
-                burstController: burstController,
                 orbPlacementController: orbPlacementController,
                 gridController: gridController
             )
@@ -88,9 +86,6 @@ struct ARSceneView: View {
 
                 #if DEBUG
                 HapticDebugView()
-                Button("파티클 터뜨리기") {
-                    burstController.fire()
-                }
                 .buttonStyle(.borderedProminent)
                 Button("구슬 물리 테스트") {
                     orbPlacementController.fire()

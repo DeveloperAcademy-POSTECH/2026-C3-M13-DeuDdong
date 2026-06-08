@@ -15,7 +15,6 @@ struct ARViewContainer: UIViewRepresentable {
     let emotionRuntime: EmotionRuntimeManaging
     @Binding var planeState: ARState
     #if DEBUG
-    let burstController: DebugBurstController
     let orbPlacementController: DebugOrbPlacementController
     let gridController: DebugGridController
     #endif
@@ -38,9 +37,6 @@ struct ARViewContainer: UIViewRepresentable {
             )
         context.coordinator.install(on: arView)
         #if DEBUG
-        burstController.trigger = { [weak coordinator = context.coordinator] in
-            coordinator?.triggerDebugBurst()
-        }
         orbPlacementController.trigger = { [weak coordinator = context.coordinator] in
             coordinator?.triggerDebugOrbPlacement()
         }
