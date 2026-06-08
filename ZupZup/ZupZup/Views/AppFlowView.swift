@@ -43,7 +43,10 @@ struct AppFlowView: View {
 
     private var conversationView: some View {
         ZStack(alignment: .topTrailing) {
-            ARSceneView()
+            ARSceneView(
+                onFinishConversation: { currentScreen = .report },
+                onReturnHome: { currentScreen = .home }
+            )
 
             Button {
                 currentScreen = .report

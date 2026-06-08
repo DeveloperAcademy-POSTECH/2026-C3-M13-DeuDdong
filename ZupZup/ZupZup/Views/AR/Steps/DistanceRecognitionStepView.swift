@@ -5,12 +5,16 @@
 //  Created by Kimseoyeon on 6/5/26.
 //
 
-
 import SwiftUI
 
 struct DistanceRecognitionStepView: View {
 
     private let guideSize: CGFloat = 280
+    var progress: Double = 0
+    var isReady = false
+    var showsPreviewBackground = true
+    var backAction: () -> Void = {}
+    var nextAction: () -> Void = {}
 
     var body: some View {
 
@@ -23,6 +27,10 @@ struct DistanceRecognitionStepView: View {
                 // MARK: 전체 화면 오버레이
 
                 ZStack {
+
+                    if showsPreviewBackground {
+                        Color.gray
+                    }
 
                     ZZColor.gray9.opacity(0.8)
 
@@ -43,7 +51,7 @@ struct DistanceRecognitionStepView: View {
                 // MARK: Face Guide Ring
 
                 FaceGuideRing(
-                    progress: 1.0,
+                    progress: progress,
                     size: 300
                 )
                 .position(
@@ -55,9 +63,7 @@ struct DistanceRecognitionStepView: View {
 
                 VStack {
                     HStack {
-                        ARBackButtonLight {
-                            print("Back")
-                        }
+                        ARBackButtonLight(action: backAction)
                         Spacer()
                     }
 
@@ -82,11 +88,19 @@ struct DistanceRecognitionStepView: View {
 
                     Spacer()
 
-                    Text("상대의 얼굴을\n원 안에 맞춰주세요")
+                    Text(isReady ? "상대 인식이 완료되었습니다" : "상대의 얼굴을\n원 안에 맞춰주세요")
                         .font(ZZFont.subheadline)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
-                        .padding(.bottom, 280)
+                        .padding(.bottom, 24)
+
+                    PrimaryButton(
+                        title: "다음",
+                        isEnabled: isReady,
+                        action: nextAction
+                    )
+                    .padding(.horizontal, ZZSpacing.screenHorizontal)
+                    .padding(.bottom, 54)
                 }
             }
             .frame(

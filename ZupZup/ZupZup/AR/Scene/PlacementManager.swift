@@ -24,6 +24,7 @@ final class PlacementManager {
     private var selectedOrbScreenOffset = CGPoint.zero
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
     private var invisibleFloorEntity: Entity?
+    private var invisibleFloorAnchor: AnchorEntity?
     private(set) var placedOrbs: [OrbData] = []
     private(set) var playAreaCenter: SIMD3<Float>?
     private(set) var floorY: Float?
@@ -43,16 +44,16 @@ final class PlacementManager {
     func placeOrb(emotion: EmotionType, at position: SIMD3<Float>) {
         guard let arView else { return }
 
-        // let orb = OrbEntity.makeOrb(emotion: emotion) // 구슬 객체 생성
-        let orb = OrbEntity.makeDebugOrb(emotion: emotion) // 디버그용 임시 구슬
-        let anchor = AnchorEntity(world: position)
+        let orb = OrbEntity.makeOrb(emotion: emotion)
+        let correctedPosition = floorSafeOrbPosition(from: position)
+        let anchor = AnchorEntity(world: correctedPosition)
 
         anchor.addChild(orb)
         arView.scene.addAnchor(anchor)
 
         sceneAnchors.append(anchor)
         orbPairs.append((orb, anchor))
-        placedOrbs.append(OrbData(emotion: emotion, position: position)) // id 어쩔?
+        placedOrbs.append(OrbData(emotion: emotion, position: correctedPosition)) // id 어쩔?
     }
 
     func placeOrb(event: EmotionOrbEvent) {
@@ -183,6 +184,18 @@ final class PlacementManager {
         screenPoint(fromNormalizedPoint: point)
     }
 
+    private func floorSafeOrbPosition(from position: SIMD3<Float>) -> SIMD3<Float> {
+        guard let floorY else {
+            return position
+        }
+
+        return SIMD3<Float>(
+            position.x,
+            max(position.y, floorY + OrbEntity.radius),
+            position.z
+        )
+    }
+
     private func fallbackOrbPosition() -> SIMD3<Float> {
         guard
             let arView,
@@ -215,6 +228,7 @@ final class PlacementManager {
         orbPairs.removeAll()
         placedOrbs.removeAll()
         invisibleFloorEntity = nil
+        invisibleFloorAnchor = nil
         playAreaCenter = nil
         floorY = nil
     }
@@ -278,8 +292,23 @@ final class PlacementManager {
         )
     }
 
-    func createInvisiblePhysicsFloor(at position: SIMD3<Float>) {
-        guard let arView, invisibleFloorEntity == nil else {
+    func createInvisiblePhysicsFloor(
+        at position: SIMD3<Float>,
+        shouldUpdateHeight: Bool = true
+    ) {
+        guard let arView else {
+            return
+        }
+
+        let floorPosition = stableFloorPosition(
+            from: position,
+            shouldUpdateHeight: shouldUpdateHeight
+        )
+
+        if let invisibleFloorAnchor {
+            invisibleFloorAnchor.setPosition(floorPosition, relativeTo: nil)
+            playAreaCenter = floorPosition
+            floorY = floorPosition.y
             return
         }
 
@@ -287,17 +316,30 @@ final class PlacementManager {
         let collisionShape = ShapeResource.generateBox(size: floorSize)
         let floorEntity = Entity()
         floorEntity.name = "InvisiblePhysicsFloor"
+        floorEntity.position.y = -(floorSize.y / 2)
         OrbPhysicsSettings.applyStaticBody(to: floorEntity, shape: collisionShape)
 
-        let anchor = AnchorEntity(world: position)
+        let anchor = AnchorEntity(world: floorPosition)
         anchor.name = "InvisibleFloorAnchor"
         anchor.addChild(floorEntity)
 
         arView.scene.addAnchor(anchor)
         sceneAnchors.append(anchor)
         invisibleFloorEntity = floorEntity
-        playAreaCenter = position
-        floorY = position.y
+        invisibleFloorAnchor = anchor
+        playAreaCenter = floorPosition
+        floorY = floorPosition.y
+    }
+
+    private func stableFloorPosition(
+        from position: SIMD3<Float>,
+        shouldUpdateHeight: Bool
+    ) -> SIMD3<Float> {
+        guard let floorY, !shouldUpdateHeight else {
+            return position
+        }
+
+        return SIMD3<Float>(position.x, floorY, position.z)
     }
 
     private func addToScene(_ entity: Entity, at position: SIMD3<Float>) {

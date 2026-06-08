@@ -6,6 +6,37 @@
 //
 
 import SwiftUI
+internal import UIKit
+
+private struct IdleTimerModifier: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
+
+    let isDisabled: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                applyIdleTimerState()
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                applyIdleTimerState()
+            }
+            .onDisappear {
+                UIApplication.shared.isIdleTimerDisabled = false
+            }
+    }
+
+    private func applyIdleTimerState() {
+        UIApplication.shared.isIdleTimerDisabled = isDisabled
+    }
+}
+
+extension View {
+    func preventsIdleTimer(_ isDisabled: Bool = true) -> some View {
+        modifier(IdleTimerModifier(isDisabled: isDisabled))
+    }
+}
 
 struct PrimaryButton: View {
     let title: String

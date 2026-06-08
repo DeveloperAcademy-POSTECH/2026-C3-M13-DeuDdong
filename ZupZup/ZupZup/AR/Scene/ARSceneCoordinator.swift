@@ -24,9 +24,11 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var wasPinching = false
     private var lastPinchSeenTime: TimeInterval = 0
     private let pinchLostGraceDuration: TimeInterval = 0.3
+    private var horizontalPlaneAnchors: [UUID: ARPlaneAnchor] = [:]
     private var isHandPoseRequestInFlight = false
     private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
     private var lastOrbPhysicsUpdateTime: CFTimeInterval?
+    private var fallbackOrbFloorY: Float?
 
     init(
         sessionManager: ARSessionManager,
@@ -58,8 +60,11 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
     }
 
-    func triggerDebugOrbPlacement() {
-        createPhysicsOrb(for: nil)
+    func triggerDebugOrbPlacement(count: Int = 1) {
+        let safeCount = max(1, count)
+        for _ in 0..<safeCount {
+            createPhysicsOrb(for: nil)
+        }
     }
 
     func toggleGridVisibility() -> Bool {
@@ -71,9 +76,19 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         onPlaneStateChange = handler
     }
 
+    func setPlaneVisualizationVisible(_ isVisible: Bool) {
+        planeVisualizer?.setVisible(isVisible)
+    }
+
+    func placeOrb(event: EmotionOrbEvent) {
+        createPhysicsOrb(for: event.emotion)
+    }
+
     func resetScene() {
         hasPlacedDemoObjects = false
         lastOrbPhysicsUpdateTime = nil
+        fallbackOrbFloorY = nil
+        horizontalPlaneAnchors.removeAll()
         planeVisualizer?.removeAll()
         orbPhysicsController.removeAll(from: arView)
         placementManager.clearScene()
@@ -95,16 +110,16 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         let currentTime = Date().timeIntervalSince1970
         updatePhysicsOrbsIfNeeded(now: currentTime)
         updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
-        updateFaceTrackingIfNeeded(from: frame, currentTime: currentTime)
         updateHandTrackingIfNeeded(from: frame, currentTime: currentTime)
     }
 
     func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
         for anchor in anchors {
             planeVisualizer?.remove(anchor.identifier)
+            horizontalPlaneAnchors.removeValue(forKey: anchor.identifier)
         }
     }
-    
+
     private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
         guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
 
@@ -115,7 +130,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             orientation: .right
         )
     }
-    
+
     private func updateHandTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
         guard currentTime - lastHandPoseUpdateTime > 0.1,
               !isHandPoseRequestInFlight
@@ -158,17 +173,43 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
 
     private func handlePlaneAnchors(_ anchors: [ARAnchor]) {
-        guard let horizontalPlane = anchors.compactMap({ $0 as? ARPlaneAnchor })
-            .first(where: { $0.alignment == .horizontal }) else {
+        updateKnownHorizontalPlanes(with: anchors)
+
+        guard let horizontalPlane = largestHorizontalPlane() else {
             return
         }
 
         onPlaneStateChange(.ready)
-        placementManager.createInvisiblePhysicsFloor(at: horizontalPlane.worldCenter)
+        placementManager.createInvisiblePhysicsFloor(
+            at: horizontalPlane.worldCenter,
+            shouldUpdateHeight: !hasPlacedDemoObjects && !orbPhysicsController.hasOrbs
+        )
 
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
         placementManager.placeDemoObjects(on: horizontalPlane)
+    }
+
+    private func updateKnownHorizontalPlanes(with anchors: [ARAnchor]) {
+        for anchor in anchors {
+            guard let planeAnchor = anchor as? ARPlaneAnchor,
+                  planeAnchor.alignment == .horizontal else {
+                continue
+            }
+
+            horizontalPlaneAnchors[planeAnchor.identifier] = planeAnchor
+        }
+    }
+
+    private func largestHorizontalPlane() -> ARPlaneAnchor? {
+        horizontalPlaneAnchors.values.max {
+            planeArea($0) < planeArea($1)
+        }
+    }
+
+    private func planeArea(_ planeAnchor: ARPlaneAnchor) -> Float {
+        let extent = planeAnchor.planeExtent
+        return extent.width * extent.height
     }
 
     private func handleHandGesture() {
@@ -216,17 +257,18 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         wasPinching = false
     }
     private func createPhysicsOrb(for emotion: EmotionType?) {
-        guard placementManager.hasFloor,
-              let arView,
+        guard let arView,
+              let floorY = placementManager.floorY ?? fallbackFloorY(in: arView),
               let trackedOrb = orbSpawnManager.createOrb(
                 in: arView,
-                floorY: placementManager.floorY,
+                floorY: floorY,
                 emotion: emotion
               ) else {
             return
         }
 
-        orbPhysicsController.addOrb(trackedOrb, in: arView)
+        fallbackOrbFloorY = floorY
+        orbPhysicsController.addOrb(trackedOrb)
     }
 
     private func updatePhysicsOrbsIfNeeded(now: CFTimeInterval) {
@@ -237,12 +279,21 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
         let deltaTime = Float(min(max(now - (lastOrbPhysicsUpdateTime ?? now), 0), 1.0 / 20.0))
         lastOrbPhysicsUpdateTime = now
+        let floorY = placementManager.floorY ?? fallbackOrbFloorY ?? arView.flatMap(fallbackFloorY)
         orbPhysicsController.updateOrbs(
-            floorY: placementManager.floorY,
+            floorY: floorY,
             deltaTime: deltaTime,
             now: now,
             playAreaCenter: placementManager.playAreaCenter
         )
+    }
+
+    private func fallbackFloorY(in arView: ARView) -> Float? {
+        guard let cameraTransform = arView.session.currentFrame?.camera.transform else {
+            return nil
+        }
+
+        return cameraTransform.columns.3.y - 0.65
     }
 }
 
