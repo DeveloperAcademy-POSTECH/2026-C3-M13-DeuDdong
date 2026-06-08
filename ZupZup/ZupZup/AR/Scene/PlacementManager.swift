@@ -13,6 +13,9 @@ import OSLog
 
 @MainActor
 final class PlacementManager {
+    private static let bottleCameraOffset = SIMD3<Float>(0, -0.1, -0.5)
+    private static let bottleAnchorName = "BottleCameraAnchor"
+
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
     private var selectedOrb: ModelEntity?
@@ -62,9 +65,20 @@ final class PlacementManager {
         placeOrb(emotion: event.emotion, at: position)
     }
 
-    func placeBottle(at position: SIMD3<Float>) {
-        let bottle = BottleEntity.makeBottle()
-        addToScene(bottle, at: position)
+    func placeBottleInFrontOfCamera() {
+        guard let arView else { return }
+
+        Task {
+            let bottle = await BottleEntity.makeBottle()
+
+            let anchor = AnchorEntity(.camera)
+            anchor.name = Self.bottleAnchorName
+            bottle.position = Self.bottleCameraOffset
+
+            anchor.addChild(bottle)
+            arView.scene.addAnchor(anchor)
+            sceneAnchors.append(anchor)
+        }
     }
 
     func selectOrb(at screenPoint: CGPoint) { // 화면 좌표에 있는 엔티티 찾기
@@ -216,7 +230,7 @@ final class PlacementManager {
             return
         }
 
-        placeBottle(at: center)
+        placeBottleInFrontOfCamera()
 
         placeOrb(emotion: .praise, at: center + SIMD3<Float>(-0.18, 0.025, 0.02))
         placeOrb(emotion: .encouragement, at: center + SIMD3<Float>(-0.11, 0.025, 0.08))

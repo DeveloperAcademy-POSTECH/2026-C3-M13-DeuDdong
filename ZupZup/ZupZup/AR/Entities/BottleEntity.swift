@@ -8,8 +8,18 @@
 import RealityKit
 internal import UIKit
 
+@MainActor
 enum BottleEntity {
-    static func makeBottle() -> ModelEntity {
+    private static let assetName = "Bottle"
+
+    static func makeBottle() async -> Entity {
+        if let loaded = await EntityLoader.load(named: assetName) {
+            return loaded
+        }
+        return makePlaceholderBottle()
+    }
+
+    private static func makePlaceholderBottle() -> ModelEntity {
         let size = SIMD3<Float>(0.2, 0.2, 0.2)
         let mesh = MeshResource.generateBox(size: size, cornerRadius: 0.02)
         let material = SimpleMaterial(
