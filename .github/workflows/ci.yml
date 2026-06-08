@@ -36,7 +36,7 @@ jobs:
           xcodebuild build \
             -project ZupZup.xcodeproj \
             -scheme ZupZup \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -configuration Debug
 
       - name: Post Comment on Success
