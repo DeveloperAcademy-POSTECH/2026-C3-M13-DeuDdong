@@ -27,6 +27,13 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint
 
+      - name: Create Develop.xcconfig
+        run: |
+          cat > ZupZup/Develop.xcconfig <<EOF
+          PRODUCT_BUNDLE_IDENTIFIER = C3-T13.ZupZup
+          DEVELOPMENT_TEAM =
+          EOF
+
       - name: Build
         run: |
           set -o pipefail
