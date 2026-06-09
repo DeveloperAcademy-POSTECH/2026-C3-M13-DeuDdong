@@ -13,7 +13,7 @@ import OSLog
 
 @MainActor
 final class PlacementManager {
-    private static let bottleCameraOffset = SIMD3<Float>(0, -0.6, -0.5)
+    private static let bottleCameraOffset = SIMD3<Float>(0, -0.4, -0.5)
     private static let bottleAnchorName = "BottleCameraAnchor"
 
     private weak var arView: ARView?
