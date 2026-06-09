@@ -3,6 +3,7 @@
 
 # Xcode 사용자별 설정
 xcuserdata/
+xcshareddata/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 
