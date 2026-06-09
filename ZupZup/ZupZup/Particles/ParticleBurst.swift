@@ -19,7 +19,10 @@ enum ParticleBurst {
         }
     }
 
-    private static func cachedEmitter(for emotion: EmotionType, in scene: Scene) async -> (anchor: AnchorEntity, entity: Entity)? {
+    private static func cachedEmitter(
+        for emotion: EmotionType,
+        in scene: Scene
+    ) async -> (anchor: AnchorEntity, entity: Entity)? {
         if let cached = cachedEmitters[emotion] {
             return cached
         }
