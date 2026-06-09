@@ -30,7 +30,7 @@ def Xform "Root"
                     float birthRateVariation = 10
                     float4 endColorA = (0.0013006331, 0.032195132, 1, 1)
                     asset particleImage = @../Textures/Gratitude.png@
-                    float particleSize = 0.01
+                    float particleSize = 0.03
                     float4 startColorA = (0.85958415, 0.8367509, 0.8778399, 1)
                     float4 startColorB = (1, 0.48149014, 0.6585501, 1)
                     bool useEndColor = 0
