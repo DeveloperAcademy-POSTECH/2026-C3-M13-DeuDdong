@@ -6,33 +6,30 @@
 
 import ARKit
 import RealityKit
+import simd
 
 @MainActor
 final class OrbSpawnManager {
-    private let spawnProvider: any OrbSpawnProviding
-
-    init() {
-        self.spawnProvider = CameraOrbSpawnProvider()
-    }
-
-    init(spawnProvider: any OrbSpawnProviding) {
-        self.spawnProvider = spawnProvider
-    }
-
     func createOrb(
         in arView: ARView,
         floorY: Float?,
-        emotion: EmotionType? = nil
+        emotion: EmotionType? = nil,
+        mouthNormalizedPoint: CGPoint? = nil
     ) -> TrackedOrb? {
-        guard let cameraTransform = arView.session.currentFrame?.camera.transform else {
-            return nil
-        }
+        guard let frame = arView.session.currentFrame else { return nil }
 
         let orbEmotion = emotion ?? EmotionType.allCases.randomElement() ?? .praise
-        let spawnPosition = spawnProvider.spawnPosition(
-            cameraTransform: cameraTransform,
-            floorY: floorY
-        )
+
+        let spawnPosition: SIMD3<Float>
+        if let normalizedPoint = mouthNormalizedPoint,
+           let worldPos = MouthWorldPositionEstimator.worldPosition(
+               for: normalizedPoint, frame: frame, floorY: floorY
+           ) {
+            spawnPosition = worldPos
+        } else {
+            spawnPosition = cameraSpawnPosition(from: frame.camera.transform, floorY: floorY)
+        }
+
         let orbEntity = OrbEntity.makeWaitingOrb(emotion: orbEmotion)
         orbEntity.position = .zero
 
@@ -42,5 +39,31 @@ final class OrbSpawnManager {
         arView.scene.addAnchor(anchor)
         ParticleBurst.burst(for: orbEmotion, at: spawnPosition, in: arView.scene)
         return TrackedOrb(anchor: anchor, entity: orbEntity)
+    }
+
+    private func cameraSpawnPosition(from cameraTransform: simd_float4x4, floorY: Float?) -> SIMD3<Float> {
+        let cameraPosition = SIMD3<Float>(
+            cameraTransform.columns.3.x,
+            cameraTransform.columns.3.y,
+            cameraTransform.columns.3.z
+        )
+        let cameraForward = normalize(-SIMD3<Float>(
+            cameraTransform.columns.2.x,
+            cameraTransform.columns.2.y,
+            cameraTransform.columns.2.z
+        ))
+        let cameraDown = normalize(-SIMD3<Float>(
+            cameraTransform.columns.1.x,
+            cameraTransform.columns.1.y,
+            cameraTransform.columns.1.z
+        ))
+
+        var position = cameraPosition + cameraForward * 0.5 + cameraDown * 0.15
+
+        if let floorY {
+            position.y = max(position.y, floorY + OrbPhysicsSettings.minimumSpawnHeightAboveFloor)
+        }
+
+        return position
     }
 }

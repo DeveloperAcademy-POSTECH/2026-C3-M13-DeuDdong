@@ -81,7 +81,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
 
     func placeOrb(event: EmotionOrbEvent) {
-        createPhysicsOrb(for: event.emotion)
+        createPhysicsOrb(for: event.emotion, mouthNormalizedPoint: event.speakerMouthCenter)
     }
 
     func resetScene() {
@@ -256,13 +256,14 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
         wasPinching = false
     }
-    private func createPhysicsOrb(for emotion: EmotionType?) {
+    private func createPhysicsOrb(for emotion: EmotionType?, mouthNormalizedPoint: CGPoint? = nil) {
         guard let arView,
               let floorY = placementManager.floorY ?? fallbackFloorY(in: arView),
               let trackedOrb = orbSpawnManager.createOrb(
                 in: arView,
                 floorY: floorY,
-                emotion: emotion
+                emotion: emotion,
+                mouthNormalizedPoint: mouthNormalizedPoint
               ) else {
             return
         }
