@@ -49,7 +49,7 @@ final class OrbSpawnManager {
             camera.transform.columns.3.z
         )
         let directionToFace = normalize(facePosition - cameraPos)
-        return facePosition + directionToFace * 0.4
+        return facePosition + directionToFace * 0.5
     }
 
     private func cameraSpawnPosition(from cameraTransform: simd_float4x4, floorY: Float?) -> SIMD3<Float> {
