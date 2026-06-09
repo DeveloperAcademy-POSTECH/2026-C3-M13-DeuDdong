@@ -29,8 +29,15 @@ struct AppFlowView: View {
                 conversationView
             case .report:
                 ReportView(
-                    onSave: { currentScreen = .home },
-                    onCertify: { currentScreen = .certification }
+                    onSave: {
+                        currentScreen = .home
+                    },
+                    onCertify: {
+                        currentScreen = .certification
+                    },
+                    onHome: {
+                        currentScreen = .home
+                    }
                 )
             case .certification:
                 CertificationView {
