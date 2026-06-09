@@ -10,6 +10,9 @@ import SwiftUI
 
 struct ARCollectView: View {
 
+    var onReturnHome: () -> Void = {}
+    var onCompleted: () -> Void = {}
+
     @State private var currentOrbCount = 0
     private let totalOrbCount = 11
 
@@ -28,7 +31,7 @@ struct ARCollectView: View {
 
             // MARK: AR Layer
 
-            Color.gray
+            Color.clear
 
             // MARK: Orb Count
 
@@ -238,7 +241,7 @@ struct ARCollectView: View {
                 HStack {
 
                     ARHomeButtonDark {
-                        print("Home")
+                        onReturnHome()
                     }
 
                     Spacer()

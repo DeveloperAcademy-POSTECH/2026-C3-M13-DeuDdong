@@ -16,6 +16,7 @@ struct ARSceneView: View {
     @State private var hasLockedSpeakerRecognition = false
     @State private var hasStartedConversationFlow = false
     @State private var isConversationFinished = false
+    @State private var isCollecting = false
     @State private var remainingConversationSeconds = 180
     @State private var secondsWithoutOrb = 0
     @State private var trackedOrbEventID: UUID?
@@ -98,7 +99,28 @@ struct ARSceneView: View {
 
             if isConversationStarted {
                 VStack(spacing: 8) {
-                    ConversationTimerView(remainingSeconds: remainingConversationSeconds)
+                    ZStack {
+                        ConversationTimerView(remainingSeconds: remainingConversationSeconds)
+
+                        HStack {
+                            ARHomeButtonDark {
+                                withAnimation(.easeOut(duration: 0.12)) {
+                                    activeOverlay = .homeExit
+                                }
+                            }
+                            Spacer()
+                            Button {
+                                withAnimation(.easeOut(duration: 0.12)) {
+                                    activeOverlay = .conversationEnd
+                                }
+                            } label: {
+                                Text("대화 종료")
+                                    .font(ZZFont.body)
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                    }
 
                     if showsPraisePrompt {
                         StatusToast(
@@ -113,7 +135,6 @@ struct ARSceneView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(.top, 28)
-                .allowsHitTesting(false)
             }
 
             VStack(spacing: 12) {
@@ -132,13 +153,41 @@ struct ARSceneView: View {
             }
 
             if let countdownValue {
-                CountdownOverlay(count: countdownValue)
-                    .transition(.opacity)
+                ZStack {
+                    CountdownOverlay(count: countdownValue)
+
+                    VStack {
+                        HStack {
+                            ARBackButtonDark {
+                                resetRecognitionFlow()
+                            }
+                            Spacer()
+                        }
+                        .padding(.leading, 16)
+                        .padding(.top, 78)
+
+                        Spacer()
+                    }
+                }
+                .transition(.opacity)
             }
 
             activeOverlayView
+
+            if isCollecting {
+                ARCollectView(
+                    onReturnHome: onReturnHome,
+                    onCompleted: onFinishConversation
+                )
+                .transition(.opacity)
+            }
         }
         .preventsIdleTimer()
+        .onChange(of: isCollecting) { _, collecting in
+            if collecting {
+                placementManager.placeBottleInFrontOfCamera()
+            }
+        }
         .onAppear {
             if !sessionManager.isWorldTrackingSupported {
                 planeState = .unsupported //
@@ -203,10 +252,21 @@ private extension ARSceneView {
     @ViewBuilder
     private var activeOverlayView: some View {
         switch activeOverlay {
+        case .homeExit:
+            HomeExitOverlay(
+                cancelAction: { activeOverlay = nil },
+                confirmAction: onReturnHome
+            )
         case .conversationEnd:
             ConversationEndOverlay(
                 cancelAction: { activeOverlay = nil },
-                confirmAction: onFinishConversation
+                confirmAction: {
+                    finishConversation(showOverlay: false)
+                    activeOverlay = nil
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        isCollecting = true
+                    }
+                }
             )
         case .noOrb:
             NoOrbOverlay(
@@ -329,7 +389,13 @@ private extension ARSceneView {
         countdownValue = nil
 
         guard showOverlay else { return }
-        activeOverlay = emotionRuntime.emittedOrbEventCount == 0 ? .noOrb : .conversationEnd
+        if emotionRuntime.emittedOrbEventCount == 0 {
+            activeOverlay = .noOrb
+        } else {
+            withAnimation(.easeOut(duration: 0.2)) {
+                isCollecting = true
+            }
+        }
     }
 
     private func restartConversationFlow() {

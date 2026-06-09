@@ -47,19 +47,6 @@ struct AppFlowView: View {
                 onFinishConversation: { currentScreen = .report },
                 onReturnHome: { currentScreen = .home }
             )
-
-            Button {
-                currentScreen = .report
-            } label: {
-                Text("종료하기")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(ZZColor.gray9)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
-                    .background(.regularMaterial, in: Capsule())
-            }
-            .padding(.top, 18)
-            .padding(.trailing, 18)
         }
     }
 }
