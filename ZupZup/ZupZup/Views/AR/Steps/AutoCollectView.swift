@@ -5,11 +5,12 @@
 //  Created by Kimseoyeon on 6/8/26.
 //
 
-
 import SwiftUI
 
 struct AutoCollectView: View {
+
     @State private var showHomeExitOverlay = false
+    
 
     let onCompleted: () -> Void
 
@@ -80,23 +81,39 @@ struct AutoCollectView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
             .ignoresSafeArea(edges: .bottom)
-            
-                if showHomeExitOverlay {
 
-                    HomeExitOverlay(
+            // MARK: Home Exit Overlay
 
-                        cancelAction: {
-                            showHomeExitOverlay = false
-                        },
+            if showHomeExitOverlay {
 
-                        confirmAction: {
-                            print("Go Home")
-                        }
-                    )
-                    .zIndex(999)
-                }
+                HomeExitOverlay(
+
+                    cancelAction: {
+                        showHomeExitOverlay = false
+                    },
+
+                    confirmAction: {
+                        print("Go Home")
+                    }
+                )
+                .zIndex(999)
+            }
         }
         .ignoresSafeArea()
+
+        // MARK: Auto Complete
+
+        .onAppear {
+
+            Task {
+
+                try? await Task.sleep(for: .seconds(3))
+
+                await MainActor.run {
+                    onCompleted()
+                }
+            }
+        }
     }
 }
 
