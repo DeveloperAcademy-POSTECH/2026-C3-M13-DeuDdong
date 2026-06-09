@@ -149,7 +149,8 @@ final class EmotionRuntime: EmotionRuntimeManaging {
             isListening: state.isListening,
             interimText: "",
             statusText: "상대 입 움직임 대기 중",
-            audioLevel: state.audioLevel
+            audioLevel: state.audioLevel,
+            audioSamples: state.audioSamples
         )
     }
 

@@ -17,9 +17,11 @@ final class SpeechManager: SpeechManaging {
     private(set) var interimText = ""
     private(set) var statusText = "대기 중"
     private(set) var audioLevel: Double = 0
+    private(set) var audioSamples: [Double] = []
 
     private let audioEngine = AVAudioEngine()
     private let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "ko-KR"))
+    private let maxAudioSamples = 64
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private var latestTranscriptionText = ""
@@ -97,9 +99,10 @@ final class SpeechManager: SpeechManaging {
             inputNode.removeTap(onBus: 0)
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
                 request.append(buffer)
-                let level = Self.normalizedAudioLevel(from: buffer)
+                let meter = Self.audioMeter(from: buffer)
                 Task { @MainActor in
-                    self.audioLevel = level
+                    self.audioLevel = meter.level
+                    self.appendAudioSample(meter.sample)
                     self.publishState()
                 }
             }
@@ -159,6 +162,7 @@ final class SpeechManager: SpeechManaging {
         isListening = false
         interimText = ""
         audioLevel = 0
+        audioSamples = []
         latestTranscriptionText = ""
         emittedCharacterCount = 0
         publishState()
@@ -289,23 +293,37 @@ final class SpeechManager: SpeechManaging {
         }
     }
 
-    private static func normalizedAudioLevel(from buffer: AVAudioPCMBuffer) -> Double {
-        guard let channelData = buffer.floatChannelData?[0] else { return 0 }
+    private func appendAudioSample(_ sample: Double) {
+        audioSamples.append(sample)
+
+        if audioSamples.count > maxAudioSamples {
+            audioSamples.removeFirst(audioSamples.count - maxAudioSamples)
+        }
+    }
+
+    private static func audioMeter(from buffer: AVAudioPCMBuffer) -> (level: Double, sample: Double) {
+        guard let channelData = buffer.floatChannelData?[0] else { return (0, 0) }
 
         let frameLength = Int(buffer.frameLength)
-        guard frameLength > 0 else { return 0 }
+        guard frameLength > 0 else { return (0, 0) }
 
         var sum: Float = 0
+        var peak: Float = 0
         for index in 0..<frameLength {
             let sample = channelData[index]
             sum += sample * sample
+            peak = max(peak, abs(sample))
         }
 
         let rms = sqrt(sum / Float(frameLength))
-        guard rms > 0 else { return 0 }
+        guard rms > 0 else { return (0, 0) }
 
-        let decibels = 20 * log10(Double(rms))
-        return min(1, max(0, (decibels + 55) / 55))
+        let rmsDecibels = 20 * log10(Double(rms))
+        let peakDecibels = 20 * log10(max(Double(peak), 0.000_001))
+        let level = min(1, max(0, (rmsDecibels + 55) / 55))
+        let peakLevel = min(1, max(0, (peakDecibels + 45) / 45))
+        let waveformSample = min(1, max(0.03, peakLevel * 0.7 + level * 0.3))
+        return (level, waveformSample)
     }
 
     private func publishState() {
@@ -314,7 +332,8 @@ final class SpeechManager: SpeechManaging {
                 isListening: isListening,
                 interimText: interimText,
                 statusText: statusText,
-                audioLevel: audioLevel
+                audioLevel: audioLevel,
+                audioSamples: audioSamples
             )
         )
     }
