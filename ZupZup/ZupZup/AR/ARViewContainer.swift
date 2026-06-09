@@ -17,7 +17,6 @@ struct ARViewContainer: UIViewRepresentable {
     @Binding var planeState: ARState
     @Binding var isPlaneVisualizationVisible: Bool
     #if DEBUG
-    let burstController: DebugBurstController
     let orbPlacementController: DebugOrbPlacementController
     let gridController: DebugGridController
     #endif
@@ -44,9 +43,6 @@ struct ARViewContainer: UIViewRepresentable {
             coordinator?.placeOrb(event: event)
         }
         #if DEBUG
-        burstController.trigger = { [weak coordinator = context.coordinator] in
-            coordinator?.triggerDebugBurst()
-        }
         orbPlacementController.trigger = { [weak coordinator = context.coordinator] count in
             coordinator?.triggerDebugOrbPlacement(count: count)
         }

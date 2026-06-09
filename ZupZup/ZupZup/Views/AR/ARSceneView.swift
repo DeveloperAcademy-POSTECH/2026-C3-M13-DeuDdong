@@ -36,7 +36,6 @@ struct ARSceneView: View {
     // MARK: - [개발자 디버그 매니저]
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
-    @State private var burstController = DebugBurstController()
     @State private var orbPlacementController = DebugOrbPlacementController()
     @State private var gridController = DebugGridController()
     #endif
@@ -55,7 +54,6 @@ struct ARSceneView: View {
                 orbEventPlacementController: orbEventPlacementController,
                 planeState: $planeState,
                 isPlaneVisualizationVisible: $isPlaneVisualizationVisible,
-                burstController: burstController,
                 orbPlacementController: orbPlacementController,
                 gridController: gridController
             )
@@ -81,7 +79,6 @@ struct ARSceneView: View {
                     gesture: handTrackingManager.currentGesture,
                     distance: handTrackingManager.distance,
                     runtime: emotionRuntime,
-                    burstAction: { burstController.fire() },
                     testOrbAction: { orbPlacementController.fire() },
                     addOrbAction: { orbPlacementController.fire() },
                     addFiveOrbsAction: { orbPlacementController.fire(count: 5) }
@@ -195,7 +192,6 @@ struct ARSceneView: View {
             // -------------------------------------------------------------------------
             VStack(spacing: 12) {
                 Spacer(minLength: 0)
-
                 // 4단계 대화방이 활성화되었을 때만 하단에 사용자의 음성 볼륨에 따라 역동적인 파형 애니메이션 노출
                 if planeState == .ready && isConversationStarted {
                     ConversationAudioLevelOverlay(speechState: emotionRuntime.speechState)

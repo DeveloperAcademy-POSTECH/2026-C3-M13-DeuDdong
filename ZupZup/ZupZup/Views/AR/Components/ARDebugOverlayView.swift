@@ -40,7 +40,6 @@ struct DeveloperDebugPanelView: View {
     let gesture: HandGestureState
     let distance: CGFloat
     let runtime: EmotionRuntime
-    var burstAction: () -> Void
     var testOrbAction: () -> Void
     var addOrbAction: () -> Void
     var addFiveOrbsAction: () -> Void
@@ -57,8 +56,6 @@ struct DeveloperDebugPanelView: View {
             VStack(spacing: 10) {
                 Spacer(minLength: 0)
                 HapticDebugView()
-                Button("파티클 터뜨리기", action: burstAction)
-                    .buttonStyle(.borderedProminent)
                 Button("구슬 물리 테스트", action: testOrbAction)
                     .buttonStyle(.borderedProminent)
                 debugOrbControls
