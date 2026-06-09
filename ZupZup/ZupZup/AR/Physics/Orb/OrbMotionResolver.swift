@@ -15,14 +15,13 @@ final class OrbMotionResolver {
         deltaTime: Float,
         now: CFTimeInterval
     ) {
-        guard trackedOrb.state != .waiting else {
-            return
-        }
+        guard trackedOrb.state != .waiting else { return }
+        guard trackedOrb.state != .grabbed else { return }
 
         clampOrbToFloorIfNeeded(trackedOrb, floorY: floorY)
 
         switch trackedOrb.state {
-        case .waiting:
+        case .waiting, .grabbed:
             break
         case .falling:
             handleFirstFloorTouchIfNeeded(trackedOrb, floorY: floorY, now: now)

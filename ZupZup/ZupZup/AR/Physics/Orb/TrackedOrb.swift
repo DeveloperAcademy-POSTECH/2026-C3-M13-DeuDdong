@@ -12,6 +12,7 @@ enum OrbPhysicsState: String {
     case falling
     case bounced
     case settled
+    case grabbed
 }
 
 final class TrackedOrb {

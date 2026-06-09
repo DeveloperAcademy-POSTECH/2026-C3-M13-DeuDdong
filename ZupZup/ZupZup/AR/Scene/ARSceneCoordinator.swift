@@ -24,6 +24,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var wasPinching = false
     private var lastPinchSeenTime: TimeInterval = 0
     private let pinchLostGraceDuration: TimeInterval = 0.3
+    private var isCollecting = false
     private var horizontalPlaneAnchors: [UUID: ARPlaneAnchor] = [:]
     private var isHandPoseRequestInFlight = false
     private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
@@ -78,6 +79,10 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
     func setPlaneVisualizationVisible(_ isVisible: Bool) {
         planeVisualizer?.setVisible(isVisible)
+    }
+    
+    func setCollectionMode(_ isCollecting: Bool) {
+        self.isCollecting = isCollecting
     }
 
     func placeOrb(event: EmotionOrbEvent) {
@@ -187,7 +192,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
-        placementManager.placeDemoObjects(on: horizontalPlane)
     }
 
     private func updateKnownHorizontalPlanes(with anchors: [ARAnchor]) {
@@ -213,6 +217,11 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
 
     private func handleHandGesture() {
+        guard isCollecting else {
+            releaseIfNeeded()
+            return
+        }
+        
         let handTrackingManager = HandTrackingManager.shared
 
         switch handTrackingManager.currentGesture {
@@ -226,7 +235,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             lastPinchSeenTime = Date().timeIntervalSince1970
 
             if !wasPinching {
-                placementManager.selectOrb(at: screenPoint)
+                placementManager.selectOrb(at: screenPoint, from: orbPhysicsController.trackedOrbs)
                 wasPinching = true
                 return
             }
