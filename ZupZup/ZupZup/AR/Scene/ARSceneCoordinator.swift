@@ -182,12 +182,12 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         onPlaneStateChange(.ready)
         placementManager.createInvisiblePhysicsFloor(
             at: horizontalPlane.worldCenter,
-            shouldUpdateHeight: !orbPhysicsController.hasOrbs
+            shouldUpdateHeight: !hasPlacedDemoObjects && !orbPhysicsController.hasOrbs
         )
 
         guard !hasPlacedDemoObjects else { return }
         hasPlacedDemoObjects = true
-        placementManager.placeBottleInFrontOfCamera()
+        placementManager.placeDemoObjects(on: horizontalPlane)
     }
 
     private func updateKnownHorizontalPlanes(with anchors: [ARAnchor]) {

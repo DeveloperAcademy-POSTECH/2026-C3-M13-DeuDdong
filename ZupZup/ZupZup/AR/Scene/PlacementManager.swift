@@ -239,6 +239,43 @@ final class PlacementManager {
         return PlaneRaycaster.horizontalPlanePosition(from: screenPoint, in: arView)
     }
 
+    func placeDemoObjects(on planeAnchor: ARPlaneAnchor) {
+        guard let center = cameraFrontFloorPosition(floorY: planeAnchor.worldCenter.y) else {
+            return
+        }
+
+        placeOrb(emotion: .praise, at: center + SIMD3<Float>(-0.18, 0.025, 0.02))
+        placeOrb(emotion: .encouragement, at: center + SIMD3<Float>(-0.11, 0.025, 0.08))
+        placeOrb(emotion: .affection, at: center + SIMD3<Float>(0.12, 0.025, 0.07))
+        placeOrb(emotion: .gratitude, at: center + SIMD3<Float>(0.18, 0.025, -0.02))
+        placeOrb(emotion: .empathy, at: center + SIMD3<Float>(-0.05, 0.025, 0.14))
+    }
+
+    private func cameraFrontFloorPosition(floorY: Float) -> SIMD3<Float>? {
+        guard let arView, let frame = arView.session.currentFrame else { return nil }
+
+        let cameraTransform = frame.camera.transform
+        let cameraPosition = SIMD3<Float>(
+            cameraTransform.columns.3.x,
+            cameraTransform.columns.3.y,
+            cameraTransform.columns.3.z
+        )
+        let cameraForward = normalize(-SIMD3<Float>(
+            cameraTransform.columns.2.x,
+            cameraTransform.columns.2.y,
+            cameraTransform.columns.2.z
+        ))
+        let floorForward = SIMD3<Float>(cameraForward.x, 0, cameraForward.z)
+        let forwardLength = length(floorForward)
+
+        guard forwardLength > 0.0001 else { return nil }
+
+        let horizontalForward = floorForward / forwardLength
+        let target = cameraPosition + horizontalForward * 0.7
+
+        return SIMD3<Float>(target.x, floorY, target.z)
+    }
+
     func createInvisiblePhysicsFloor(
         at position: SIMD3<Float>,
         shouldUpdateHeight: Bool = true
