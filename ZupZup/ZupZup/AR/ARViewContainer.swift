@@ -17,7 +17,8 @@ struct ARViewContainer: UIViewRepresentable {
     @Binding var planeState: ARState
     @Binding var isPlaneVisualizationVisible: Bool
     let isCollecting: Bool
-    
+    let onOrbCountChanged: (Int) -> Void
+    let onCollectedCountChanged: (Int) -> Void
     #if DEBUG
     let orbPlacementController: DebugOrbPlacementController
     let gridController: DebugGridController
@@ -30,6 +31,8 @@ struct ARViewContainer: UIViewRepresentable {
             emotionRuntime: emotionRuntime
         ) { state in
             planeState = state
+        } onOrbCountChange: { count in
+            onOrbCountChanged(count)
             }
     }
 
@@ -42,6 +45,9 @@ struct ARViewContainer: UIViewRepresentable {
         context.coordinator.install(on: arView)
         context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
         context.coordinator.setCollectionMode(isCollecting)
+        placementManager.onCollectedCountChanged = { count in
+            onCollectedCountChanged(count)
+        }
         orbEventPlacementController.trigger = { [weak coordinator = context.coordinator] event in
             coordinator?.placeOrb(event: event)
         }
@@ -59,6 +65,9 @@ struct ARViewContainer: UIViewRepresentable {
     func updateUIView(_ uiView: ARView, context: Context) {
         context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
         context.coordinator.setCollectionMode(isCollecting)
+        placementManager.onCollectedCountChanged = { count in
+            onCollectedCountChanged(count)
+        }
         context.coordinator.updatePlaneStateHandler { state in
             planeState = state
         }

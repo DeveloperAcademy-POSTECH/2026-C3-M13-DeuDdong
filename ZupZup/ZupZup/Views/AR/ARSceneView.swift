@@ -24,6 +24,8 @@ struct ARSceneView: View {
     
     // 🔮 [5단계 핵심 상태]
     @State private var isCollecting = false                     // 4단계 종료 후 '5단계: 구슬 수집 단계' 활성화 플래그
+    @State private var collectedOrbCount = 0                    // 5단계에서 유리병에 수집된 구슬 개수
+    @State private var totalOrbCount = 0                        // 대화 중 생성된 전체 구슬 개수
     
     // MARK: - [실시간 상태 및 모니터링 변수]
     @State private var remainingConversationSeconds = 180       // 4단계 대화 시간 (3분 타이머)
@@ -55,6 +57,12 @@ struct ARSceneView: View {
                 planeState: $planeState,
                 isPlaneVisualizationVisible: $isPlaneVisualizationVisible,
                 isCollecting: isCollecting,
+                onOrbCountChanged: { count in
+                    totalOrbCount = count
+                },
+                onCollectedCountChanged: { count in
+                    collectedOrbCount = count
+                },
                 orbPlacementController: orbPlacementController,
                 gridController: gridController
             )
@@ -68,6 +76,12 @@ struct ARSceneView: View {
                 planeState: $planeState,
                 isPlaneVisualizationVisible: $isPlaneVisualizationVisible,
                 isCollecting: isCollecting,
+                onOrbCountChanged: { count in
+                    totalOrbCount = count
+                },
+                onCollectedCountChanged: { count in
+                    collectedOrbCount = count
+                }
             )
             .ignoresSafeArea()
             #endif
@@ -223,6 +237,8 @@ struct ARSceneView: View {
             // -------------------------------------------------------------------------
             if isCollecting {
                 ARCollectView(
+                    currentOrbCount: $collectedOrbCount,
+                    totalOrbCount: totalOrbCount,
                     onReturnHome: onReturnHome,          // 수집 화면 내에서 홈 이동 터치 시 처리
                     onCompleted: onFinishConversation    // 모든 수집을 끝마쳤을 때 최종 보상 결과창으로 점프
                 )
@@ -235,6 +251,7 @@ struct ARSceneView: View {
         // -------------------------------------------------------------------------
         .onChange(of: isCollecting) { _, collecting in
             if collecting {
+                collectedOrbCount = 0
                 // 사용자의 전방 카메라 화면 중심 기준 알맞은 3D 좌표 공간에 구슬들을 담을 '가상 유리병(Bottle)'을 소환 배치
                 placementManager.placeBottleInFrontOfCamera()
             }

@@ -10,11 +10,11 @@ import SwiftUI
 
 struct ARCollectView: View {
     
+    @Binding private var currentOrbCount: Int
+    let totalOrbCount: Int
     var onReturnHome: () -> Void = {}
     var onCompleted: () -> Void = {}
     
-    @State private var currentOrbCount = 0
-    private let totalOrbCount = 11
     
     @State private var showTutorialOverlay = true
     @State private var animateHand = false
@@ -28,6 +28,18 @@ struct ARCollectView: View {
     @State private var showAutoCollectView = false
     @State private var showCollectCompletedView = false
     @State private var showCompletionPhase = false
+
+    init(
+        currentOrbCount: Binding<Int> = .constant(0),
+        totalOrbCount: Int = 0,
+        onReturnHome: @escaping () -> Void = {},
+        onCompleted: @escaping () -> Void = {}
+    ) {
+        self._currentOrbCount = currentOrbCount
+        self.totalOrbCount = totalOrbCount
+        self.onReturnHome = onReturnHome
+        self.onCompleted = onCompleted
+    }
     
     var body: some View {
         
@@ -66,7 +78,7 @@ struct ARCollectView: View {
                     OrbCountCapsule(
                         current: currentOrbCount,
                         total: totalOrbCount,
-                        isComplete: currentOrbCount == totalOrbCount
+                        isComplete: totalOrbCount > 0 && currentOrbCount == totalOrbCount
                     )
                     
                     AutoCollectButton {
