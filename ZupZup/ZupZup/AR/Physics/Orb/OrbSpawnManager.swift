@@ -20,7 +20,7 @@ final class OrbSpawnManager {
 
         let orbEmotion = emotion ?? EmotionType.allCases.randomElement() ?? .praise
 
-        let spawnPosition: SIMD3<Float>
+        var spawnPosition: SIMD3<Float>
         if let normalizedPoint = mouthNormalizedPoint,
            let worldPos = MouthWorldPositionEstimator.worldPosition(
                for: normalizedPoint, frame: frame, floorY: floorY
@@ -31,7 +31,15 @@ final class OrbSpawnManager {
         }
 
         let orbEntity = OrbEntity.makeWaitingOrb(emotion: orbEmotion)
+        let orbRadius = OrbEntity.collisionRadius(for: orbEntity)
         orbEntity.position = .zero
+
+        if let floorY {
+            spawnPosition.y = max(
+                spawnPosition.y,
+                floorY + orbRadius + OrbPhysicsSettings.spawnClearanceAboveOrb
+            )
+        }
 
         let anchor = AnchorEntity(world: spawnPosition)
         anchor.name = "OrbAnchor_\(orbEmotion.rawValue)"
@@ -39,7 +47,7 @@ final class OrbSpawnManager {
         arView.scene.addAnchor(anchor)
         let burstPosition = behindPersonPosition(from: spawnPosition, camera: frame.camera)
         ParticleBurst.burst(for: orbEmotion, at: burstPosition, in: arView.scene)
-        return TrackedOrb(anchor: anchor, entity: orbEntity)
+        return TrackedOrb(anchor: anchor, entity: orbEntity, radius: orbRadius)
     }
 
     private func behindPersonPosition(from facePosition: SIMD3<Float>, camera: ARCamera) -> SIMD3<Float> {

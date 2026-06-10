@@ -43,16 +43,25 @@ final class ARSessionManager {
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = [.horizontal]
         configuration.environmentTexturing = .automatic
-        var semantics: ARWorldTrackingConfiguration.FrameSemantics = []
+        applyFrameSemantics(to: configuration)
+        return configuration
+    }
+
+    private func applyFrameSemantics(to configuration: ARWorldTrackingConfiguration) {
+        var semantics = configuration.frameSemantics
+
         if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
             semantics.insert(.sceneDepth)
         }
+
         if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
             semantics.insert(.personSegmentationWithDepth)
+        } else if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentation) {
+            semantics.insert(.personSegmentation)
         }
+
         if !semantics.isEmpty {
             configuration.frameSemantics = semantics
         }
-        return configuration
     }
 }
