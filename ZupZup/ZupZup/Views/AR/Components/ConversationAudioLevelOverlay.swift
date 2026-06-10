@@ -11,10 +11,10 @@ struct ConversationAudioLevelOverlay: View {
     let speechState: SpeechState
 
     private let lowAudioThreshold = 0.18
+    private let visibleSampleCount = 54
 
     var body: some View {
-        VStack(spacing: 12) {
-
+        VStack(spacing: 10) {
             if shouldShowLowAudioWarning {
                 StatusToast(
                     text: "조금 더 크게 대화 해주세요",
@@ -24,7 +24,16 @@ struct ConversationAudioLevelOverlay: View {
                 .padding(.horizontal, ZZSpacing.screenHorizontal)
                 .transition(.opacity)
             }
+
+            VoiceWaveformView(
+                samples: waveformSamples,
+                strokeColor: waveformColor
+            )
+            .padding(.horizontal, 12)
+            .transition(.opacity)
         }
+        .animation(.easeOut(duration: 0.12), value: speechState.audioSamples)
+        .animation(.easeOut(duration: 0.2), value: shouldShowLowAudioWarning)
     }
 
     private var shouldShowLowAudioWarning: Bool {
@@ -36,44 +45,55 @@ struct ConversationAudioLevelOverlay: View {
     }
 
     private var waveformSamples: [CGFloat] {
-        let level = max(0.04, min(1.0, speechState.audioLevel))
-        return (0..<36).map { index in
-            let phase = CGFloat(index) * 0.62
-            let wave = (sin(phase) + 1) / 2
-            let pulse = (index % 5 == 0) ? CGFloat(0.22) : CGFloat(0.08)
-            return min(1, CGFloat(level) * (0.35 + wave * 0.65) + pulse)
-        }
+        let samples = speechState.audioSamples
+            .suffix(visibleSampleCount)
+            .map { CGFloat(max(0.03, min(1.0, $0))) }
+        let missingSampleCount = max(0, visibleSampleCount - samples.count)
+        return Array(repeating: CGFloat(0.03), count: missingSampleCount) + samples
     }
 }
 
-struct VoiceWaveformView: View {
+private struct VoiceWaveformView: View {
     let samples: [CGFloat]
     let strokeColor: Color
 
     var body: some View {
         GeometryReader { proxy in
-            Path { path in
-                guard samples.count > 1 else { return }
+            let spacing: CGFloat = 3
+            let count = max(samples.count, 1)
+            let barWidth = max(2, (proxy.size.width - spacing * CGFloat(count - 1)) / CGFloat(count))
 
-                let midY = proxy.size.height / 2
-                let stepX = proxy.size.width / CGFloat(samples.count - 1)
+            ZStack {
+                Rectangle()
+                    .fill(strokeColor.opacity(0.28))
+                    .frame(height: 1)
 
-                for index in samples.indices {
-                    let xPosition = CGFloat(index) * stepX
-                    let amplitude = samples[index] * proxy.size.height * 0.45
-                    let yPosition = midY - amplitude * sin(CGFloat(index) * 0.82)
-
-                    if index == samples.startIndex {
-                        path.move(to: CGPoint(x: xPosition, y: yPosition))
-                    } else {
-                        path.addLine(to: CGPoint(x: xPosition, y: yPosition))
+                HStack(alignment: .center, spacing: spacing) {
+                    ForEach(Array(samples.enumerated()), id: \.offset) { index, sample in
+                        Capsule()
+                            .fill(strokeColor.opacity(opacity(for: index)))
+                            .frame(
+                                width: barWidth,
+                                height: max(3, normalized(sample) * proxy.size.height)
+                            )
                     }
                 }
+                .frame(maxHeight: .infinity)
             }
-            .stroke(strokeColor, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-            .shadow(color: strokeColor.opacity(0.35), radius: 6)
         }
-        .frame(height: 96)
+        .frame(height: 88)
+        .drawingGroup()
+    }
+
+    private func normalized(_ sample: CGFloat) -> CGFloat {
+        let scaledSample = pow(max(0.03, min(1, sample)), 0.78)
+        return 0.12 + scaledSample * 0.88
+    }
+
+    private func opacity(for index: Int) -> Double {
+        let denominator = max(samples.count - 1, 1)
+        let progress = Double(index) / Double(denominator)
+        return 0.32 + progress * 0.68
     }
 }
 

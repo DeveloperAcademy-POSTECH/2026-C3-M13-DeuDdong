@@ -50,7 +50,8 @@ final class PlacementManager {
         guard let arView else { return }
 
         let orb = OrbEntity.makeOrb(emotion: emotion)
-        let correctedPosition = floorSafeOrbPosition(from: position)
+        let orbRadius = OrbEntity.collisionRadius(for: orb)
+        let correctedPosition = floorSafeOrbPosition(from: position, orbRadius: orbRadius)
         let anchor = AnchorEntity(world: correctedPosition)
 
         anchor.addChild(orb)
@@ -217,14 +218,14 @@ final class PlacementManager {
         screenPoint(fromNormalizedPoint: point)
     }
 
-    private func floorSafeOrbPosition(from position: SIMD3<Float>) -> SIMD3<Float> {
+    private func floorSafeOrbPosition(from position: SIMD3<Float>, orbRadius: Float) -> SIMD3<Float> {
         guard let floorY else {
             return position
         }
 
         return SIMD3<Float>(
             position.x,
-            max(position.y, floorY + OrbEntity.radius),
+            max(position.y, floorY + orbRadius),
             position.z
         )
     }

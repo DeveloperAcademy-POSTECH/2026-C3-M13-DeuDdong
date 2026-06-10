@@ -7,7 +7,7 @@
 import RealityKit
 
 enum OrbPhysicsSettings {
-    static let orbRadius: Float = 0.035
+    static let defaultOrbRadius: Float = 0.035
     static let orbMass: Float = 0.18
     static let playAreaRadius: Float = 0.8
     static let floorSettleTolerance: Float = 0.025
@@ -17,6 +17,7 @@ enum OrbPhysicsSettings {
     static let releaseDelayNanoseconds: UInt64 = 260_000_000
     static let initialDropVelocity = SIMD3<Float>(0, -0.75, 0)
     static let minimumSpawnHeightAboveFloor: Float = 0.18
+    static let spawnClearanceAboveOrb: Float = 0.05
 
     static var orbPhysicsMaterial: PhysicsMaterialResource {
         .generate(staticFriction: 0.98, dynamicFriction: 0.96, restitution: 0)
