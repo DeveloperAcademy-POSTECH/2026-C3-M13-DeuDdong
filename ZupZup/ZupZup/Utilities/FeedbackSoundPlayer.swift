@@ -79,6 +79,32 @@ enum FeedbackSoundPlayer {
                 12
             }
         }
+
+        var resourceName: String {
+            switch self {
+            case .countdownTick:
+                "glass_countdown_tick"
+            case .orbDrop:
+                "glass_orb_drop"
+            case .orbCollision:
+                "glass_orb_collision"
+            case .particleBurst:
+                "glass_particle_burst"
+            }
+        }
+
+        var resourceVolume: Float {
+            switch self {
+            case .countdownTick:
+                0.55
+            case .orbDrop:
+                0.85
+            case .orbCollision:
+                0.95
+            case .particleBurst:
+                0.90
+            }
+        }
     }
 
     private static var players: [Effect: AVAudioPlayer] = [:]
@@ -121,9 +147,8 @@ enum FeedbackSoundPlayer {
         }
 
         do {
-            let data = wavData(for: effect)
-            let player = try AVAudioPlayer(data: data)
-            player.volume = 1
+            let player = try bundledPlayer(for: effect) ?? synthesizedPlayer(for: effect)
+            player.volume = effect.resourceVolume
             player.prepareToPlay()
             players[effect] = player
             return player
@@ -131,6 +156,39 @@ enum FeedbackSoundPlayer {
             Logger.haptic.error("피드백 사운드 준비 실패: \(error.localizedDescription, privacy: .public)")
             return nil
         }
+    }
+
+    private static func bundledPlayer(for effect: Effect) throws -> AVAudioPlayer? {
+        guard let url = bundledSoundURL(for: effect.resourceName) else {
+            return nil
+        }
+
+        return try AVAudioPlayer(contentsOf: url)
+    }
+
+    private static func synthesizedPlayer(for effect: Effect) throws -> AVAudioPlayer {
+        try AVAudioPlayer(data: wavData(for: effect))
+    }
+
+    private static func bundledSoundURL(for resourceName: String) -> URL? {
+        let bundle = Bundle.main
+        let candidateSubdirectories: [String?] = [
+            nil,
+            "Sounds/KenneyImpactSounds",
+            "Resources/Sounds/KenneyImpactSounds"
+        ]
+
+        for subdirectory in candidateSubdirectories {
+            if let url = bundle.url(
+                forResource: resourceName,
+                withExtension: "wav",
+                subdirectory: subdirectory
+            ) {
+                return url
+            }
+        }
+
+        return nil
     }
 
     private static func prepareAudioSessionIfNeeded() {
