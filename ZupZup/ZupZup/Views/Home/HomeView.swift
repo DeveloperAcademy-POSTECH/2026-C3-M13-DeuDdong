@@ -206,11 +206,11 @@ struct HomeView: View {
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 14)
-                            .frame(width: 220) // 유리병 Bounds(250) 보안을 위한 고정 폭
+                            .frame(width: 200) // 유리병 Bounds(250) 보안을 위한 고정 폭
                             .background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 5)
-                            .offset(y: -40) // 정중앙 구슬 무더기 위 안착을 위한 기본 오프셋 조율
+                            .offset(y: -120) // 정중앙 구슬 무더기 위 안착을 위한 기본 오프셋 조율
                             .transition(.scale.combined(with: .opacity))
                             .onTapGesture {
                                 withAnimation { selectedEmotion = nil }
