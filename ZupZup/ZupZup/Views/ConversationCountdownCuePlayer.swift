@@ -6,7 +6,6 @@
 //
 
 import AVFoundation
-import AudioToolbox
 
 @MainActor
 final class ConversationCountdownCuePlayer {
@@ -22,8 +21,9 @@ final class ConversationCountdownCuePlayer {
         synthesizer.speak(utterance)
     }
 
-    func playTick() {
-        AudioServicesPlaySystemSound(1104)
+    func playTick(count: Int) {
+        FeedbackSoundPlayer.playCountdownTick()
+        HapticManager.shared.playCountdownTick(count: count)
     }
 
     func stop() {

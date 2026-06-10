@@ -193,6 +193,36 @@ final class PlacementManager {
         Logger.placement.debug("가장 가까운 구슬 선택됨: \(nearestPair.orb.name)")
         return nearestPair.orb
     }
+
+    func orbTouchFeedbackIntensity(at screenPoint: CGPoint) -> Float? {
+        guard let arView else { return nil }
+
+        var strongestIntensity: Float?
+
+        for pair in orbPairs {
+            let orb = pair.orb
+            guard !collectedOrbIDs.contains(ObjectIdentifier(orb)) else { continue }
+
+            let worldPosition = orb.position(relativeTo: nil)
+            guard let orbScreenPoint = arView.project(worldPosition) else { continue }
+
+            let screenRadius = projectedScreenRadius(for: orb, at: worldPosition)
+            let outerRadius = screenRadius * 1.25
+            let distance = hypot(screenPoint.x - orbScreenPoint.x, screenPoint.y - orbScreenPoint.y)
+
+            guard distance <= outerRadius else { continue }
+
+            let intensity = touchIntensity(
+                distance: distance,
+                screenRadius: screenRadius,
+                outerRadius: outerRadius
+            )
+            strongestIntensity = max(strongestIntensity ?? 0, intensity)
+        }
+
+        return strongestIntensity
+    }
+
     func moveSelectedOrb(to screenPoint: CGPoint) {
         guard let selectedOrb else { return }
         let targetScreenPoint = CGPoint(
@@ -389,6 +419,38 @@ final class PlacementManager {
         guard intersectionDistance >= 0 else { return nil }
 
         return rayOrigin + rayDirection * intersectionDistance
+    }
+    private func projectedScreenRadius(for orb: ModelEntity, at worldPosition: SIMD3<Float>) -> CGFloat {
+        guard let arView,
+              let cameraTransform = arView.session.currentFrame?.camera.transform,
+              let centerPoint = arView.project(worldPosition)
+        else {
+            return 42
+        }
+
+        let radius = OrbEntity.collisionRadius(for: orb)
+        let cameraRight = normalize(SIMD3<Float>(
+            cameraTransform.columns.0.x,
+            cameraTransform.columns.0.y,
+            cameraTransform.columns.0.z
+        ))
+        let edgePosition = worldPosition + cameraRight * radius
+
+        guard let edgePoint = arView.project(edgePosition) else {
+            return 42
+        }
+
+        return max(hypot(edgePoint.x - centerPoint.x, edgePoint.y - centerPoint.y), 24)
+    }
+
+    private func touchIntensity(distance: CGFloat, screenRadius: CGFloat, outerRadius: CGFloat) -> Float {
+        if distance > screenRadius {
+            let shellDepth = 1 - ((distance - screenRadius) / max(outerRadius - screenRadius, 1))
+            return 0.08 + Float(shellDepth) * 0.12
+        }
+
+        let normalizedDepth = 1 - min(max(distance / max(screenRadius, 1), 0), 1)
+        return 0.24 + Float(normalizedDepth) * 0.62
     }
     private func bottleMouthPosition() -> SIMD3<Float>? {
         guard let bottleAnchorEntity else { return nil }

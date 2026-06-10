@@ -48,6 +48,7 @@ enum ParticleBurst {
            var emitter = emitterEntity.components[ParticleEmitterComponent.self] {
             emitter.burst()
             emitterEntity.components[ParticleEmitterComponent.self] = emitter
+            FeedbackSoundPlayer.playParticleBurst()
             Logger.particle.info("[성공] 파티클을 찾아 터뜨렸습니다! (찾은 물체 이름: \(emitterEntity.name))")
             return
         }

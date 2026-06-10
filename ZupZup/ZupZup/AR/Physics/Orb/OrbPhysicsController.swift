@@ -130,6 +130,7 @@ final class OrbPhysicsController {
 
     private func startFalling(_ trackedOrb: TrackedOrb) {
         trackedOrb.state = .falling
+        FeedbackSoundPlayer.playOrbDrop()
         var body = trackedOrb.entity.components[PhysicsBodyComponent.self] ?? PhysicsBodyComponent(
             massProperties: .init(mass: OrbPhysicsSettings.orbMass),
             material: OrbPhysicsSettings.orbPhysicsMaterial,

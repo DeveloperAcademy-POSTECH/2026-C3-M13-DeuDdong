@@ -418,7 +418,7 @@ private extension ARSceneView {
         // 3초부터 1초까지 정밀 타임 루프를 순회하며 효과음 재생 및 상태 갱신
         for count in stride(from: 3, through: 1, by: -1) {
             countdownValue = count // 화면 중앙에 3, 2, 1 큰 텍스트 변경 반영
-            countdownCuePlayer.playTick() // '째깍' 효과음 사운드 재생
+            countdownCuePlayer.playTick(count: count) // '째깍' 효과음 및 숫자별 햅틱 재생
             try? await Task.sleep(for: .seconds(1)) // 정밀 1초 대기 비동기 슬립
 
             if Task.isCancelled { // 도중 뒤로가기 이탈 시 무한 루프 탈출 안전핀
