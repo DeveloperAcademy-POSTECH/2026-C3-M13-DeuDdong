@@ -10,7 +10,7 @@ import RealityKit
 @MainActor
 enum BottleEntity {
     private static let assetName = "Balls/Bottle"
-    private static let targetWidth: Float = 0.30
+    private static let targetWidth: Float = 0.38
 
     static func makeBottle() async -> Entity {
         guard let loaded = await EntityLoader.load(named: assetName) else {

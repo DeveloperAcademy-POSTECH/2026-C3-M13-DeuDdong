@@ -176,9 +176,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private func handlePlaneAnchors(_ anchors: [ARAnchor]) {
         updateKnownHorizontalPlanes(with: anchors)
 
-        guard let horizontalPlane = largestHorizontalPlane() else {
-            return
-        }
+        guard let horizontalPlane = largestFloorPlane() else { return }
 
         onPlaneStateChange(.ready)
         placementManager.createInvisiblePhysicsFloor(
@@ -198,10 +196,18 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
     }
 
-    private func largestHorizontalPlane() -> ARPlaneAnchor? {
-        horizontalPlaneAnchors.values.max {
-            planeArea($0) < planeArea($1)
+    private func largestFloorPlane() -> ARPlaneAnchor? {
+        guard let cameraY = arView?.session.currentFrame?.camera.transform.columns.3.y else {
+            return nil
         }
+
+        return horizontalPlaneAnchors.values
+            .filter { planeAnchor in
+                planeAnchor.worldCenter.y < cameraY - 0.2
+            }
+            .max {
+                planeArea($0) < planeArea($1)
+            }
     }
 
     private func planeArea(_ planeAnchor: ARPlaneAnchor) -> Float {
