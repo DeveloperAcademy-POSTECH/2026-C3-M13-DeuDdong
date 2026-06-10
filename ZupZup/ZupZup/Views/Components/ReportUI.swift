@@ -15,85 +15,6 @@ struct EmotionReportItem: Identifiable {
     let offset: CGSize
 }
 
-struct ReportBottleChartView: View {
-    let items: [EmotionReportItem]
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 46)
-                .stroke(ZZColor.gray2, lineWidth: 22)
-                .background(
-                    RoundedRectangle(cornerRadius: 46)
-                        .fill(.white)
-                )
-                .frame(width: 300, height: 500)
-
-            RoundedRectangle(cornerRadius: 22)
-                .fill(Color(red: 0.52, green: 0.37, blue: 0.30))
-                .frame(width: 94, height: 86)
-                .offset(y: -292)
-
-            Capsule()
-                .fill(ZZColor.gray2.opacity(0.7))
-                .frame(width: 170, height: 58)
-                .offset(y: -248)
-
-            ForEach(items) { item in
-                ReportBubbleView(type: item.type, count: item.count, size: item.size)
-                    .offset(item.offset)
-            }
-        }
-        .frame(height: 610)
-    }
-}
-
-struct ReportBubbleView: View {
-
-    let type: EmotionType
-    let count: Int
-    let size: CGFloat
-
-    var body: some View {
-
-        ZStack {
-
-            Image(type.imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(
-                    width: size,
-                    height: size
-                )
-                .opacity(0.8)
-
-            VStack(spacing: 2) {
-
-                Text(type.compactTitle)
-                    .font(
-                        .system(
-                            size: size * 0.13,
-                            weight: .bold
-                        )
-                    )
-                    .foregroundStyle(.white)
-
-                Text("\(count)개")
-                    .font(
-                        .system(
-                            size: size * 0.15,
-                            weight: .black
-                        )
-                    )
-                    .foregroundStyle(.white)
-            }
-            .shadow(
-                color: .black.opacity(0.5),
-                radius: 4
-                )
-        }
-    }
-}
-
 struct ReportScoreRow: View {
     let type: EmotionType
     let count: Int
@@ -139,8 +60,8 @@ struct ReportScoreRow: View {
 
 struct ReportActionButtons: View {
     var saveAction: () -> Void
-    var certificationAction: () -> Void
-
+    var homeAction: () -> Void
+    
     var body: some View {
         VStack(spacing: 12) {
             Button(action: saveAction) {
@@ -152,25 +73,15 @@ struct ReportActionButtons: View {
                     .background(ZZColor.gray9)
                     .clipShape(RoundedRectangle(cornerRadius: ZZSpacing.buttonCornerRadius))
             }
-
-            SecondaryButton(title: "AR 인증샷 찍기", action: certificationAction)
+            SecondaryButton(title: "홈으로 이동하기", action: homeAction)
         }
     }
 }
 
 #Preview {
     VStack(spacing: 20) {
-        ReportBottleChartView(
-            items: [
-                EmotionReportItem(type: .gratitude, count: 3, size: 116, offset: CGSize(width: -92, height: -20)),
-                EmotionReportItem(type: .empathy, count: 2, size: 92, offset: CGSize(width: -10, height: -120)),
-                EmotionReportItem(type: .affection, count: 5, size: 148, offset: CGSize(width: 82, height: -20)),
-                EmotionReportItem(type: .praise, count: 7, size: 188, offset: CGSize(width: -32, height: 112))
-            ]
-        )
-
         ReportScoreRow(type: .praise, count: 7, maxCount: 10)
-        ReportActionButtons(saveAction: {}, certificationAction: {})
+        ReportActionButtons(saveAction: {}, homeAction: {})
     }
     .padding()
 }
