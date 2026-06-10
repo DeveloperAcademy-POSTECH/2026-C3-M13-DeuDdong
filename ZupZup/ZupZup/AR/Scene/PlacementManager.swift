@@ -16,14 +16,13 @@ import OSLog
 final class PlacementManager {
     private static let bottleCameraOffset = SIMD3<Float>(0, -0.6, -0.5)
     private static let bottleAnchorName = "BottleCameraAnchor"
-
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
     private var bottleEntity: Entity?
     private var collectedOrbIDs: Set<ObjectIdentifier> = []
-    private let magneticSnapDistance: Float = 0.18
-    private let snapPullSmoothing: Float = 0.25
-    private let snapSuccessDistance: Float = 0.08
+    private let magneticSnapDistance: Float = 0.26
+    private let snapPullSmoothing: Float = 0.28
+    private let snapSuccessDistance: Float = 0.14
     private var selectedTrackedOrb: TrackedOrb?
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
@@ -35,7 +34,6 @@ final class PlacementManager {
     private(set) var placedOrbs: [OrbData] = []
     private(set) var playAreaCenter: SIMD3<Float>?
     private(set) var floorY: Float?
-
     var hasSelectedOrb: Bool {
         selectedOrb != nil
     }
@@ -68,24 +66,21 @@ final class PlacementManager {
             .flatMap(normalizedScreenPosition)
             .flatMap(horizontalPlanePosition)
             .map { $0 + SIMD3<Float>(0, 0.08, 0) }
-            ?? fallbackOrbPosition()
+        ?? fallbackOrbPosition()
 
         placeOrb(emotion: event.emotion, at: position)
     }
 
     func placeBottleInFrontOfCamera() {
-        guard let arView,
-                  let floorY,
-                  let bottlePosition = cameraFrontFloorPosition(floorY: floorY)
-            else { return }
+        guard let arView else { return }
 
         Task {
             let bottle = await BottleEntity.makeBottle()
             bottleEntity = bottle
 
-            let anchor = AnchorEntity(world: bottlePosition)
+            let anchor = AnchorEntity(.camera)
             anchor.name = Self.bottleAnchorName
-            bottle.position = .zero
+            bottle.position = Self.bottleCameraOffset
 
             anchor.addChild(bottle)
             arView.scene.addAnchor(anchor)
@@ -96,7 +91,7 @@ final class PlacementManager {
     func selectOrb(at screenPoint: CGPoint, from trackedOrbs: [TrackedOrb]) { // 화면 좌표에 있는 엔티티 찾기
         guard let arView else { return }
 
-        let grabScreenDistance: CGFloat = 138
+        let grabScreenDistance: CGFloat = 100
 
         var nearestTrackedOrb: TrackedOrb?
         var nearestDistance: CGFloat = .greatestFiniteMagnitude
@@ -190,20 +185,20 @@ final class PlacementManager {
         guard hasSelectedOrb else { return }
         let releasedTrackedOrb = selectedTrackedOrb
         if let releasedTrackedOrb {
-                releasedTrackedOrb.state = .falling
+            releasedTrackedOrb.state = .falling
 
-                if var body = releasedTrackedOrb.entity.components[PhysicsBodyComponent.self] {
-                    body.mode = .dynamic
-                    releasedTrackedOrb.entity.components.set(body)
-                }
-
-                releasedTrackedOrb.entity.components.set(
-                    PhysicsMotionComponent(
-                        linearVelocity: .zero,
-                        angularVelocity: .zero
-                    )
-                )
+            if var body = releasedTrackedOrb.entity.components[PhysicsBodyComponent.self] {
+                body.mode = .dynamic
+                releasedTrackedOrb.entity.components.set(body)
             }
+
+            releasedTrackedOrb.entity.components.set(
+                PhysicsMotionComponent(
+                    linearVelocity: .zero,
+                    angularVelocity: .zero
+                )
+            )
+        }
         selectedTrackedOrb = nil
         selectedOrb = nil
         selectedOrbAnchor = nil
@@ -399,7 +394,7 @@ final class PlacementManager {
     }
     private func bottleMouthPosition() -> SIMD3<Float>? {
         guard let bottleEntity else { return nil }
-        return bottleEntity.position(relativeTo: nil) + SIMD3<Float>(0, 0.14, 0)
+        return bottleEntity.position(relativeTo: nil) + SIMD3<Float>(0, 0.10, 0)
     }
     private func magnetizedPosition(from proposedPosition: SIMD3<Float>) -> SIMD3<Float> {
         guard let mouthPosition = bottleMouthPosition() else {
@@ -437,27 +432,59 @@ final class PlacementManager {
         return bottleEntity.position(relativeTo: nil) + slots[slotIndex]
     }
 
+    private func bottleInsideLocalPosition() -> SIMD3<Float> {
+        let slots: [SIMD3<Float>] = [
+            [-0.055, 0.035,  0.025],
+            [ 0.055, 0.035,  0.020],
+            [ 0.000, 0.040, -0.035],
+
+            [-0.035, 0.085, -0.005],
+            [ 0.040, 0.090,  0.010],
+            [ 0.000, 0.100,  0.045],
+
+            [-0.025, 0.135,  0.025],
+            [ 0.030, 0.140, -0.020],
+            [ 0.000, 0.165,  0.000]
+        ]
+
+        let slotIndex = min(max(collectedOrbIDs.count - 1, 0), slots.count - 1)
+        return slots[slotIndex]
+    }
+
+    private func isOrbInsideBottleCaptureArea(_ orb: ModelEntity) -> Bool {
+        guard let bottleEntity else { return false }
+
+        let localPosition = orb.position(relativeTo: bottleEntity)
+
+        let horizontalDistance = sqrt(
+            localPosition.x * localPosition.x +
+            localPosition.z * localPosition.z
+        )
+
+        let isInsideMouthRadius = horizontalDistance <= 0.09
+        let isNearMouthHeight = localPosition.y >= 0.04 && localPosition.y <= 0.18
+
+        return isInsideMouthRadius && isNearMouthHeight
+    }
+
     private func snapSelectedOrbIfNeeded() {
         guard let selectedOrb,
               let selectedTrackedOrb,
-              let mouthPosition = bottleMouthPosition(),
-              let insidePosition = bottleInsidePosition()
-        else {
-            return
-        }
+              let mouthPosition = bottleMouthPosition()
+        else { return }
 
         let orbID = ObjectIdentifier(selectedOrb)
 
-        guard !collectedOrbIDs.contains(orbID) else {
-            return
-        }
+        guard !collectedOrbIDs.contains(orbID) else { return }
 
         let orbPosition = selectedOrb.position(relativeTo: nil)
         let distance = simd_distance(orbPosition, mouthPosition)
 
-        guard distance <= snapSuccessDistance else {
-            return
-        }
+        let isCloseToMouth = distance <= snapSuccessDistance
+        let isInsideCaptureArea = isOrbInsideBottleCaptureArea(selectedOrb)
+        let isVisuallyInsideMouth = isOrbVisuallyInsideBottleMouth(selectedOrb)
+
+        guard isCloseToMouth || isInsideCaptureArea || isVisuallyInsideMouth else { return }
 
         collectedOrbIDs.insert(orbID)
         selectedTrackedOrb.state = .settled
@@ -474,7 +501,11 @@ final class PlacementManager {
             )
         )
 
-        selectedOrb.setPosition(insidePosition, relativeTo: nil)
+        if let bottleEntity {
+            selectedOrb.setParent(bottleEntity)
+            selectedOrb.position = bottleInsideLocalPosition()
+            selectedOrb.scale = SIMD3<Float>(repeating: 0.6)
+        }
 
         self.selectedTrackedOrb = nil
         self.selectedOrb = nil
@@ -483,6 +514,21 @@ final class PlacementManager {
         selectedOrbScreenOffset = .zero
 
         Logger.placement.debug("구슬 수집 완료")
+    }
+    private func isOrbVisuallyInsideBottleMouth(_ orb: ModelEntity) -> Bool {
+        guard let arView,
+              let mouthPosition = bottleMouthPosition(),
+              let orbScreenPoint = arView.project(orb.position(relativeTo: nil)),
+              let mouthScreenPoint = arView.project(mouthPosition)
+        else {
+            return false
+        }
+
+        let dx = orbScreenPoint.x - mouthScreenPoint.x
+        let dy = orbScreenPoint.y - mouthScreenPoint.y
+        let screenDistance = sqrt(dx * dx + dy * dy)
+
+        return screenDistance <= 90
     }
 }
 // swiftlint:enable type_body_length
