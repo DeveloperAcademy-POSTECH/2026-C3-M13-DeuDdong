@@ -207,7 +207,7 @@ final class PlacementManager {
             guard let orbScreenPoint = arView.project(worldPosition) else { continue }
 
             let screenRadius = projectedScreenRadius(for: orb, at: worldPosition)
-            let outerRadius = screenRadius * 1.25
+            let outerRadius = screenRadius * 2.2
             let distance = hypot(screenPoint.x - orbScreenPoint.x, screenPoint.y - orbScreenPoint.y)
 
             guard distance <= outerRadius else { continue }
@@ -440,17 +440,17 @@ final class PlacementManager {
             return 42
         }
 
-        return max(hypot(edgePoint.x - centerPoint.x, edgePoint.y - centerPoint.y), 24)
+        return max(hypot(edgePoint.x - centerPoint.x, edgePoint.y - centerPoint.y), 36)
     }
 
     private func touchIntensity(distance: CGFloat, screenRadius: CGFloat, outerRadius: CGFloat) -> Float {
         if distance > screenRadius {
             let shellDepth = 1 - ((distance - screenRadius) / max(outerRadius - screenRadius, 1))
-            return 0.08 + Float(shellDepth) * 0.12
+            return 0.20 + Float(shellDepth) * 0.22
         }
 
         let normalizedDepth = 1 - min(max(distance / max(screenRadius, 1), 0), 1)
-        return 0.24 + Float(normalizedDepth) * 0.62
+        return 0.42 + Float(normalizedDepth) * 0.56
     }
     private func bottleMouthPosition() -> SIMD3<Float>? {
         guard let bottleAnchorEntity else { return nil }

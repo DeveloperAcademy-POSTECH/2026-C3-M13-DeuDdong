@@ -26,7 +26,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let pinchLostGraceDuration: TimeInterval = 0.3
     private var lastOrbTouchFeedbackTime: TimeInterval = 0
     private var lastOrbTouchFeedbackIntensity: Float = 0
-    private let orbTouchFeedbackInterval: TimeInterval = 0.12
+    private let orbTouchFeedbackInterval: TimeInterval = 0.08
     private var isCollecting = false
     private var horizontalPlaneAnchors: [UUID: ARPlaneAnchor] = [:]
     private var isHandPoseRequestInFlight = false
@@ -280,7 +280,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
 
         let intensityDelta = abs(intensity - lastOrbTouchFeedbackIntensity)
-        guard currentTime - lastOrbTouchFeedbackTime >= orbTouchFeedbackInterval || intensityDelta > 0.24 else {
+        guard currentTime - lastOrbTouchFeedbackTime >= orbTouchFeedbackInterval || intensityDelta > 0.12 else {
             return
         }
 

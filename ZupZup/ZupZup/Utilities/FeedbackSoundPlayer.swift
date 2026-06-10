@@ -18,13 +18,13 @@ enum FeedbackSoundPlayer {
         var frequencies: [Double] {
             switch self {
             case .countdownTick:
-                [880]
+                [1_640, 2_120]
             case .orbDrop:
-                [420, 560]
+                [1_140, 1_860, 2_740]
             case .orbCollision:
-                [190, 260]
+                [920, 1_520, 2_360, 3_480]
             case .particleBurst:
-                [740, 980, 1_220]
+                [1_780, 2_480, 3_260, 4_420]
             }
         }
 
@@ -33,24 +33,50 @@ enum FeedbackSoundPlayer {
             case .countdownTick:
                 0.08
             case .orbDrop:
-                0.12
+                0.16
             case .orbCollision:
-                0.10
-            case .particleBurst:
                 0.18
+            case .particleBurst:
+                0.26
             }
         }
 
         var amplitude: Double {
             switch self {
             case .countdownTick:
-                0.28
+                0.18
             case .orbDrop:
-                0.20
+                0.36
             case .orbCollision:
-                0.32
+                0.46
             case .particleBurst:
-                0.24
+                0.38
+            }
+        }
+
+        var noiseAmount: Double {
+            switch self {
+            case .countdownTick:
+                0.02
+            case .orbDrop:
+                0.06
+            case .orbCollision:
+                0.10
+            case .particleBurst:
+                0.08
+            }
+        }
+
+        var decay: Double {
+            switch self {
+            case .countdownTick:
+                22
+            case .orbDrop:
+                18
+            case .orbCollision:
+                16
+            case .particleBurst:
+                12
             }
         }
     }
@@ -149,21 +175,33 @@ enum FeedbackSoundPlayer {
 
         for index in 0..<sampleCount {
             let time = Double(index) / Double(sampleRate)
-            let envelope = amplitudeEnvelope(time: time, duration: effect.duration)
+            let envelope = amplitudeEnvelope(
+                time: time,
+                duration: effect.duration,
+                decay: effect.decay
+            )
             let mixedWave = effect.frequencies
                 .map { sin(2 * Double.pi * $0 * time) }
                 .reduce(0, +) / Double(effect.frequencies.count)
-            let sample = Int16(mixedWave * effect.amplitude * envelope * Double(Int16.max))
+            let sparkle = deterministicNoise(at: index) * effect.noiseAmount
+            let sampleValue = max(-1, min(1, (mixedWave + sparkle) * effect.amplitude * envelope))
+            let sample = Int16(sampleValue * Double(Int16.max))
             append(sample, to: &data)
         }
 
         return data
     }
 
-    private static func amplitudeEnvelope(time: Double, duration: Double) -> Double {
+    private static func amplitudeEnvelope(time: Double, duration: Double, decay: Double) -> Double {
         let attack = min(1, time / 0.012)
-        let release = min(1, max(duration - time, 0) / 0.035)
-        return min(attack, release)
+        let release = min(1, max(duration - time, 0) / 0.045)
+        let metallicDecay = exp(-time * decay)
+        return attack * release * metallicDecay
+    }
+
+    private static func deterministicNoise(at index: Int) -> Double {
+        let value = sin(Double(index) * 12.9898) * 43_758.5453
+        return (value - floor(value)) * 2 - 1
     }
 
     private static func append<T: FixedWidthInteger>(_ value: T, to data: inout Data) {
