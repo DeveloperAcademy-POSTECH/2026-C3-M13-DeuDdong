@@ -37,8 +37,19 @@ final class OrbSpawnManager {
         anchor.name = "OrbAnchor_\(orbEmotion.rawValue)"
         anchor.addChild(orbEntity)
         arView.scene.addAnchor(anchor)
-
+        let burstPosition = behindPersonPosition(from: spawnPosition, camera: frame.camera)
+        ParticleBurst.burst(for: orbEmotion, at: burstPosition, in: arView.scene)
         return TrackedOrb(anchor: anchor, entity: orbEntity)
+    }
+
+    private func behindPersonPosition(from facePosition: SIMD3<Float>, camera: ARCamera) -> SIMD3<Float> {
+        let cameraPos = SIMD3<Float>(
+            camera.transform.columns.3.x,
+            camera.transform.columns.3.y,
+            camera.transform.columns.3.z
+        )
+        let directionToFace = normalize(facePosition - cameraPos)
+        return facePosition + directionToFace * 0.5
     }
 
     private func cameraSpawnPosition(from cameraTransform: simd_float4x4, floorY: Float?) -> SIMD3<Float> {

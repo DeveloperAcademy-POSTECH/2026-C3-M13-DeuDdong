@@ -18,11 +18,14 @@ def Xform "Root"
 
             def RealityKitStruct "currentState"
             {
-                int64 burstCount = 50
+                int64 burstCount = 500
                 token emitterShape = "Sphere"
-                bool isEmitting = 1
+                bool isEmitting = 0
+                bool isLocal = 0
+                bool isLocalFields = 0
                 float particleSpeed = 1
                 float particleSpeedVariation = 1
+                float3 shapeSize = (0.1, 0.1, 0.1)
 
                 def RealityKitStruct "mainEmitter"
                 {
@@ -31,7 +34,7 @@ def Xform "Root"
                     float4 endColorA = (0.0013006331, 0.032195132, 1, 1)
                     bool isAnimated = 0
                     asset particleImage = @../Textures/Affection.png@
-                    float particleSize = 0.01
+                    float particleSize = 0.03
                     float4 startColorA = (0.85958415, 0.8367509, 0.8778399, 1)
                     float4 startColorB = (1, 0.48149014, 0.6585501, 1)
                     bool useEndColor = 0
@@ -46,3 +49,4 @@ def Xform "Root"
         }
     }
 }
+

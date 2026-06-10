@@ -74,15 +74,18 @@ final class PlacementManager {
     }
 
     func placeBottleInFrontOfCamera() {
-        guard let arView else { return }
+        guard let arView,
+                  let floorY,
+                  let bottlePosition = cameraFrontFloorPosition(floorY: floorY)
+            else { return }
 
         Task {
             let bottle = await BottleEntity.makeBottle()
             bottleEntity = bottle
 
-            let anchor = AnchorEntity(.camera)
+            let anchor = AnchorEntity(world: bottlePosition)
             anchor.name = Self.bottleAnchorName
-            bottle.position = Self.bottleCameraOffset
+            bottle.position = .zero
 
             anchor.addChild(bottle)
             arView.scene.addAnchor(anchor)

@@ -72,10 +72,6 @@ enum OrbEntity {
     }
 
     private static func loadDesignedOrbVisual(for emotion: EmotionType) -> Entity? {
-        guard emotion != .affection else {
-            return nil
-        }
-
         do {
             let visual = try Entity.load(named: designedOrbModelName(for: emotion), in: zupZupContentBundle)
             visual.name = "OrbVisual_\(emotion.rawValue)"

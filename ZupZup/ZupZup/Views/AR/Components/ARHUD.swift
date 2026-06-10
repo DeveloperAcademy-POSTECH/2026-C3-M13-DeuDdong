@@ -215,12 +215,12 @@ struct AutoCollectButton: View {
             HStack(spacing: 8) {
                 Image(systemName: "wand.and.stars")
                 Text("자동 수집하기")
-                    .font(ZZFont.body)
+                    .font(ZZFont.smallCaption)
                 
             }
             .foregroundStyle(ZZColor.gray0)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 14)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
             .background(ZZColor.gray7)
             .clipShape(RoundedRectangle(cornerRadius: ZZSpacing.buttonCornerRadius))
         }

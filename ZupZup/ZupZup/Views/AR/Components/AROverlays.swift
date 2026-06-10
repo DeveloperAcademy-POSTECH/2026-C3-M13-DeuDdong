@@ -64,7 +64,6 @@ struct HomeExitOverlay: View {
                     Text("지금까지의 내용은 저장되지 않습니다")
                         .font(ZZFont.body)
                         .foregroundStyle(.white)
-                    
                 }.padding(.bottom, 250)
 
                 VStack {
