@@ -53,7 +53,7 @@ struct ARCollectView: View {
             ZStack {
                 Color.clear
                 CollectCompletedView(
-                    currentOrbCount: currentOrbCount,
+                    currentOrbCount: totalOrbCount,
                     totalOrbCount: totalOrbCount,
                     onReturnHome: onReturnHome
                 )
