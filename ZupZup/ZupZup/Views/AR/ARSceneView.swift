@@ -54,6 +54,7 @@ struct ARSceneView: View {
                 orbEventPlacementController: orbEventPlacementController,
                 planeState: $planeState,
                 isPlaneVisualizationVisible: $isPlaneVisualizationVisible,
+                isCollecting: isCollecting,
                 orbPlacementController: orbPlacementController,
                 gridController: gridController
             )
@@ -65,7 +66,8 @@ struct ARSceneView: View {
                 emotionRuntime: emotionRuntime,
                 orbEventPlacementController: orbEventPlacementController,
                 planeState: $planeState,
-                isPlaneVisualizationVisible: $isPlaneVisualizationVisible
+                isPlaneVisualizationVisible: $isPlaneVisualizationVisible,
+                isCollecting: isCollecting,
             )
             .ignoresSafeArea()
             #endif

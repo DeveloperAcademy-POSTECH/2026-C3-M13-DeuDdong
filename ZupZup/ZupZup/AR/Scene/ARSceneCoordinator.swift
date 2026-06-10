@@ -23,6 +23,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var wasPinching = false
     private var lastPinchSeenTime: TimeInterval = 0
     private let pinchLostGraceDuration: TimeInterval = 0.3
+    private var isCollecting = false
     private var horizontalPlaneAnchors: [UUID: ARPlaneAnchor] = [:]
     private var isHandPoseRequestInFlight = false
     private let handPoseQueue = DispatchQueue(label: "com.zupzup.handPose")
@@ -78,6 +79,10 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     func setPlaneVisualizationVisible(_ isVisible: Bool) {
         planeVisualizer?.setVisible(isVisible)
     }
+    
+    func setCollectionMode(_ isCollecting: Bool) {
+        self.isCollecting = isCollecting
+    }
 
     func placeOrb(event: EmotionOrbEvent) {
         createPhysicsOrb(for: event.emotion, mouthNormalizedPoint: event.speakerMouthCenter)
@@ -117,7 +122,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             horizontalPlaneAnchors.removeValue(forKey: anchor.identifier)
         }
     }
-
     private func updateFaceTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
         guard currentTime - lastFaceTrackingUpdateTime > 0.18 else { return }
 
@@ -128,7 +132,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             orientation: .right
         )
     }
-
     private func updateHandTrackingIfNeeded(from frame: ARFrame, currentTime: TimeInterval) {
         guard currentTime - lastHandPoseUpdateTime > 0.1,
               !isHandPoseRequestInFlight
@@ -173,9 +176,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private func handlePlaneAnchors(_ anchors: [ARAnchor]) {
         updateKnownHorizontalPlanes(with: anchors)
 
-        guard let horizontalPlane = largestHorizontalPlane() else {
-            return
-        }
+        guard let horizontalPlane = largestFloorPlane() else { return }
 
         onPlaneStateChange(.ready)
         placementManager.createInvisiblePhysicsFloor(
@@ -195,10 +196,18 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         }
     }
 
-    private func largestHorizontalPlane() -> ARPlaneAnchor? {
-        horizontalPlaneAnchors.values.max {
-            planeArea($0) < planeArea($1)
+    private func largestFloorPlane() -> ARPlaneAnchor? {
+        guard let cameraY = arView?.session.currentFrame?.camera.transform.columns.3.y else {
+            return nil
         }
+
+        return horizontalPlaneAnchors.values
+            .filter { planeAnchor in
+                planeAnchor.worldCenter.y < cameraY - 0.2
+            }
+            .max {
+                planeArea($0) < planeArea($1)
+            }
     }
 
     private func planeArea(_ planeAnchor: ARPlaneAnchor) -> Float {
@@ -207,6 +216,11 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
 
     private func handleHandGesture() {
+        guard isCollecting else {
+            releaseIfNeeded()
+            return
+        }
+        
         let handTrackingManager = HandTrackingManager.shared
 
         switch handTrackingManager.currentGesture {

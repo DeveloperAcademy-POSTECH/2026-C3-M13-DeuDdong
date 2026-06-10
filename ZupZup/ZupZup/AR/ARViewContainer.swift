@@ -16,6 +16,8 @@ struct ARViewContainer: UIViewRepresentable {
     let orbEventPlacementController: OrbEventPlacementController
     @Binding var planeState: ARState
     @Binding var isPlaneVisualizationVisible: Bool
+    let isCollecting: Bool
+    
     #if DEBUG
     let orbPlacementController: DebugOrbPlacementController
     let gridController: DebugGridController
@@ -39,6 +41,7 @@ struct ARViewContainer: UIViewRepresentable {
             )
         context.coordinator.install(on: arView)
         context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
+        context.coordinator.setCollectionMode(isCollecting)
         orbEventPlacementController.trigger = { [weak coordinator = context.coordinator] event in
             coordinator?.placeOrb(event: event)
         }
@@ -55,6 +58,7 @@ struct ARViewContainer: UIViewRepresentable {
 
     func updateUIView(_ uiView: ARView, context: Context) {
         context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
+        context.coordinator.setCollectionMode(isCollecting)
         context.coordinator.updatePlaneStateHandler { state in
             planeState = state
         }
