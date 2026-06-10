@@ -141,7 +141,7 @@ struct ARCollectView: View {
                                 .font(ZZFont.subheadline)
                                 .foregroundStyle(.white)
                                 .multilineTextAlignment(.center)
-                            
+                                .padding(.top, 24)
                             Spacer()
                         }
                     }

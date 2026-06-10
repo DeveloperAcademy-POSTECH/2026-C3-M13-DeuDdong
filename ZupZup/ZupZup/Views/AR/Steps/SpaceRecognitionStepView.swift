@@ -90,7 +90,7 @@ struct SpaceRecognitionStepView: View {
                                         .repeatForever(autoreverses: true),
                                     value: moveRight
                                 )
-                        }
+                        }.padding(.bottom, 20)
 
                         // MARK: 안내 문구
                         Spacer()

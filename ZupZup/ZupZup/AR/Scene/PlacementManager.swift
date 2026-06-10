@@ -24,7 +24,6 @@ final class PlacementManager {
     private let magneticSnapDistance: Float = 0.26
     private let snapPullSmoothing: Float = 0.28
     private let snapSuccessDistance: Float = 0.14
-    private var selectedTrackedOrb: TrackedOrb?
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
     private var selectedOrbDepth: Float?
@@ -59,7 +58,7 @@ final class PlacementManager {
         arView.scene.addAnchor(anchor)
 
         sceneAnchors.append(anchor)
-        orbPairs.append((orb, anchor))
+        registerMovableOrb(orb, anchor: anchor)
         placedOrbs.append(OrbData(emotion: emotion, position: correctedPosition)) // id 어쩔?
     }
 
@@ -107,16 +106,29 @@ final class PlacementManager {
         }
     }
 
-    func selectOrb(at screenPoint: CGPoint, from trackedOrbs: [TrackedOrb]) { // 화면 좌표에 있는 엔티티 찾기
-        guard let arView else { return }
+    func registerMovableOrb(_ trackedOrb: TrackedOrb) {
+        registerMovableOrb(trackedOrb.entity, anchor: trackedOrb.anchor)
+    }
+
+    private func registerMovableOrb(_ orb: ModelEntity, anchor: AnchorEntity) {
+        guard !orbPairs.contains(where: { $0.orb === orb }) else {
+            return
+        }
+
+        orbPairs.append((orb, anchor))
+    }
+
+    @discardableResult
+    func selectOrb(at screenPoint: CGPoint) -> ModelEntity? { // 화면 좌표에 있는 엔티티 찾기
+        guard let arView else { return nil }
 
         let grabScreenDistance: CGFloat = 100
 
-        var nearestTrackedOrb: TrackedOrb?
+        var nearestPair: (orb: ModelEntity, anchor: AnchorEntity)?
         var nearestDistance: CGFloat = .greatestFiniteMagnitude
 
-        for trackedOrb in trackedOrbs {
-            let orb = trackedOrb.entity
+        for pair in orbPairs {
+            let orb = pair.orb
             guard !collectedOrbIDs.contains(ObjectIdentifier(orb)) else { continue }
             let worldPosition = orb.position(relativeTo: nil)
             guard let orbScreenPoint = arView.project(worldPosition) else { continue }
@@ -127,26 +139,19 @@ final class PlacementManager {
 
             if distance < nearestDistance {
                 nearestDistance = distance
-                nearestTrackedOrb = trackedOrb
+                nearestPair = pair
             }
         }
 
-        guard let nearestTrackedOrb, nearestDistance <= grabScreenDistance else {
+        guard let nearestPair, nearestDistance <= grabScreenDistance else {
             Logger.placement.debug("선택 가능한 구슬 없음, 가장 가까운 거리: \(nearestDistance)")
-            return
+            return nil
         }
 
-        selectedTrackedOrb = nearestTrackedOrb
-        selectedOrb = nearestTrackedOrb.entity
-        selectedOrbAnchor = nearestTrackedOrb.anchor
-        nearestTrackedOrb.state = .grabbed
+        selectedOrb = nearestPair.orb
+        selectedOrbAnchor = nearestPair.anchor
 
-        if var body = nearestTrackedOrb.entity.components[PhysicsBodyComponent.self] {
-            body.mode = .kinematic
-            nearestTrackedOrb.entity.components.set(body)
-        }
-
-        if let orbScreenPoint = arView.project(nearestTrackedOrb.entity.position(relativeTo: nil)) {
+        if let orbScreenPoint = arView.project(nearestPair.orb.position(relativeTo: nil)) {
             selectedOrbScreenOffset = CGPoint(
                 x: orbScreenPoint.x - screenPoint.x,
                 y: orbScreenPoint.y - screenPoint.y
@@ -166,7 +171,7 @@ final class PlacementManager {
                 cameraTransform.columns.2.z
             ))
 
-            let orbPosition = nearestTrackedOrb.entity.position(relativeTo: nil)
+            let orbPosition = nearestPair.orb.position(relativeTo: nil)
 
             selectedOrbDepth = max(simd_dot(orbPosition - cameraPosition, cameraForward), 0.1)
         }
@@ -174,7 +179,9 @@ final class PlacementManager {
         if selectedOrbDepth == nil {
             selectedOrbDepth = 0.5
         }
-        Logger.placement.debug("가장 가까운 구슬 선택됨: \(nearestTrackedOrb.entity.name)")
+
+        Logger.placement.debug("가장 가까운 구슬 선택됨: \(nearestPair.orb.name)")
+        return nearestPair.orb
     }
     func moveSelectedOrb(to screenPoint: CGPoint) {
         guard let selectedOrb else { return }
@@ -200,32 +207,19 @@ final class PlacementManager {
         selectedOrb.setPosition(assistedPosition, relativeTo: nil)
         snapSelectedOrbIfNeeded()
     }
-    func releaseSelectedOrb() {
-        guard hasSelectedOrb else { return }
+    @discardableResult
+    func releaseSelectedOrb() -> ModelEntity? {
+        guard hasSelectedOrb else { return nil }
         snapSelectedOrbIfNeeded()
-        guard hasSelectedOrb else { return }
-        let releasedTrackedOrb = selectedTrackedOrb
-        if let releasedTrackedOrb {
-            releasedTrackedOrb.state = .falling
+        guard hasSelectedOrb else { return nil }
 
-            if var body = releasedTrackedOrb.entity.components[PhysicsBodyComponent.self] {
-                body.mode = .dynamic
-                releasedTrackedOrb.entity.components.set(body)
-            }
-
-            releasedTrackedOrb.entity.components.set(
-                PhysicsMotionComponent(
-                    linearVelocity: .zero,
-                    angularVelocity: .zero
-                )
-            )
-        }
-        selectedTrackedOrb = nil
+        let releasedOrb = selectedOrb
         selectedOrb = nil
         selectedOrbAnchor = nil
         selectedOrbDepth = nil
         selectedOrbScreenOffset = .zero
         Logger.placement.debug("구슬 놓기 완료")
+        return releasedOrb
     }
     func screenPoint(fromNormalizedPoint point: CGPoint) -> CGPoint? { // 화면 좌표 시스템 -> iOS 화면의 실제 픽셀 좌표(ScreenPoint)로 변환
         guard let arView else { return nil }
@@ -282,7 +276,6 @@ final class PlacementManager {
         orbPairs.removeAll()
         placedOrbs.removeAll()
         collectedOrbIDs.removeAll()
-        selectedTrackedOrb = nil
         bottleEntity = nil
         invisibleFloorEntity = nil
         invisibleFloorAnchor = nil
@@ -294,31 +287,6 @@ final class PlacementManager {
 
         guard let arView else { return nil }
         return PlaneRaycaster.horizontalPlanePosition(from: screenPoint, in: arView)
-    }
-
-    private func cameraFrontFloorPosition(floorY: Float) -> SIMD3<Float>? {
-        guard let arView, let frame = arView.session.currentFrame else { return nil }
-
-        let cameraTransform = frame.camera.transform
-        let cameraPosition = SIMD3<Float>(
-            cameraTransform.columns.3.x,
-            cameraTransform.columns.3.y,
-            cameraTransform.columns.3.z
-        )
-        let cameraForward = normalize(-SIMD3<Float>(
-            cameraTransform.columns.2.x,
-            cameraTransform.columns.2.y,
-            cameraTransform.columns.2.z
-        ))
-        let floorForward = SIMD3<Float>(cameraForward.x, 0, cameraForward.z)
-        let forwardLength = length(floorForward)
-
-        guard forwardLength > 0.0001 else { return nil }
-
-        let horizontalForward = floorForward / forwardLength
-        let target = cameraPosition + horizontalForward * 0.7
-
-        return SIMD3<Float>(target.x, floorY, target.z)
     }
 
     func createInvisiblePhysicsFloor(
@@ -490,7 +458,6 @@ final class PlacementManager {
 
     private func snapSelectedOrbIfNeeded() {
         guard let selectedOrb,
-              let selectedTrackedOrb,
               let mouthPosition = bottleMouthPosition()
         else { return }
 
@@ -508,7 +475,6 @@ final class PlacementManager {
         guard isCloseToMouth || isInsideCaptureArea || isVisuallyInsideMouth else { return }
 
         collectedOrbIDs.insert(orbID)
-        selectedTrackedOrb.state = .settled
 
         if var body = selectedOrb.components[PhysicsBodyComponent.self] {
             body.mode = .kinematic
@@ -528,7 +494,6 @@ final class PlacementManager {
             selectedOrb.scale = SIMD3<Float>(repeating: 0.32)
         }
 
-        self.selectedTrackedOrb = nil
         self.selectedOrb = nil
         selectedOrbAnchor = nil
         selectedOrbDepth = nil

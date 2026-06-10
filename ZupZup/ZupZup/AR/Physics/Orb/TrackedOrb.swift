@@ -21,6 +21,7 @@ final class TrackedOrb {
     let radius: Float
     var state: OrbPhysicsState = .waiting
     var hasBounced = false
+    var hasManualInteraction = false
     var touchedFloorTime: CFTimeInterval?
     var settledTime: CFTimeInterval?
 
