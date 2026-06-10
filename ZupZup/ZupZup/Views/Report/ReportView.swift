@@ -3,6 +3,7 @@ import SwiftUI
 struct ReportView: View {
     var onSave: () -> Void
     var onHome: () -> Void
+    var collectedCount: Int = 0
     
     // 10.0.pdf 시안상의 수치와 원형 버블 좌표 규격을 픽스한 모킹 컬렉션 데이터
     let reportMockData = [
@@ -45,7 +46,7 @@ struct ReportView: View {
                         
                         Spacer()
                         
-                        Text("18개")
+                        Text("\(collectedCount)개")
                             .font(ZZFont.headline)
                             .foregroundStyle(ZZColor.brand400)
                     }

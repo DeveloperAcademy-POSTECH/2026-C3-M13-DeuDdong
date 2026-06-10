@@ -13,6 +13,7 @@ struct CollectCompletedView: View {
 
     let currentOrbCount: Int
     let totalOrbCount: Int
+    var onReturnHome: () -> Void = {}
 
     var body: some View {
 
@@ -31,7 +32,6 @@ struct CollectCompletedView: View {
                     ARHomeButtonDark {
                         showHomeExitOverlay = true
                     }
-
                     Spacer()
                 }
 
@@ -93,9 +93,7 @@ struct CollectCompletedView: View {
                             showHomeExitOverlay = false
                         },
 
-                        confirmAction: {
-                            print("Go Home")
-                        }
+                        confirmAction: onReturnHome
                     )
                     .zIndex(999)
                 }

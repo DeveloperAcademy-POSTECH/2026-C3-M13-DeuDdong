@@ -40,37 +40,39 @@ struct ARCollectView: View {
         self.onReturnHome = onReturnHome
         self.onCompleted = onCompleted
     }
-    
     var body: some View {
-        
-        
         if showAutoCollectView {
-            
             AutoCollectView {
-
                 withAnimation(.easeInOut(duration: 0.2)) {
                     showAutoCollectView = false
-                    showCompletionPhase = true
+                    showCollectCompletedView = true
                 }
             }
             .zIndex(200)
-        }
-        
-        else if showCompletionPhase {
-            Color.clear
-            CollectionCompleteOverlay(
-                reportAction: {
-                    onCompleted()
+        } else if showCollectCompletedView {
+            ZStack {
+                Color.clear
+                CollectCompletedView(
+                    currentOrbCount: totalOrbCount,
+                    totalOrbCount: totalOrbCount,
+                    onReturnHome: onReturnHome
+                )
+                if showCompletionPhase {
+                    CollectionCompleteOverlay(
+                        reportAction: { onCompleted() }
+                    )
                 }
-            )
-            
-        }
-        else {
+            }
+            .task {
+                try? await Task.sleep(for: .seconds(1.5))
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showCompletionPhase = true
+                }
+            }
+        } else {
             ZStack {
                 // MARK: AR Layer
-                
                 Color.clear
-                
                 // MARK: Orb Count
                 
                 VStack(spacing: 12) {
@@ -324,9 +326,16 @@ struct ARCollectView: View {
             }
             .ignoresSafeArea()
             .onAppear {
-                
+
                 tipModalOffset = 700
                 tipModalOpacity = 0
+            }
+            .onChange(of: currentOrbCount) { _, newCount in
+                guard totalOrbCount > 0, newCount >= totalOrbCount else { return }
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showAutoCollectView = false
+                    showCollectCompletedView = true
+                }
             }
         }
     }

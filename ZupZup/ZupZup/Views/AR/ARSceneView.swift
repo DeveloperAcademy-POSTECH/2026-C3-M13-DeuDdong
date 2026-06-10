@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ARSceneView: View {
     // MARK: - [내비게이션 액션 클로저]
-    var onFinishConversation: () -> Void = {} // 5단계 수집까지 완료된 후 최종 화면으로 이동
+    var onFinishConversation: (Int) -> Void = { _ in } // 5단계 수집까지 완료된 후 최종 화면으로 이동 (수집 개수 전달)
     var onReturnHome: () -> Void = {}         // 홈으로 완전히 돌아갈 때 호출
     
     // MARK: - [AR 및 감정 분석 핵심 엔진]
@@ -239,8 +239,8 @@ struct ARSceneView: View {
                 ARCollectView(
                     currentOrbCount: $collectedOrbCount,
                     totalOrbCount: totalOrbCount,
-                    onReturnHome: onReturnHome,          // 수집 화면 내에서 홈 이동 터치 시 처리
-                    onCompleted: onFinishConversation    // 모든 수집을 끝마쳤을 때 최종 보상 결과창으로 점프
+                    onReturnHome: onReturnHome,
+                    onCompleted: { onFinishConversation(collectedOrbCount) }
                 )
                 .transition(.opacity)
             }
