@@ -53,7 +53,7 @@ final class PlacementManager {
         arView.scene.addAnchor(anchor)
 
         sceneAnchors.append(anchor)
-        orbPairs.append((orb, anchor))
+        registerMovableOrb(orb, anchor: anchor)
         placedOrbs.append(OrbData(emotion: emotion, position: correctedPosition)) // id 어쩔?
     }
 
@@ -83,8 +83,21 @@ final class PlacementManager {
         }
     }
 
-    func selectOrb(at screenPoint: CGPoint) { // 화면 좌표에 있는 엔티티 찾기
-        guard let arView else { return }
+    func registerMovableOrb(_ trackedOrb: TrackedOrb) {
+        registerMovableOrb(trackedOrb.entity, anchor: trackedOrb.anchor)
+    }
+
+    private func registerMovableOrb(_ orb: ModelEntity, anchor: AnchorEntity) {
+        guard !orbPairs.contains(where: { $0.orb === orb }) else {
+            return
+        }
+
+        orbPairs.append((orb, anchor))
+    }
+
+    @discardableResult
+    func selectOrb(at screenPoint: CGPoint) -> ModelEntity? { // 화면 좌표에 있는 엔티티 찾기
+        guard let arView else { return nil }
 
         let grabScreenDistance: CGFloat = 138
 
@@ -108,7 +121,7 @@ final class PlacementManager {
 
         guard let nearestPair, nearestDistance <= grabScreenDistance else {
             Logger.placement.debug("선택 가능한 구슬 없음, 가장 가까운 거리: \(nearestDistance)")
-            return
+            return nil
         }
 
         selectedOrb = nearestPair.orb
@@ -143,6 +156,7 @@ final class PlacementManager {
             selectedOrbDepth = 0.5
         }
         Logger.placement.debug("가장 가까운 구슬 선택됨: \(nearestPair.orb.name)")
+        return nearestPair.orb
     }
     func moveSelectedOrb(to screenPoint: CGPoint) {
         guard let selectedOrb else { return }
@@ -166,13 +180,16 @@ final class PlacementManager {
 
         selectedOrb.setPosition(smoothedPosition, relativeTo: nil)
     }
-    func releaseSelectedOrb() {
-        guard hasSelectedOrb else { return }
+    @discardableResult
+    func releaseSelectedOrb() -> ModelEntity? {
+        guard hasSelectedOrb else { return nil }
+        let releasedOrb = selectedOrb
         selectedOrb = nil
         selectedOrbAnchor = nil
         selectedOrbDepth = nil
         selectedOrbScreenOffset = .zero
         Logger.placement.debug("구슬 놓기 완료")
+        return releasedOrb
     }
     func screenPoint(fromNormalizedPoint point: CGPoint) -> CGPoint? { // 화면 좌표 시스템 -> iOS 화면의 실제 픽셀 좌표(ScreenPoint)로 변환
         guard let arView else { return nil }
@@ -238,43 +255,6 @@ final class PlacementManager {
 
         guard let arView else { return nil }
         return PlaneRaycaster.horizontalPlanePosition(from: screenPoint, in: arView)
-    }
-
-    func placeDemoObjects(on planeAnchor: ARPlaneAnchor) {
-        guard let center = cameraFrontFloorPosition(floorY: planeAnchor.worldCenter.y) else {
-            return
-        }
-
-        placeOrb(emotion: .praise, at: center + SIMD3<Float>(-0.18, 0.025, 0.02))
-        placeOrb(emotion: .encouragement, at: center + SIMD3<Float>(-0.11, 0.025, 0.08))
-        placeOrb(emotion: .affection, at: center + SIMD3<Float>(0.12, 0.025, 0.07))
-        placeOrb(emotion: .gratitude, at: center + SIMD3<Float>(0.18, 0.025, -0.02))
-        placeOrb(emotion: .empathy, at: center + SIMD3<Float>(-0.05, 0.025, 0.14))
-    }
-
-    private func cameraFrontFloorPosition(floorY: Float) -> SIMD3<Float>? {
-        guard let arView, let frame = arView.session.currentFrame else { return nil }
-
-        let cameraTransform = frame.camera.transform
-        let cameraPosition = SIMD3<Float>(
-            cameraTransform.columns.3.x,
-            cameraTransform.columns.3.y,
-            cameraTransform.columns.3.z
-        )
-        let cameraForward = normalize(-SIMD3<Float>(
-            cameraTransform.columns.2.x,
-            cameraTransform.columns.2.y,
-            cameraTransform.columns.2.z
-        ))
-        let floorForward = SIMD3<Float>(cameraForward.x, 0, cameraForward.z)
-        let forwardLength = length(floorForward)
-
-        guard forwardLength > 0.0001 else { return nil }
-
-        let horizontalForward = floorForward / forwardLength
-        let target = cameraPosition + horizontalForward * 0.7
-
-        return SIMD3<Float>(target.x, floorY, target.z)
     }
 
     func createInvisiblePhysicsFloor(
