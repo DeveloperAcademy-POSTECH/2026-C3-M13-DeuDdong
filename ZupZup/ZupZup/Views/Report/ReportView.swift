@@ -29,7 +29,7 @@ struct ReportView: View {
                             .font(ZZFont.body)
                             .foregroundStyle(ZZColor.gray5)
                     }
-                    .padding(.top, 10)
+                    .padding(.top, 25)
                     
                     Image("ReportGlassImage")
                         .resizable()

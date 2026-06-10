@@ -69,7 +69,7 @@ struct ReportActionButtons: View {
                     .font(ZZFont.body)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 64)
+                    .frame(height: 58)
                     .background(ZZColor.gray9)
                     .clipShape(RoundedRectangle(cornerRadius: ZZSpacing.buttonCornerRadius))
             }
