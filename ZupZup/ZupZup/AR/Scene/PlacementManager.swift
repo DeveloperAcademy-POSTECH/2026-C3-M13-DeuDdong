@@ -14,8 +14,9 @@ import OSLog
 // swiftlint:disable type_body_length
 @MainActor
 final class PlacementManager {
-    private static let bottleCameraOffset = SIMD3<Float>(0, -0.6, -0.5)
-    private static let bottleAnchorName = "BottleCameraAnchor"
+    private static let bottleDistanceFromCamera: Float = 0.8
+    private static let bottleHeightOffset: Float = -0.15
+    private static let bottleAnchorName = "BottleWorldAnchor"
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
     private var bottleEntity: Entity?
@@ -73,15 +74,32 @@ final class PlacementManager {
     }
 
     func placeBottleInFrontOfCamera() {
-        guard let arView else { return }
+        guard let arView,
+              let frame = arView.session.currentFrame
+        else { return }
+
+        let cameraTransform = frame.camera.transform
+        let cameraPosition = SIMD3<Float>(
+            cameraTransform.columns.3.x,
+            cameraTransform.columns.3.y,
+            cameraTransform.columns.3.z
+        )
+        let cameraForward = normalize(-SIMD3<Float>(
+            cameraTransform.columns.2.x,
+            cameraTransform.columns.2.y,
+            cameraTransform.columns.2.z
+        ))
+        let bottlePosition = cameraPosition
+            + cameraForward * Self.bottleDistanceFromCamera
+            + SIMD3<Float>(0, Self.bottleHeightOffset, 0)
 
         Task {
             let bottle = await BottleEntity.makeBottle()
             bottleEntity = bottle
 
-            let anchor = AnchorEntity(.camera)
+            let anchor = AnchorEntity(world: bottlePosition)
             anchor.name = Self.bottleAnchorName
-            bottle.position = Self.bottleCameraOffset
+            bottle.position = .zero
 
             anchor.addChild(bottle)
             arView.scene.addAnchor(anchor)
@@ -183,6 +201,8 @@ final class PlacementManager {
         snapSelectedOrbIfNeeded()
     }
     func releaseSelectedOrb() {
+        guard hasSelectedOrb else { return }
+        snapSelectedOrbIfNeeded()
         guard hasSelectedOrb else { return }
         let releasedTrackedOrb = selectedTrackedOrb
         if let releasedTrackedOrb {
@@ -395,7 +415,7 @@ final class PlacementManager {
     }
     private func bottleMouthPosition() -> SIMD3<Float>? {
         guard let bottleEntity else { return nil }
-        return bottleEntity.position(relativeTo: nil) + SIMD3<Float>(0, 0.10, 0)
+        return bottleEntity.position(relativeTo: nil) + SIMD3<Float>(0, 0.06, 0)
     }
     private func magnetizedPosition(from proposedPosition: SIMD3<Float>) -> SIMD3<Float> {
         guard let mouthPosition = bottleMouthPosition() else {
@@ -435,17 +455,17 @@ final class PlacementManager {
 
     private func bottleInsideLocalPosition() -> SIMD3<Float> {
         let slots: [SIMD3<Float>] = [
-            [-0.055, 0.035,  0.025],
-            [ 0.055, 0.035,  0.020],
-            [ 0.000, 0.040, -0.035],
+            [-0.060, -0.080,  0.035],
+            [ 0.060, -0.078,  0.030],
+            [ 0.000, -0.072, -0.045],
 
-            [-0.035, 0.085, -0.005],
-            [ 0.040, 0.090,  0.010],
-            [ 0.000, 0.100,  0.045],
+            [-0.045, -0.030, -0.015],
+            [ 0.048, -0.026,  0.008],
+            [ 0.000, -0.020,  0.055],
 
-            [-0.025, 0.135,  0.025],
-            [ 0.030, 0.140, -0.020],
-            [ 0.000, 0.165,  0.000]
+            [-0.030,  0.020,  0.030],
+            [ 0.034,  0.024, -0.028],
+            [ 0.000,  0.050,  0.000]
         ]
 
         let slotIndex = min(max(collectedOrbIDs.count - 1, 0), slots.count - 1)
@@ -503,9 +523,9 @@ final class PlacementManager {
         )
 
         if let bottleEntity {
-            selectedOrb.setParent(bottleEntity)
+            selectedOrb.setParent(bottleEntity, preservingWorldTransform: false)
             selectedOrb.position = bottleInsideLocalPosition()
-            selectedOrb.scale = SIMD3<Float>(repeating: 0.6)
+            selectedOrb.scale = SIMD3<Float>(repeating: 0.32)
         }
 
         self.selectedTrackedOrb = nil
@@ -529,7 +549,7 @@ final class PlacementManager {
         let dy = orbScreenPoint.y - mouthScreenPoint.y
         let screenDistance = sqrt(dx * dx + dy * dy)
 
-        return screenDistance <= 90
+        return screenDistance <= 150
     }
 }
 // swiftlint:enable type_body_length
