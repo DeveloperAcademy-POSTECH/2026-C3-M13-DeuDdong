@@ -35,6 +35,7 @@ final class PlacementManager {
     private(set) var playAreaCenter: SIMD3<Float>?
     private(set) var floorY: Float?
     var onCollectedCountChanged: ((Int) -> Void)?
+    var onOrbCollected: ((ModelEntity) -> Void)?
     var hasSelectedOrb: Bool {
         selectedOrb != nil
     }
@@ -231,6 +232,20 @@ final class PlacementManager {
         Logger.placement.debug("구슬 놓기 완료")
         return releasedOrb
     }
+
+    func autoCollectRemainingOrbs() {
+        let remainingOrbs = orbPairs
+            .map(\.orb)
+            .filter { !collectedOrbIDs.contains(ObjectIdentifier($0)) }
+
+        for (index, orb) in remainingOrbs.enumerated() {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(index) * 180_000_000)
+                collectOrb(orb, animated: true)
+            }
+        }
+    }
+
     func screenPoint(fromNormalizedPoint point: CGPoint) -> CGPoint? { // 화면 좌표 시스템 -> iOS 화면의 실제 픽셀 좌표(ScreenPoint)로 변환
         guard let arView else { return nil }
         return CGPoint(
@@ -464,31 +479,58 @@ final class PlacementManager {
 
         guard isCloseToMouth || isInsideCaptureArea else { return }
 
+        collectOrb(selectedOrb, animated: false)
+    }
+
+    private func collectOrb(_ orb: ModelEntity, animated: Bool) {
+        guard let bottleAnchorEntity else { return }
+
+        let orbID = ObjectIdentifier(orb)
+
+        guard !collectedOrbIDs.contains(orbID) else { return }
+
         collectedOrbIDs.insert(orbID)
         onCollectedCountChanged?(collectedOrbIDs.count)
+        onOrbCollected?(orb)
 
-        if var body = selectedOrb.components[PhysicsBodyComponent.self] {
+        if var body = orb.components[PhysicsBodyComponent.self] {
             body.mode = .kinematic
-            selectedOrb.components.set(body)
+            orb.components.set(body)
         }
 
-        selectedOrb.components.set(
+        orb.components.set(
             PhysicsMotionComponent(
                 linearVelocity: .zero,
                 angularVelocity: .zero
             )
         )
 
-        if let bottleAnchorEntity {
-            selectedOrb.setParent(bottleAnchorEntity, preservingWorldTransform: false)
-            selectedOrb.position = bottleInsideLocalPosition()
-            selectedOrb.scale = SIMD3<Float>(repeating: 0.48)
+        if animated {
+            orb.setParent(bottleAnchorEntity, preservingWorldTransform: true)
+            let targetTransform = Transform(
+                scale: SIMD3<Float>(repeating: 0.48),
+                rotation: simd_quatf(),
+                translation: bottleInsideLocalPosition()
+            )
+            orb.move(
+                to: targetTransform,
+                relativeTo: bottleAnchorEntity,
+                duration: 0.45,
+                timingFunction: .easeInOut
+            )
+        } else {
+            orb.setParent(bottleAnchorEntity, preservingWorldTransform: false)
+            orb.position = bottleInsideLocalPosition()
+            orb.scale = SIMD3<Float>(repeating: 0.48)
         }
 
-        self.selectedOrb = nil
-        selectedOrbAnchor = nil
-        selectedOrbDepth = nil
-        selectedOrbScreenOffset = .zero
+        if selectedOrb === orb {
+            self.selectedOrb = nil
+            selectedOrbAnchor = nil
+            selectedOrbDepth = nil
+            selectedOrbScreenOffset = .zero
+        }
+
         Logger.placement.debug("구슬 수집 완료")
     }
 }

@@ -12,6 +12,7 @@ struct ARCollectView: View {
     
     @Binding private var currentOrbCount: Int
     let totalOrbCount: Int
+    let onAutoCollect: () -> Void
     var onReturnHome: () -> Void = {}
     var onCompleted: () -> Void = {}
     
@@ -32,11 +33,13 @@ struct ARCollectView: View {
     init(
         currentOrbCount: Binding<Int> = .constant(0),
         totalOrbCount: Int = 0,
+        onAutoCollect: @escaping () -> Void = {},
         onReturnHome: @escaping () -> Void = {},
         onCompleted: @escaping () -> Void = {}
     ) {
         self._currentOrbCount = currentOrbCount
         self.totalOrbCount = totalOrbCount
+        self.onAutoCollect = onAutoCollect
         self.onReturnHome = onReturnHome
         self.onCompleted = onCompleted
     }
@@ -81,12 +84,16 @@ struct ARCollectView: View {
                         isComplete: totalOrbCount > 0 && currentOrbCount == totalOrbCount
                     )
                     
-                    AutoCollectButton {
-                        
+                    AutoCollectButton(
+                        isEnabled: currentOrbCount >= 5 && currentOrbCount < totalOrbCount
+                    ) {
+                        onAutoCollect()
+
                         withAnimation(.easeInOut(duration: 0.2)) {
                             showAutoCollectView = true
                         }
-                    }.padding(.top, 10)
+                    }
+                    .padding(.top, 10)
                     
                     Spacer()
                 }

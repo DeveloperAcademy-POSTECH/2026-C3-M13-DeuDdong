@@ -239,6 +239,9 @@ struct ARSceneView: View {
                 ARCollectView(
                     currentOrbCount: $collectedOrbCount,
                     totalOrbCount: totalOrbCount,
+                    onAutoCollect: {
+                        placementManager.autoCollectRemainingOrbs()
+                    },
                     onReturnHome: onReturnHome,          // 수집 화면 내에서 홈 이동 터치 시 처리
                     onCompleted: onFinishConversation    // 모든 수집을 끝마쳤을 때 최종 보상 결과창으로 점프
                 )

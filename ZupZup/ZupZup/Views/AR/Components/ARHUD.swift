@@ -208,6 +208,7 @@ struct FaceGuideRing: View {
 
 
 struct AutoCollectButton: View {
+    let isEnabled: Bool
     var action: () -> Void
 
     var body: some View {
@@ -221,9 +222,11 @@ struct AutoCollectButton: View {
             .foregroundStyle(ZZColor.gray0)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(ZZColor.gray7)
+            .background(isEnabled ? ZZColor.gray7 : ZZColor.gray5)
             .clipShape(RoundedRectangle(cornerRadius: ZZSpacing.buttonCornerRadius))
         }
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.55)
     }
 }
 
@@ -342,7 +345,7 @@ struct TimeoutNoticeOverlay: View {
             ConversationTimerView(remainingSeconds: 10)
             CountdownOverlay(count: 3)
             FaceGuideRing(progress: 1.0)          // 첫 번째 시안 테스트용 가이드 풀 링
-            AutoCollectButton {}
+            AutoCollectButton(isEnabled: true) {}
         }
     }
 }
