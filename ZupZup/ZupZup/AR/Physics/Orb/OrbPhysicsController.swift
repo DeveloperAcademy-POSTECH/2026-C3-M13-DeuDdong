@@ -11,6 +11,7 @@ import RealityKit
 final class OrbPhysicsController {
     private(set) var trackedOrbs: [TrackedOrb] = []
     private let motionResolver = OrbMotionResolver()
+    private let pairCollisionFeedbackResolver = OrbPairCollisionFeedbackResolver()
     private let feedbackPresenter = OrbFeedbackPresenter()
     private var interactingOrbIDs = Set<ObjectIdentifier>()
 
@@ -42,6 +43,12 @@ final class OrbPhysicsController {
                 now: now
             )
         }
+
+        pairCollisionFeedbackResolver.update(
+            trackedOrbs: trackedOrbs,
+            deltaTime: deltaTime,
+            now: now
+        )
     }
 
     func beginInteraction(with entity: ModelEntity) {
@@ -75,6 +82,7 @@ final class OrbPhysicsController {
         }
         trackedOrbs.removeAll()
         interactingOrbIDs.removeAll()
+        pairCollisionFeedbackResolver.reset()
     }
 
     private func releaseOrbAfterWaitingPeriod(_ trackedOrb: TrackedOrb) {
