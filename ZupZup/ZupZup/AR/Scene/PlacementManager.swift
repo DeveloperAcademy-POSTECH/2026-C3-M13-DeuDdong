@@ -34,6 +34,7 @@ final class PlacementManager {
     private(set) var placedOrbs: [OrbData] = []
     private(set) var playAreaCenter: SIMD3<Float>?
     private(set) var floorY: Float?
+    var onCollectedCountChanged: ((Int) -> Void)?
     var hasSelectedOrb: Bool {
         selectedOrb != nil
     }
@@ -464,6 +465,7 @@ final class PlacementManager {
         guard isCloseToMouth || isInsideCaptureArea else { return }
 
         collectedOrbIDs.insert(orbID)
+        onCollectedCountChanged?(collectedOrbIDs.count)
 
         if var body = selectedOrb.components[PhysicsBodyComponent.self] {
             body.mode = .kinematic

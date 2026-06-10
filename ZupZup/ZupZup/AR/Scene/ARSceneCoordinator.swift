@@ -18,6 +18,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private let orbPhysicsController = OrbPhysicsController()
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
+    private var onOrbCountChange: (Int) -> Void
     private weak var arView: ARView?
     private var lastHandPoseUpdateTime: TimeInterval = 0
     private var wasPinching = false
@@ -34,12 +35,14 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         sessionManager: ARSessionManager,
         placementManager: PlacementManager,
         emotionRuntime: EmotionRuntimeManaging,
-        onPlaneStateChange: @escaping (ARState) -> Void
+        onPlaneStateChange: @escaping (ARState) -> Void,
+        onOrbCountChange: @escaping (Int) -> Void
     ) {
         self.sessionManager = sessionManager
         self.placementManager = placementManager
         self.emotionRuntime = emotionRuntime
         self.onPlaneStateChange = onPlaneStateChange
+        self.onOrbCountChange = onOrbCountChange
     }
 
     func install(on arView: ARView) {
@@ -96,6 +99,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         orbPhysicsController.removeAll(from: arView)
         placementManager.clearScene()
         onPlaneStateChange(.searching)
+        onOrbCountChange(0)
         sessionManager.resetSession()
     }
 
@@ -286,6 +290,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         fallbackOrbFloorY = floorY
         orbPhysicsController.addOrb(trackedOrb)
         placementManager.registerMovableOrb(trackedOrb)
+        onOrbCountChange(orbPhysicsController.trackedOrbs.count)
     }
 
     private func updatePhysicsOrbsIfNeeded(now: CFTimeInterval) {
