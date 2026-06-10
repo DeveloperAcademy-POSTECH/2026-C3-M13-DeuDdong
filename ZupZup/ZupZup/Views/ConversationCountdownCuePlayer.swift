@@ -11,6 +11,11 @@ import AVFoundation
 final class ConversationCountdownCuePlayer {
     private let synthesizer = AVSpeechSynthesizer()
 
+    func prepareFeedback() {
+        FeedbackSoundPlayer.prepare()
+        HapticManager.shared.prepare()
+    }
+
     func speakIntro() {
         guard !synthesizer.isSpeaking else { return }
 

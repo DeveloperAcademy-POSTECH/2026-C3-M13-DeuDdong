@@ -13,6 +13,7 @@ class HapticManager {
 
     private var engine: CHHapticEngine?
     private var engineError: HapticError?
+    private var isEngineStarted = false
 
     private init() {
         guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else {
@@ -24,15 +25,18 @@ class HapticManager {
             self.engine = engine
 
             engine.stoppedHandler = { [weak self] reason in
+                self?.isEngineStarted = false
                 Logger.haptic.info("햅틱 엔진 정지: \(reason.rawValue, privacy: .public)")
                 self?.restartEngine()
             }
 
             engine.resetHandler = { [weak self] in
+                self?.isEngineStarted = false
                 self?.restartEngine()
             }
 
             try engine.start()
+            isEngineStarted = true
         } catch {
             engineError = .engineFailed
             Logger.haptic.error("햅틱 엔진 생성/시작 실패: \(error.localizedDescription, privacy: .public)")
@@ -42,9 +46,19 @@ class HapticManager {
     private func restartEngine() {
         do {
             try engine?.start()
+            isEngineStarted = true
             engineError = nil
         } catch {
+            isEngineStarted = false
             engineError = .engineFailed
+        }
+    }
+
+    func prepare() {
+        do {
+            try ensureEngineRunning()
+        } catch {
+            Logger.haptic.error("햅틱 엔진 준비 실패: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -95,16 +109,31 @@ class HapticManager {
         Swift.min(Swift.max(value, min), max)
     }
 
+    private func ensureEngineRunning() throws {
+        guard let engine else {
+            throw engineError ?? HapticError.engineFailed
+        }
+
+        guard !isEngineStarted else { return }
+
+        try engine.start()
+        isEngineStarted = true
+        engineError = nil
+    }
+
     private func play(events: [CHHapticEvent]) {
         guard let engine else {
             Logger.haptic.error("햅틱 재생 실패: \((self.engineError ?? .engineFailed).localizedDescription)")
-             return
+            return
         }
+
         do {
+            try ensureEngineRunning()
             let pattern = try CHHapticPattern(events: events, parameters: [])
             let player = try engine.makePlayer(with: pattern)
             try player.start(atTime: 0)
         } catch {
+            isEngineStarted = false
             Logger.haptic.error("햅틱 재생 실패: \(error.localizedDescription)")
         }
     }

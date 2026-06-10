@@ -413,6 +413,7 @@ private extension ARSceneView {
         guard !isConversationStarted, !hasStartedConversationFlow, !isConversationFinished else { return }
 
         hasStartedConversationFlow = true
+        countdownCuePlayer.prepareFeedback()
         countdownCuePlayer.speakIntro() // 성우 음성 가이드: "지금부터 대화를 시작합니다."
 
         // 3초부터 1초까지 정밀 타임 루프를 순회하며 효과음 재생 및 상태 갱신

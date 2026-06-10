@@ -225,7 +225,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
 
     private func handleHandGesture() {
-        guard isCollecting else {
+        guard isCollecting || orbPhysicsController.hasOrbs else {
             releaseIfNeeded()
             return
         }
