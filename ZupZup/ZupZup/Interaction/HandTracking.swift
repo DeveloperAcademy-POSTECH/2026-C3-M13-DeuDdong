@@ -114,10 +114,6 @@ final class HandTrackingManager {
             return
         }
 
-        if result.distance < 0.05 {
-            currentGesture = .pinched
-        } else if result.distance > 0.08 {
-            currentGesture = .apart
-        }
+        currentGesture = result.gesture
     }
 }
