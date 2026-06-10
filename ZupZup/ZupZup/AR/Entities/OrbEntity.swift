@@ -10,33 +10,47 @@ internal import UIKit
 import ZupZupContent
 
 enum OrbEntity {
-    static let radius: Float = 0.035
+    static let defaultRadius: Float = 0.035
 
     static func makeOrb(emotion: EmotionType) -> ModelEntity {
-        let orb = makeBaseOrb(emotion: emotion, radius: radius)
-        let shape = ShapeResource.generateSphere(radius: radius)
+        let orb = makeBaseOrb(emotion: emotion, fallbackRadius: defaultRadius)
+        let shape = ShapeResource.generateSphere(radius: collisionRadius(for: orb))
         PhysicsSetup.applyKinematicBody(to: orb, shape: shape)
         return orb
     }
 
     static func makeWaitingOrb(emotion: EmotionType) -> ModelEntity {
-        let orb = makeBaseOrb(emotion: emotion, radius: OrbPhysicsSettings.orbRadius)
-        let shape = ShapeResource.generateSphere(radius: OrbPhysicsSettings.orbRadius)
+        let orb = makeBaseOrb(emotion: emotion, fallbackRadius: OrbPhysicsSettings.defaultOrbRadius)
+        let shape = ShapeResource.generateSphere(radius: collisionRadius(for: orb))
         OrbPhysicsSettings.applyWaitingOrbBody(to: orb, shape: shape)
         return orb
     }
 
-    private static func makeBaseOrb(emotion: EmotionType, radius: Float) -> ModelEntity {
+    static func collisionRadius(
+        for entity: Entity,
+        fallbackRadius: Float = OrbPhysicsSettings.defaultOrbRadius
+    ) -> Float {
+        let bounds = entity.visualBounds(relativeTo: entity)
+        let maxExtent = max(bounds.extents.x, bounds.extents.y, bounds.extents.z)
+
+        guard maxExtent > 0 else {
+            return fallbackRadius
+        }
+
+        return maxExtent / 2
+    }
+
+    private static func makeBaseOrb(emotion: EmotionType, fallbackRadius: Float) -> ModelEntity {
         if let visual = loadDesignedOrbVisual(for: emotion) {
             let orb = ModelEntity()
             orb.name = "Orb_\(emotion.rawValue)"
             orb.addChild(visual)
-            fitVisual(visual, in: orb, targetRadius: radius)
+            centerVisualAtAuthoredSize(visual, in: orb)
             return orb
         }
 
         let fallbackOrb = ModelEntity(
-            mesh: .generateSphere(radius: radius),
+            mesh: .generateSphere(radius: fallbackRadius),
             materials: [stableMaterial(for: emotion)]
         )
         fallbackOrb.name = "Orb_\(emotion.rawValue)"
@@ -44,8 +58,8 @@ enum OrbEntity {
     }
 
     static func makeDebugOrb(emotion: EmotionType) -> ModelEntity {
-        let shape = ShapeResource.generateSphere(radius: radius)
-        let orb = makeBaseOrb(emotion: emotion, radius: radius)
+        let orb = makeBaseOrb(emotion: emotion, fallbackRadius: defaultRadius)
+        let shape = ShapeResource.generateSphere(radius: collisionRadius(for: orb))
         orb.name = "DebugOrb_\(emotion.rawValue)"
         orb.components.set(CollisionComponent(shapes: [shape]))
 
@@ -92,20 +106,12 @@ enum OrbEntity {
         }
     }
 
-    private static func fitVisual(_ visual: Entity, in parent: Entity, targetRadius: Float) {
+    private static func centerVisualAtAuthoredSize(_ visual: Entity, in parent: Entity) {
         visual.position = .zero
         visual.scale = SIMD3<Float>(repeating: 1)
 
         let bounds = visual.visualBounds(relativeTo: parent)
-        let maxExtent = max(bounds.extents.x, bounds.extents.y, bounds.extents.z)
-
-        guard maxExtent > 0 else { return }
-
-        let scale = (targetRadius * 2) / maxExtent
-        visual.scale = SIMD3<Float>(repeating: scale)
-
-        let scaledBounds = visual.visualBounds(relativeTo: parent)
-        visual.position -= scaledBounds.center
+        visual.position -= bounds.center
     }
 
     private static func designedOrbModelName(for emotion: EmotionType) -> String {

@@ -106,7 +106,7 @@ final class OrbMotionResolver {
         let worldPosition = orbWorldPosition(trackedOrb)
         setOrbWorldPosition(
             trackedOrb,
-            SIMD3<Float>(worldPosition.x, floorY + OrbPhysicsSettings.orbRadius, worldPosition.z)
+            SIMD3<Float>(worldPosition.x, floorY + trackedOrb.radius, worldPosition.z)
         )
 
         var body = trackedOrb.entity.components[PhysicsBodyComponent.self] ?? PhysicsBodyComponent(
@@ -132,7 +132,7 @@ final class OrbMotionResolver {
             return
         }
 
-        let floorContactY = floorY + OrbPhysicsSettings.orbRadius
+        let floorContactY = floorY + trackedOrb.radius
         let worldPosition = orbWorldPosition(trackedOrb)
 
         guard shouldSettleOnFloor(trackedOrb, floorContactY: floorContactY) else {
@@ -175,7 +175,7 @@ final class OrbMotionResolver {
             return
         }
 
-        let floorContactY = floorY + OrbPhysicsSettings.orbRadius
+        let floorContactY = floorY + trackedOrb.radius
         let worldPosition = orbWorldPosition(trackedOrb)
 
         guard worldPosition.y < floorContactY else {
