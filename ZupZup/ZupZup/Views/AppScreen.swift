@@ -11,5 +11,4 @@ enum AppScreen {
     case home
     case conversation
     case report
-    case certification
 }

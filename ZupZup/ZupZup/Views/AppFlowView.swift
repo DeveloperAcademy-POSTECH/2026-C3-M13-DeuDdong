@@ -32,17 +32,10 @@ struct AppFlowView: View {
                     onSave: {
                         currentScreen = .home
                     },
-                    onCertify: {
-                        currentScreen = .certification
-                    },
                     onHome: {
                         currentScreen = .home
                     }
                 )
-            case .certification:
-                CertificationView {
-                    currentScreen = .report
-                }
             }
         }
         .animation(.easeInOut(duration: 0.22), value: currentScreen)
