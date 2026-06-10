@@ -137,7 +137,7 @@ struct HomeView: View {
 
     var orbScene: SKScene {
         let scene = OrbPhysicsScene()
-        scene.size = CGSize(width: 250, height: 400)
+        scene.size = CGSize(width: 250, height: 300)
         scene.scaleMode = .fill
 
         scene.onOrbSelected = { emotion in
@@ -170,55 +170,55 @@ struct HomeView: View {
                     .padding(.top, 70)
 
                 Spacer()
-
-                // Container Graphic Area
-                ZStack {
-                    // 가상 유리병 아웃라인 플레이스홀더
-                    RoundedRectangle(cornerRadius: 32)
-                        .strokeBorder(ZZColor.gray3, style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [10, 8]))
-                        .frame(width: 250, height: 400)
-                        .background(ZZColor.gray0.opacity(0.5).clipShape(RoundedRectangle(cornerRadius: 32)))
-
-                    SpriteView(scene: orbScene, options: [.allowsTransparency])
-                        .frame(width: 250, height: 400)
-                        .clipShape(RoundedRectangle(cornerRadius: 32))
-
-                    // Emotion Detail Tooltip Overlay
-                    if let emotion = selectedEmotion {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text("'\(emotion.title)'의 구슬")
-                                    .font(ZZFont.smallCaption)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(emotion.swiftUIColor)
-
-                                Spacer()
-
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundStyle(ZZColor.gray4)
+                
+                    ZStack {
+                        Image("EmptyBallGlass")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 350, height: 450)
+                        
+                        
+                        SpriteView(scene: orbScene, options: [.allowsTransparency])
+                            .frame(width: 250, height: 300)
+                            .clipShape(RoundedRectangle(cornerRadius: 60))
+                            .padding(.top, 120)
+                        
+                        // Emotion Detail Tooltip Overlay
+                        if let emotion = selectedEmotion {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text("'\(emotion.title)'의 구슬")
+                                        .font(ZZFont.smallCaption)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(emotion.swiftUIColor)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(ZZColor.gray4)
+                                }
+                                
+                                Text(emotion.description)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(ZZColor.gray8)
+                                    .lineSpacing(2)
                             }
-
-                            Text(emotion.description)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(ZZColor.gray8)
-                                .lineSpacing(2)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .frame(width: 220) // 유리병 Bounds(250) 보안을 위한 고정 폭
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 5)
-                        .offset(y: -40) // 정중앙 구슬 무더기 위 안착을 위한 기본 오프셋 조율
-                        .transition(.scale.combined(with: .opacity))
-                        .onTapGesture {
-                            withAnimation { selectedEmotion = nil }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
+                            .frame(width: 220) // 유리병 Bounds(250) 보안을 위한 고정 폭
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 5)
+                            .offset(y: -40) // 정중앙 구슬 무더기 위 안착을 위한 기본 오프셋 조율
+                            .transition(.scale.combined(with: .opacity))
+                            .onTapGesture {
+                                withAnimation { selectedEmotion = nil }
+                            }
                         }
                     }
-                }
-                .frame(height: 400)
-
+                    .frame(height: 400)
+        
                 Spacer()
 
                 VStack(spacing: 16) {

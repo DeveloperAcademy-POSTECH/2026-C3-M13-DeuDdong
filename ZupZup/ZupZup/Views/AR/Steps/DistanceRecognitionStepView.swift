@@ -92,7 +92,7 @@ struct DistanceRecognitionStepView: View {
                         .font(ZZFont.subheadline)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
-                        .padding(.bottom, 24)
+                        .padding(.bottom, 170)
 
                     PrimaryButton(
                         title: "다음",
