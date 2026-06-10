@@ -19,7 +19,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var planeVisualizer: PlaneVisualizer?
     private var onPlaneStateChange: (ARState) -> Void
     private weak var arView: ARView?
-    private var hasPlacedDemoObjects = false
     private var lastHandPoseUpdateTime: TimeInterval = 0
     private var wasPinching = false
     private var lastPinchSeenTime: TimeInterval = 0
@@ -85,7 +84,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     }
 
     func resetScene() {
-        hasPlacedDemoObjects = false
         lastOrbPhysicsUpdateTime = nil
         fallbackOrbFloorY = nil
         horizontalPlaneAnchors.removeAll()
@@ -182,12 +180,8 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         onPlaneStateChange(.ready)
         placementManager.createInvisiblePhysicsFloor(
             at: horizontalPlane.worldCenter,
-            shouldUpdateHeight: !hasPlacedDemoObjects && !orbPhysicsController.hasOrbs
+            shouldUpdateHeight: !orbPhysicsController.hasOrbs
         )
-
-        guard !hasPlacedDemoObjects else { return }
-        hasPlacedDemoObjects = true
-        placementManager.placeDemoObjects(on: horizontalPlane)
     }
 
     private func updateKnownHorizontalPlanes(with anchors: [ARAnchor]) {
@@ -226,7 +220,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             lastPinchSeenTime = Date().timeIntervalSince1970
 
             if !wasPinching {
-                placementManager.selectOrb(at: screenPoint)
+                if let selectedOrb = placementManager.selectOrb(at: screenPoint) {
+                    orbPhysicsController.beginInteraction(with: selectedOrb)
+                }
                 wasPinching = true
                 return
             }
@@ -251,7 +247,12 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
     private func releaseIfNeeded() {
         if wasPinching || placementManager.hasSelectedOrb {
-            placementManager.releaseSelectedOrb()
+            if let releasedOrb = placementManager.releaseSelectedOrb() {
+                orbPhysicsController.endInteraction(
+                    with: releasedOrb,
+                    floorY: placementManager.floorY ?? fallbackOrbFloorY
+                )
+            }
         }
 
         wasPinching = false
@@ -270,6 +271,7 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
 
         fallbackOrbFloorY = floorY
         orbPhysicsController.addOrb(trackedOrb)
+        placementManager.registerMovableOrb(trackedOrb)
     }
 
     private func updatePhysicsOrbsIfNeeded(now: CFTimeInterval) {
