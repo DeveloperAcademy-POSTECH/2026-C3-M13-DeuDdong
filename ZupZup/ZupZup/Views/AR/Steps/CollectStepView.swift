@@ -77,7 +77,7 @@ struct ARCollectView: View {
                     )
 
                     AutoCollectButton(
-                        isEnabled: currentOrbCount >= 5 && currentOrbCount < totalOrbCount
+                        isEnabled: currentOrbCount >= 3 && currentOrbCount < totalOrbCount
                     ) {
                         onAutoCollect()
 

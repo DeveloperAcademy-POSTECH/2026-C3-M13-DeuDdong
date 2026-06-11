@@ -24,6 +24,7 @@ final class PlacementManager {
     private let magneticSnapDistance: Float = 0.20
     private let snapPullSmoothing: Float = 0.28
     private let snapSuccessDistance: Float = 0.08
+    private let autoCollectMoveDuration: TimeInterval = 0.45
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
     private var selectedOrbDepth: Float?
@@ -552,9 +553,7 @@ final class PlacementManager {
         guard !collectedOrbIDs.contains(orbID) else { return }
 
         collectedOrbIDs.insert(orbID)
-        FeedbackSoundPlayer.playOrbCollected()
-        HapticManager.shared.playOrbCollected()
-        onCollectedCountChanged?(collectedOrbIDs.count)
+        let collectedCount = collectedOrbIDs.count
         onOrbCollected?(orb)
 
         if var body = orb.components[PhysicsBodyComponent.self] {
@@ -570,19 +569,35 @@ final class PlacementManager {
         )
 
         if animated {
+            let targetPosition = bottleInsideLocalPosition()
+            let targetScale = SIMD3<Float>(repeating: 0.48)
+
             orb.setParent(bottleAnchorEntity, preservingWorldTransform: true)
             let targetTransform = Transform(
-                scale: SIMD3<Float>(repeating: 0.48),
+                scale: targetScale,
                 rotation: simd_quatf(),
-                translation: bottleInsideLocalPosition()
+                translation: targetPosition
             )
             orb.move(
                 to: targetTransform,
                 relativeTo: bottleAnchorEntity,
-                duration: 0.45,
+                duration: autoCollectMoveDuration,
                 timingFunction: .easeInOut
             )
+
+            Task { @MainActor in
+                let delay = UInt64(autoCollectMoveDuration * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: delay)
+                orb.position = targetPosition
+                orb.scale = targetScale
+                FeedbackSoundPlayer.playOrbCollected()
+                HapticManager.shared.playOrbCollected()
+                onCollectedCountChanged?(collectedCount)
+            }
         } else {
+            FeedbackSoundPlayer.playOrbCollected()
+            HapticManager.shared.playOrbCollected()
+            onCollectedCountChanged?(collectedCount)
             orb.setParent(bottleAnchorEntity, preservingWorldTransform: false)
             orb.position = bottleInsideLocalPosition()
             orb.scale = SIMD3<Float>(repeating: 0.48)
