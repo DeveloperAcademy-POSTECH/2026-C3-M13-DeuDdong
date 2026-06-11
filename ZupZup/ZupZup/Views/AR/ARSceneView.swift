@@ -335,12 +335,8 @@ private extension ARSceneView {
             ConversationEndOverlay(
                 cancelAction: { activeOverlay = nil },
                 confirmAction: {
-                    // 확인을 누르면 대화 상태를 정상 마감 처리(showOverlay: false)한 뒤 곧바로 5단계 구슬 수집 모드를 발동
-                    finishConversation(showOverlay: false)
                     activeOverlay = nil
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isCollecting = true // 5단계 팝업 활성화
-                    }
+                    finishConversation(showOverlay: true)
                 }
             )
         case .noOrb:
@@ -477,13 +473,15 @@ private extension ARSceneView {
         showsPraisePrompt = false
         countdownValue = nil
 
-        // 타임아웃 종료(`showOverlay: true`)인 경우 생성된 구슬 개수를 확인하여 5단계 진입 유무 판단
+        // 타임아웃/수동 종료 모두 생성된 구슬 개수를 확인하여 5단계 진입 유무 판단
         guard showOverlay else { return }
-        if emotionRuntime.emittedOrbEventCount == 0 {
-            // 대화 도중 소환된 구슬이 0개라면 수집할 매개체가 없으므로 예외 실패 팝업(.noOrb) 실행
+        if totalOrbCount == 0 {
+            // 실제로 배치된 구슬이 0개라면 수집할 매개체가 없으므로 예외 실패 팝업(.noOrb) 실행
+            isCollecting = false
             activeOverlay = .noOrb
         } else {
             // 구슬이 1개 이상 안전하게 누적 배치되어 있다면 자연스럽게 5단계 구슬 수집 모드로 즉시 전환
+            activeOverlay = nil
             withAnimation(.easeOut(duration: 0.2)) {
                 isCollecting = true // 🛑 [5단계: 구슬 수집 페이즈 발동 On]
             }
@@ -503,6 +501,8 @@ private extension ARSceneView {
         hasStartedConversationFlow = false
         isConversationStarted = false
         remainingConversationSeconds = 180
+        collectedOrbCount = 0
+        totalOrbCount = 0
         secondsWithoutOrb = 0
         trackedOrbEventID = emotionRuntime.latestOrbEvent?.id
         showsPraisePrompt = false
@@ -523,6 +523,8 @@ private extension ARSceneView {
         isConversationFinished = false
         isConversationStarted = false
         isCollecting = false
+        collectedOrbCount = 0
+        totalOrbCount = 0
         emotionRuntime.stop()
     }
 }
