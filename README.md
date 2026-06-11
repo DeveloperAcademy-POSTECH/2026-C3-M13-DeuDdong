@@ -1,4 +1,4 @@
-# :iphone: ZupZup
+# ZupZup 
 사람들이 서로 대화하는 상황에서 ARKit, RealityKit, AVFoundation, ML 기술로 대화 속 감정을 실시간 감정 구슬로 시각화하고 수집하는 앱
 
 <br>
@@ -37,8 +37,10 @@ Attach videos if you are available
 - 🌳 [Branch Strategy & PR/Merge Rules](https://github.com/DeveloperAcademy-POSTECH/2026-C3-M13-DeuDdong/wiki/Git-%EC%BB%A8%EB%B2%A4%EC%85%98)
 <br>
 
-## 👥 Contributors
+
+## 👥 Team
 
 | <a href="https://github.com/0sunset0"><img src="https://github.com/0sunset0.png" width="100px"/></a> | <a href="https://github.com/dojmj"><img src="https://github.com/dojmj.png" width="100px"/></a> | <a href="https://github.com/quokkaki"><img src="https://github.com/quokkaki.png" width="100px"/></a> | <a href="https://github.com/juugii-ho"><img src="https://github.com/juugii-ho.png" width="100px"/></a> | <a href="https://github.com/yujinjeong1013"><img src="https://github.com/yujinjeong1013.png" width="100px"/></a> | <a href="https://github.com/Seoyeon94"><img src="https://github.com/Seoyeon94.png" width="100px"/></a> |
 |:---:|:---:|:---:|:---:|:---:|:---:|
+| 노을 | 아해 | 쿼카 | 사이먼 | 제제 | 린 |
 | [@0sunset0](https://github.com/0sunset0) | [@dojmj](https://github.com/dojmj) | [@quokkaki](https://github.com/quokkaki) | [@juugii-ho](https://github.com/juugii-ho) | [@yujinjeong1013](https://github.com/yujinjeong1013) | [@Seoyeon94](https://github.com/Seoyeon94) |
