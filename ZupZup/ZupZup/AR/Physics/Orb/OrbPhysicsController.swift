@@ -76,6 +76,11 @@ final class OrbPhysicsController {
         settleOrbForInteraction(trackedOrb)
     }
 
+    func removeOrb(_ entity: ModelEntity) {
+        interactingOrbIDs.remove(ObjectIdentifier(entity))
+        trackedOrbs.removeAll { $0.entity === entity }
+    }
+
     func removeAll(from arView: ARView?) {
         for trackedOrb in trackedOrbs {
             arView?.scene.removeAnchor(trackedOrb.anchor)

@@ -239,6 +239,9 @@ struct ARSceneView: View {
                 ARCollectView(
                     currentOrbCount: $collectedOrbCount,
                     totalOrbCount: totalOrbCount,
+                    onAutoCollect: {
+                        placementManager.autoCollectRemainingOrbs()
+                    },
                     onReturnHome: onReturnHome,
                     onCompleted: { onFinishConversation(collectedOrbCount) }
                 )

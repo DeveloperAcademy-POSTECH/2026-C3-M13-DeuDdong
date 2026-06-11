@@ -53,6 +53,9 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         sessionManager.attach(to: arView)
         placementManager.attach(to: arView)
         planeVisualizer = PlaneVisualizer(arView: arView)
+        placementManager.onOrbCollected = { [weak self] orb in
+            self?.orbPhysicsController.removeOrb(orb)
+        }
         arView.session.delegate = self
         sessionManager.startSession()
     }
