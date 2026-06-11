@@ -26,9 +26,7 @@ final class ConversationCountdownCuePlayer {
         synthesizer.speak(utterance)
     }
 
-    func playTick(count: Int) {
-        HapticManager.shared.playCountdownTick(count: count)
-    }
+    func playTick(count _: Int) {}
 
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)

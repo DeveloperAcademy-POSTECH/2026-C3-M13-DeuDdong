@@ -527,6 +527,7 @@ final class PlacementManager {
         guard isCloseToMouth || isInsideCaptureArea else { return }
 
         collectedOrbIDs.insert(orbID)
+        FeedbackSoundPlayer.playOrbCollected()
         HapticManager.shared.playOrbCollected()
         onCollectedCountChanged?(collectedOrbIDs.count)
 
