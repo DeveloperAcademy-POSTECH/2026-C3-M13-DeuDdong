@@ -119,11 +119,13 @@ struct ARSceneView: View {
                 .transition(.opacity)
             }
 
-            // [얼굴 랜드마크 오버레이] 화자 인식을 돕기 위해 실시간 입모양 및 얼굴 윤곽선 메쉬 가이드를 그리는 뷰
+            #if DEBUG
+            // [디버그 레이어] 얼굴 추적 상태 확인용 입 랜드마크 오버레이
             if shouldShowMouthTrackingOverlay {
                 MouthTrackingOverlay(result: emotionRuntime.latestFaceTrackingResult)
                     .transition(.opacity)
             }
+            #endif
 
             // -------------------------------------------------------------------------
             // 🛑 [4단계: 대화 진행] 본격적으로 3분 타이머가 돌아가며 실시간 대화를 나누는 단계
@@ -289,12 +291,12 @@ private extension ARSceneView {
             && activeOverlay == nil
     }
 
-    // [얼굴 추적 메쉬 가시성 제어] 바닥 준비 완료 및 공간 인식 승인을 거쳤으며 대화 타이머가 돌아가는 중에만 노출
+    #if DEBUG
+    // [얼굴 추적 메쉬 가시성 제어] 디버그 빌드에서만 입 랜드마크 확인용으로 노출
     private var shouldShowMouthTrackingOverlay: Bool {
         planeState == .ready && hasConfirmedSpaceRecognition && !isConversationFinished
     }
 
-    #if DEBUG
     // [개발자 패널 가시성 제어] 대화 시퀀스가 활성화되어 돌아가는 중이고 대화가 종료되기 전인 디버깅 순간 노출
     private var shouldShowDeveloperDebug: Bool {
         hasStartedConversationFlow && !isConversationFinished
