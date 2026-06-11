@@ -4,7 +4,6 @@
 //
 // 구슬 및 바닥 물리 상수와 physics body 적용을 돕는 파일
 
-import Foundation
 import RealityKit
 
 enum OrbPhysicsSettings {
@@ -19,10 +18,6 @@ enum OrbPhysicsSettings {
     static let initialDropVelocity = SIMD3<Float>(0, -0.75, 0)
     static let minimumSpawnHeightAboveFloor: Float = 0.18
     static let spawnClearanceAboveOrb: Float = 0.05
-    static let orbPairCollisionPadding: Float = 0.006
-    static let minimumOrbPairCollisionSpeed: Float = 0.08
-    static let orbPairCollisionSoundCooldown: CFTimeInterval = 0.24
-    static let orbPairCollisionFeedbackHistoryDuration: CFTimeInterval = 1.2
 
     static var orbPhysicsMaterial: PhysicsMaterialResource {
         .generate(staticFriction: 0.98, dynamicFriction: 0.96, restitution: 0)

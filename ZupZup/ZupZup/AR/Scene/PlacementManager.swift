@@ -552,6 +552,8 @@ final class PlacementManager {
         guard !collectedOrbIDs.contains(orbID) else { return }
 
         collectedOrbIDs.insert(orbID)
+        FeedbackSoundPlayer.playOrbCollected()
+        HapticManager.shared.playOrbCollected()
         onCollectedCountChanged?(collectedOrbIDs.count)
         onOrbCollected?(orb)
 

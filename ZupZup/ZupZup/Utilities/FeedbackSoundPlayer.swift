@@ -10,99 +10,69 @@ import OSLog
 @MainActor
 enum FeedbackSoundPlayer {
     private enum Effect: Hashable {
-        case countdownTick
-        case orbDrop
-        case orbCollision
-        case particleBurst
+        case orbGrabbed
+        case orbCollected
 
         var frequencies: [Double] {
             switch self {
-            case .countdownTick:
-                [1_640, 2_120]
-            case .orbDrop:
+            case .orbGrabbed:
                 [1_140, 1_860, 2_740]
-            case .orbCollision:
+            case .orbCollected:
                 [920, 1_520, 2_360, 3_480]
-            case .particleBurst:
-                [1_780, 2_480, 3_260, 4_420]
             }
         }
 
         var duration: Double {
             switch self {
-            case .countdownTick:
-                0.08
-            case .orbDrop:
+            case .orbGrabbed:
                 0.16
-            case .orbCollision:
+            case .orbCollected:
                 0.18
-            case .particleBurst:
-                0.26
             }
         }
 
         var amplitude: Double {
             switch self {
-            case .countdownTick:
-                0.18
-            case .orbDrop:
+            case .orbGrabbed:
                 0.36
-            case .orbCollision:
+            case .orbCollected:
                 0.46
-            case .particleBurst:
-                0.38
             }
         }
 
         var noiseAmount: Double {
             switch self {
-            case .countdownTick:
-                0.02
-            case .orbDrop:
+            case .orbGrabbed:
                 0.06
-            case .orbCollision:
+            case .orbCollected:
                 0.10
-            case .particleBurst:
-                0.08
             }
         }
 
         var decay: Double {
             switch self {
-            case .countdownTick:
-                22
-            case .orbDrop:
+            case .orbGrabbed:
                 18
-            case .orbCollision:
+            case .orbCollected:
                 16
-            case .particleBurst:
-                12
             }
         }
 
         var resourceName: String {
             switch self {
-            case .countdownTick:
-                "glass_countdown_tick"
-            case .orbDrop:
+            case .orbGrabbed:
                 "glass_orb_drop"
-            case .orbCollision:
+            case .orbCollected:
                 "glass_orb_collision"
-            case .particleBurst:
-                "glass_particle_burst"
             }
         }
 
         var resourceVolume: Float {
             switch self {
-            case .countdownTick:
-                0.55
-            case .orbDrop:
+            case .orbGrabbed:
                 0.85
-            case .orbCollision:
+            case .orbCollected:
                 0.95
-            case .particleBurst:
-                0.90
             }
         }
     }
@@ -112,25 +82,17 @@ enum FeedbackSoundPlayer {
 
     static func prepare() {
         prepareAudioSessionIfNeeded()
-        for effect in [Effect.countdownTick, .orbDrop, .orbCollision, .particleBurst] {
+        for effect in [Effect.orbGrabbed, .orbCollected] {
             _ = player(for: effect)
         }
     }
 
-    static func playCountdownTick() {
-        play(.countdownTick)
+    static func playOrbGrabbed() {
+        play(.orbGrabbed)
     }
 
-    static func playOrbDrop() {
-        play(.orbDrop)
-    }
-
-    static func playOrbCollision() {
-        play(.orbCollision)
-    }
-
-    static func playParticleBurst() {
-        play(.particleBurst)
+    static func playOrbCollected() {
+        play(.orbCollected)
     }
 
     private static func play(_ effect: Effect) {

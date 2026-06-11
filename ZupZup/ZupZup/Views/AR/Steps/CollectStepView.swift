@@ -46,10 +46,7 @@ struct ARCollectView: View {
     var body: some View {
         if showAutoCollectView {
             AutoCollectView {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showAutoCollectView = false
-                    showCollectCompletedView = true
-                }
+                transitionToCollectionCompleted()
             }
             .zIndex(200)
         } else if showCollectCompletedView {
@@ -339,11 +336,18 @@ struct ARCollectView: View {
             }
             .onChange(of: currentOrbCount) { _, newCount in
                 guard totalOrbCount > 0, newCount >= totalOrbCount else { return }
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showAutoCollectView = false
-                    showCollectCompletedView = true
-                }
+                transitionToCollectionCompleted()
             }
+        }
+    }
+
+    private func transitionToCollectionCompleted() {
+        guard !showCollectCompletedView else { return }
+        HapticManager.shared.playCollectionCompleted()
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showAutoCollectView = false
+            showCollectCompletedView = true
         }
     }
 }
