@@ -63,9 +63,8 @@ struct OnboardingView: View {
             return
         }
 
-        withAnimation {
             currentStep = nextStep
-        }
+        
     }
 
     private func moveToPreviousStep() {
