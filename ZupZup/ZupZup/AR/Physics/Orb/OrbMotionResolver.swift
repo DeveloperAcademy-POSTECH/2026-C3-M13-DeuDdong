@@ -143,7 +143,6 @@ final class OrbMotionResolver {
         trackedOrb.touchedFloorTime = now
         trackedOrb.settledTime = now
         FeedbackSoundPlayer.playOrbCollision()
-        HapticManager.shared.playOrbCollision()
 
         setOrbWorldPosition(
             trackedOrb,

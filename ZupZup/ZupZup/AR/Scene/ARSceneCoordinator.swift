@@ -24,9 +24,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     private var wasPinching = false
     private var lastPinchSeenTime: TimeInterval = 0
     private let pinchLostGraceDuration: TimeInterval = 0.3
-    private var lastOrbTouchFeedbackTime: TimeInterval = 0
-    private var lastOrbTouchFeedbackIntensity: Float = 0
-    private let orbTouchFeedbackInterval: TimeInterval = 0.08
     private var isCollecting = false
     private var horizontalPlaneAnchors: [UUID: ARPlaneAnchor] = [:]
     private var isHandPoseRequestInFlight = false
@@ -97,8 +94,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
     func resetScene() {
         lastOrbPhysicsUpdateTime = nil
         fallbackOrbFloorY = nil
-        lastOrbTouchFeedbackTime = 0
-        lastOrbTouchFeedbackIntensity = 0
         horizontalPlaneAnchors.removeAll()
         planeVisualizer?.removeAll()
         orbPhysicsController.removeAll(from: arView)
@@ -235,10 +230,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
         let screenPoint = handTrackingManager.indexTipPoint
             .flatMap { placementManager.screenPoint(fromNormalizedPoint: $0) }
 
-        if let screenPoint {
-            updateOrbTouchFeedbackIfNeeded(at: screenPoint, currentTime: currentTime)
-        }
-
         switch handTrackingManager.currentGesture {
         case .pinched:
             guard let screenPoint else {
@@ -271,22 +262,6 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
                 releaseIfNeeded()
             }
         }
-    }
-
-    private func updateOrbTouchFeedbackIfNeeded(at screenPoint: CGPoint, currentTime: TimeInterval) {
-        guard let intensity = placementManager.orbTouchFeedbackIntensity(at: screenPoint) else {
-            lastOrbTouchFeedbackIntensity = 0
-            return
-        }
-
-        let intensityDelta = abs(intensity - lastOrbTouchFeedbackIntensity)
-        guard currentTime - lastOrbTouchFeedbackTime >= orbTouchFeedbackInterval || intensityDelta > 0.12 else {
-            return
-        }
-
-        HapticManager.shared.playOrbContact(intensity: intensity)
-        lastOrbTouchFeedbackTime = currentTime
-        lastOrbTouchFeedbackIntensity = intensity
     }
 
     private func releaseIfNeeded() {

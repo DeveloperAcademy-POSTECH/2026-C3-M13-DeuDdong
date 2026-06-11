@@ -527,6 +527,7 @@ final class PlacementManager {
         guard isCloseToMouth || isInsideCaptureArea else { return }
 
         collectedOrbIDs.insert(orbID)
+        HapticManager.shared.playOrbCollected()
         onCollectedCountChanged?(collectedOrbIDs.count)
 
         if var body = selectedOrb.components[PhysicsBodyComponent.self] {

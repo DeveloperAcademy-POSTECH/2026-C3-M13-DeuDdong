@@ -27,7 +27,6 @@ final class ConversationCountdownCuePlayer {
     }
 
     func playTick(count: Int) {
-        FeedbackSoundPlayer.playCountdownTick()
         HapticManager.shared.playCountdownTick(count: count)
     }
 

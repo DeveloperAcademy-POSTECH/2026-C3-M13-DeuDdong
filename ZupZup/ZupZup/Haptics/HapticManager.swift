@@ -81,6 +81,11 @@ class HapticManager {
         )
     }
 
+    func playOrbGrabbed() {
+        playTransient(intensity: 0.42, sharpness: 0.62)
+        playImpact(intensity: 0.34)
+    }
+
     func playOrbContact(intensity: Float) {
         let clampedIntensity = clamp(intensity, min: 0.18, max: 1.0)
         let event = CHHapticEvent(
@@ -104,6 +109,25 @@ class HapticManager {
     func playOrbCollision() {
         playTransient(intensity: 0.88, sharpness: 0.72)
         playImpact(intensity: 0.78)
+    }
+
+    func playOrbCollected() {
+        let events = [
+            hapticTransient(intensity: 0.52, sharpness: 0.50, time: 0),
+            hapticTransient(intensity: 0.38, sharpness: 0.72, time: 0.055)
+        ]
+        play(events: events)
+        playImpact(intensity: 0.50)
+    }
+
+    func playCollectionCompleted() {
+        let events = [
+            hapticTransient(intensity: 0.62, sharpness: 0.70, time: 0),
+            hapticTransient(intensity: 0.72, sharpness: 0.86, time: 0.08),
+            hapticTransient(intensity: 0.48, sharpness: 0.94, time: 0.17)
+        ]
+        play(events: events)
+        playImpact(intensity: 0.72)
     }
 
     func playParticleBurst() {

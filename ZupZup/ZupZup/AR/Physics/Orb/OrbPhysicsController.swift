@@ -58,6 +58,7 @@ final class OrbPhysicsController {
 
         interactingOrbIDs.insert(ObjectIdentifier(entity))
         trackedOrb.hasManualInteraction = true
+        HapticManager.shared.playOrbGrabbed()
         settleOrbForInteraction(trackedOrb)
     }
 
@@ -138,8 +139,6 @@ final class OrbPhysicsController {
 
     private func startFalling(_ trackedOrb: TrackedOrb) {
         trackedOrb.state = .falling
-        FeedbackSoundPlayer.playOrbDrop()
-        HapticManager.shared.playOrbDrop()
         var body = trackedOrb.entity.components[PhysicsBodyComponent.self] ?? PhysicsBodyComponent(
             massProperties: .init(mass: OrbPhysicsSettings.orbMass),
             material: OrbPhysicsSettings.orbPhysicsMaterial,
