@@ -27,6 +27,7 @@ final class PlacementManager {
     private var selectedOrb: ModelEntity?
     private var selectedOrbDepth: Float?
     private var selectedOrbOriginalScale: SIMD3<Float>?
+    private var selectedOrbScaleTask: Task<Void, Never>?
     private var selectedOrbScreenOffset = CGPoint.zero
     private var orbOriginalScales: [ObjectIdentifier: SIMD3<Float>] = [:]
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
@@ -290,6 +291,9 @@ final class PlacementManager {
         return cameraPosition + cameraForward * 0.7
     }
     func clearScene() {
+        selectedOrbScaleTask?.cancel()
+        selectedOrbScaleTask = nil
+
         for anchor in sceneAnchors {
             anchor.removeFromParent()
         }
@@ -528,6 +532,8 @@ final class PlacementManager {
         }
 
         if selectedOrb === orb {
+            selectedOrbScaleTask?.cancel()
+            selectedOrbScaleTask = nil
             self.selectedOrb = nil
             selectedOrbDepth = nil
             selectedOrbOriginalScale = nil
@@ -543,14 +549,11 @@ final class PlacementManager {
         orbOriginalScales[orbID] = originalScale
         selectedOrbOriginalScale = originalScale
 
-        var highlightedTransform = orb.transform
-        highlightedTransform.scale = originalScale * 1.15
-
-        orb.move(
-            to: highlightedTransform,
-            relativeTo: orb.parent,
-            duration: 0.1,
-            timingFunction: .easeInOut
+        animateSelectedOrbScale(
+            orb,
+            from: orb.scale,
+            to: originalScale * 1.15,
+            duration: 0.1
         )
     }
 
@@ -560,20 +563,50 @@ final class PlacementManager {
         else { return }
 
         let orb = selectedOrb
-        var defaultTransform = selectedOrb.transform
-        defaultTransform.scale = selectedOrbOriginalScale
-
-        orb.move(
-            to: defaultTransform,
-            relativeTo: orb.parent,
-            duration: 0.12,
-            timingFunction: .easeInOut
-        )
-
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 120_000_000)
+        animateSelectedOrbScale(
+            orb,
+            from: orb.scale,
+            to: selectedOrbOriginalScale,
+            duration: 0.12
+        ) { [weak self, weak orb] in
+            guard let self,
+                  let orb
+            else { return }
             guard self.selectedOrb !== orb else { return }
             orb.scale = selectedOrbOriginalScale
+        }
+    }
+
+    private func animateSelectedOrbScale(
+        _ orb: ModelEntity,
+        from startScale: SIMD3<Float>,
+        to targetScale: SIMD3<Float>,
+        duration: TimeInterval,
+        completion: (() -> Void)? = nil
+    ) {
+        selectedOrbScaleTask?.cancel()
+        selectedOrbScaleTask = Task { @MainActor in
+            let steps: UInt64 = 8
+            let stepDuration = UInt64(duration * 1_000_000_000) / steps
+
+            for step in 1...steps {
+                guard !Task.isCancelled else { return }
+
+                let progress = Float(step) / Float(steps)
+                let easedProgress = progress * progress * (3 - 2 * progress)
+                orb.scale = simd_mix(
+                    startScale,
+                    targetScale,
+                    SIMD3<Float>(repeating: easedProgress)
+                )
+
+                try? await Task.sleep(nanoseconds: stepDuration)
+            }
+
+            guard !Task.isCancelled else { return }
+
+            orb.scale = targetScale
+            completion?()
         }
     }
 }
