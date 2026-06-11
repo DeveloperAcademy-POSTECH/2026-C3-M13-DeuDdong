@@ -54,18 +54,10 @@ final class ARSceneCoordinator: NSObject, ARSessionDelegate {
             self?.orbPhysicsController.removeOrb(orb)
         }
         arView.session.delegate = self
-        sessionManager.startSession()
+    sessionManager.startSession()
     }
 
     #if DEBUG
-    func triggerDebugBurst(emotion: EmotionType = .affection) {
-        guard let arView else { return }
-        let col2 = arView.cameraTransform.matrix.columns.2
-        let forward = SIMD3<Float>(col2.x, col2.y, col2.z)
-        let position = arView.cameraTransform.translation + forward * -3.0
-        ParticleBurst.burst(for: emotion, at: position, in: arView.scene)
-    }
-
     func triggerDebugOrbPlacement(count: Int = 1) {
         let safeCount = max(1, count)
         for _ in 0..<safeCount {

@@ -99,7 +99,7 @@ struct ARSceneView: View {
                 SpaceRecognitionStepView(
                     isReady: planeState == .ready, // 시스템이 바닥 평면 스캔을 완료하면 활성화됨
                     showsPreviewBackground: false,
-                    backAction: resetRecognitionFlow,
+                    backAction: onReturnHome,
                     nextAction: confirmSpaceRecognition // 버튼 클릭 시 -> 2단계로 이동
                 )
                 .transition(.opacity)
@@ -119,11 +119,13 @@ struct ARSceneView: View {
                 .transition(.opacity)
             }
 
-            // [얼굴 랜드마크 오버레이] 화자 인식을 돕기 위해 실시간 입모양 및 얼굴 윤곽선 메쉬 가이드를 그리는 뷰
+            #if DEBUG
+            // [디버그 레이어] 얼굴 추적 상태 확인용 입 랜드마크 오버레이
             if shouldShowMouthTrackingOverlay {
                 MouthTrackingOverlay(result: emotionRuntime.latestFaceTrackingResult)
                     .transition(.opacity)
             }
+            #endif
 
             // -------------------------------------------------------------------------
             // 🛑 [4단계: 대화 진행] 본격적으로 3분 타이머가 돌아가며 실시간 대화를 나누는 단계
@@ -289,12 +291,12 @@ private extension ARSceneView {
             && activeOverlay == nil
     }
 
-    // [얼굴 추적 메쉬 가시성 제어] 바닥 준비 완료 및 공간 인식 승인을 거쳤으며 대화 타이머가 돌아가는 중에만 노출
+    #if DEBUG
+    // [얼굴 추적 메쉬 가시성 제어] 디버그 빌드에서만 입 랜드마크 확인용으로 노출
     private var shouldShowMouthTrackingOverlay: Bool {
         planeState == .ready && hasConfirmedSpaceRecognition && !isConversationFinished
     }
 
-    #if DEBUG
     // [개발자 패널 가시성 제어] 대화 시퀀스가 활성화되어 돌아가는 중이고 대화가 종료되기 전인 디버깅 순간 노출
     private var shouldShowDeveloperDebug: Bool {
         hasStartedConversationFlow && !isConversationFinished
@@ -335,12 +337,8 @@ private extension ARSceneView {
             ConversationEndOverlay(
                 cancelAction: { activeOverlay = nil },
                 confirmAction: {
-                    // 확인을 누르면 대화 상태를 정상 마감 처리(showOverlay: false)한 뒤 곧바로 5단계 구슬 수집 모드를 발동
-                    finishConversation(showOverlay: false)
                     activeOverlay = nil
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isCollecting = true // 5단계 팝업 활성화
-                    }
+                    finishConversation(showOverlay: true)
                 }
             )
         case .noOrb:
@@ -477,13 +475,15 @@ private extension ARSceneView {
         showsPraisePrompt = false
         countdownValue = nil
 
-        // 타임아웃 종료(`showOverlay: true`)인 경우 생성된 구슬 개수를 확인하여 5단계 진입 유무 판단
+        // 타임아웃/수동 종료 모두 생성된 구슬 개수를 확인하여 5단계 진입 유무 판단
         guard showOverlay else { return }
-        if emotionRuntime.emittedOrbEventCount == 0 {
-            // 대화 도중 소환된 구슬이 0개라면 수집할 매개체가 없으므로 예외 실패 팝업(.noOrb) 실행
+        if totalOrbCount == 0 {
+            // 실제로 배치된 구슬이 0개라면 수집할 매개체가 없으므로 예외 실패 팝업(.noOrb) 실행
+            isCollecting = false
             activeOverlay = .noOrb
         } else {
             // 구슬이 1개 이상 안전하게 누적 배치되어 있다면 자연스럽게 5단계 구슬 수집 모드로 즉시 전환
+            activeOverlay = nil
             withAnimation(.easeOut(duration: 0.2)) {
                 isCollecting = true // 🛑 [5단계: 구슬 수집 페이즈 발동 On]
             }
@@ -503,6 +503,8 @@ private extension ARSceneView {
         hasStartedConversationFlow = false
         isConversationStarted = false
         remainingConversationSeconds = 180
+        collectedOrbCount = 0
+        totalOrbCount = 0
         secondsWithoutOrb = 0
         trackedOrbEventID = emotionRuntime.latestOrbEvent?.id
         showsPraisePrompt = false
@@ -523,6 +525,8 @@ private extension ARSceneView {
         isConversationFinished = false
         isConversationStarted = false
         isCollecting = false
+        collectedOrbCount = 0
+        totalOrbCount = 0
         emotionRuntime.stop()
     }
 }

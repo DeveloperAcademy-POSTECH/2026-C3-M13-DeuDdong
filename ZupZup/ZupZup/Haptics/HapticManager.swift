@@ -73,42 +73,9 @@ class HapticManager {
         playTransient(intensity: 1.0, sharpness: 0.8)
     }
 
-    func playCountdownTick(count: Int) {
-        let isFinalTick = count == 1
-        playTransient(
-            intensity: isFinalTick ? 0.82 : 0.48,
-            sharpness: isFinalTick ? 0.82 : 0.64
-        )
-    }
-
     func playOrbGrabbed() {
         playTransient(intensity: 0.42, sharpness: 0.62)
         playImpact(intensity: 0.34)
-    }
-
-    func playOrbContact(intensity: Float) {
-        let clampedIntensity = clamp(intensity, min: 0.18, max: 1.0)
-        let event = CHHapticEvent(
-            eventType: .hapticContinuous,
-            parameters: [
-                CHHapticEventParameter(parameterID: .hapticIntensity, value: clampedIntensity),
-                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.48 + clampedIntensity * 0.40)
-            ],
-            relativeTime: 0,
-            duration: 0.11
-        )
-        play(events: [event])
-        playImpact(intensity: clampedIntensity)
-    }
-
-    func playOrbDrop() {
-        playTransient(intensity: 0.72, sharpness: 0.58)
-        playImpact(intensity: 0.55)
-    }
-
-    func playOrbCollision() {
-        playTransient(intensity: 0.88, sharpness: 0.72)
-        playImpact(intensity: 0.78)
     }
 
     func playOrbCollected() {
@@ -128,16 +95,6 @@ class HapticManager {
         ]
         play(events: events)
         playImpact(intensity: 0.72)
-    }
-
-    func playParticleBurst() {
-        let events = [
-            hapticTransient(intensity: 0.72, sharpness: 0.82, time: 0),
-            hapticTransient(intensity: 0.58, sharpness: 0.92, time: 0.045),
-            hapticTransient(intensity: 0.42, sharpness: 1.0, time: 0.095)
-        ]
-        play(events: events)
-        playImpact(intensity: 0.66)
     }
 
     private func playTransient(intensity: Float, sharpness: Float) {
