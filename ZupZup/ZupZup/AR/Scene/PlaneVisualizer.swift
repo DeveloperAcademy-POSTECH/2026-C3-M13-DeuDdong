@@ -5,15 +5,15 @@
 //  Created by 승민 on 5/29/26.
 //
 
-
 import ARKit
 import RealityKit
-import UIKit
+internal import UIKit
 
 final class PlaneVisualizer {
     private var anchors: [UUID: AnchorEntity] = [:]
     private var meshes: [UUID: ModelEntity] = [:]
     private weak var arView: ARView?
+    private var isVisible = true
 
     init(arView: ARView) {
         self.arView = arView
@@ -26,6 +26,7 @@ final class PlaneVisualizer {
         let mesh = makeMesh(for: planeAnchor)
 
         anchorEntity.addChild(mesh)
+        anchorEntity.isEnabled = isVisible
         arView.scene.addAnchor(anchorEntity)
         anchors[planeAnchor.identifier] = anchorEntity
         meshes[planeAnchor.identifier] = mesh
@@ -41,7 +42,21 @@ final class PlaneVisualizer {
 
         let mesh = makeMesh(for: planeAnchor)
         anchorEntity.addChild(mesh)
+        anchorEntity.isEnabled = isVisible
         meshes[planeAnchor.identifier] = mesh
+    }
+
+    @discardableResult
+    func toggleVisible() -> Bool {
+        setVisible(!isVisible)
+        return isVisible
+    }
+
+    func setVisible(_ visible: Bool) {
+        isVisible = visible
+        for anchor in anchors.values {
+            anchor.isEnabled = visible
+        }
     }
 
     func remove(_ identifier: UUID) {
@@ -84,14 +99,14 @@ final class PlaneVisualizer {
             [-halfWidth, 0, -halfDepth],
             [halfWidth, 0, -halfDepth],
             [halfWidth, 0, halfDepth],
-            [-halfWidth, 0, halfDepth],
+            [-halfWidth, 0, halfDepth]
         ]
         let normals = Array(repeating: SIMD3<Float>(0, 1, 0), count: 4)
         let uvs: [SIMD2<Float>] = [
             [0, 0],
             [width * uvScale, 0],
             [width * uvScale, depth * uvScale],
-            [0, depth * uvScale],
+            [0, depth * uvScale]
         ]
         let triangleIndices: [UInt32] = [0, 2, 1, 0, 3, 2]
 
@@ -101,7 +116,11 @@ final class PlaneVisualizer {
         descriptor.textureCoordinates = MeshBuffers.TextureCoordinates(uvs)
         descriptor.primitives = .triangles(triangleIndices)
 
-        return try! MeshResource.generate(from: [descriptor])
+        do {
+            return try MeshResource.generate(from: [descriptor])
+        } catch {
+            fatalError("Plane MeshResource 생성 실패: \(error)")
+        }
     }
 
     private static func makeGridMaterial() -> Material {

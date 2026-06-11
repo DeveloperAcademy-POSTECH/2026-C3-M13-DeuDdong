@@ -12,16 +12,30 @@ import SwiftUI
 struct ARViewContainer: UIViewRepresentable {
     let sessionManager: ARSessionManager
     let placementManager: PlacementManager
+    let emotionRuntime: EmotionRuntimeManaging
+    let orbEventPlacementController: OrbEventPlacementController
     @Binding var planeState: ARState
-    
+    @Binding var isPlaneVisualizationVisible: Bool
+    let isCollecting: Bool
+    let onOrbCountChanged: (Int) -> Void
+    let onCollectedCountChanged: (Int) -> Void
+    #if DEBUG
+    let orbPlacementController: DebugOrbPlacementController
+    let gridController: DebugGridController
+    #endif
+
     func makeCoordinator() -> ARSceneCoordinator {
         ARSceneCoordinator(
             sessionManager: sessionManager,
-            placementManager: placementManager) {
-                state in planeState = state
+            placementManager: placementManager,
+            emotionRuntime: emotionRuntime
+        ) { state in
+            planeState = state
+        } onOrbCountChange: { count in
+            onOrbCountChanged(count)
             }
     }
-    
+
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(
             frame: .zero,
@@ -29,15 +43,36 @@ struct ARViewContainer: UIViewRepresentable {
             automaticallyConfigureSession: false
             )
         context.coordinator.install(on: arView)
+        context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
+        context.coordinator.setCollectionMode(isCollecting)
+        placementManager.onCollectedCountChanged = { count in
+            onCollectedCountChanged(count)
+        }
+        orbEventPlacementController.trigger = { [weak coordinator = context.coordinator] event in
+            coordinator?.placeOrb(event: event)
+        }
+        #if DEBUG
+        orbPlacementController.trigger = { [weak coordinator = context.coordinator] count in
+            coordinator?.triggerDebugOrbPlacement(count: count)
+        }
+        gridController.toggle = { [weak coordinator = context.coordinator] in
+            coordinator?.toggleGridVisibility() ?? true
+        }
+        #endif
         return arView
     }
-    
+
     func updateUIView(_ uiView: ARView, context: Context) {
-        context.coordinator.updatePlaneStateHandler {
-            state in planeState = state
+        context.coordinator.setPlaneVisualizationVisible(isPlaneVisualizationVisible)
+        context.coordinator.setCollectionMode(isCollecting)
+        placementManager.onCollectedCountChanged = { count in
+            onCollectedCountChanged(count)
+        }
+        context.coordinator.updatePlaneStateHandler { state in
+            planeState = state
         }
     }
-    
+
     static func dismantleUIView(_ uiView: ARView, coordinator: ARSceneCoordinator) {
         uiView.session.pause()
     }

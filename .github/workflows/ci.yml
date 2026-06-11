@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-26
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Xcode Version
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint
+
+      - name: Create Develop.xcconfig
+        run: |
+          cat > ZupZup/Develop.xcconfig <<EOF
+          PRODUCT_BUNDLE_IDENTIFIER = C3-T13.ZupZup
+          DEVELOPMENT_TEAM =
+          EOF
+
+      - name: Build
+        run: |
+          set -o pipefail
+
+          cd ZupZup
+
+          xcodebuild build \
+            -project ZupZup.xcodeproj \
+            -scheme ZupZup \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Post Comment on Success
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '💩✅ 드똥 품질검사 통과. 빌드 성공입니다.'
+            })
+
+      - name: Post Comment on Failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '💩❌ 드똥 품질검사 실패. 빌드 실패합니다.'
+            })
