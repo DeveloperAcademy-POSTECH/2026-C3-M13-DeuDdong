@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AppFlowView: View {
     @State private var currentScreen: AppScreen = .splash
+    @State private var reportCollectedCount = 0
 
     var body: some View {
         ZStack {
@@ -34,7 +35,8 @@ struct AppFlowView: View {
                     },
                     onHome: {
                         currentScreen = .home
-                    }
+                    },
+                    collectedCount: reportCollectedCount
                 )
             }
         }
@@ -44,7 +46,10 @@ struct AppFlowView: View {
     private var conversationView: some View {
         ZStack(alignment: .topTrailing) {
             ARSceneView(
-                onFinishConversation: { currentScreen = .report },
+                onFinishConversation: { count in
+                    reportCollectedCount = count
+                    currentScreen = .report
+                },
                 onReturnHome: { currentScreen = .home }
             )
         }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ARSceneView: View {
     // MARK: - [내비게이션 액션 클로저]
-    var onFinishConversation: () -> Void = {} // 5단계 수집까지 완료된 후 최종 화면으로 이동
+    var onFinishConversation: (Int) -> Void = { _ in } // 5단계 수집까지 완료된 후 최종 화면으로 이동 (수집 개수 전달)
     var onReturnHome: () -> Void = {}         // 홈으로 완전히 돌아갈 때 호출
     
     // MARK: - [AR 및 감정 분석 핵심 엔진]
@@ -242,8 +242,8 @@ struct ARSceneView: View {
                     onAutoCollect: {
                         placementManager.autoCollectRemainingOrbs()
                     },
-                    onReturnHome: onReturnHome,          // 수집 화면 내에서 홈 이동 터치 시 처리
-                    onCompleted: onFinishConversation    // 모든 수집을 끝마쳤을 때 최종 보상 결과창으로 점프
+                    onReturnHome: onReturnHome,
+                    onCompleted: { onFinishConversation(collectedOrbCount) }
                 )
                 .transition(.opacity)
             }
@@ -416,12 +416,13 @@ private extension ARSceneView {
         guard !isConversationStarted, !hasStartedConversationFlow, !isConversationFinished else { return }
 
         hasStartedConversationFlow = true
+        countdownCuePlayer.prepareFeedback()
         countdownCuePlayer.speakIntro() // 성우 음성 가이드: "지금부터 대화를 시작합니다."
 
         // 3초부터 1초까지 정밀 타임 루프를 순회하며 효과음 재생 및 상태 갱신
         for count in stride(from: 3, through: 1, by: -1) {
             countdownValue = count // 화면 중앙에 3, 2, 1 큰 텍스트 변경 반영
-            countdownCuePlayer.playTick() // '째깍' 효과음 사운드 재생
+            countdownCuePlayer.playTick(count: count) // '째깍' 효과음 및 숫자별 햅틱 재생
             try? await Task.sleep(for: .seconds(1)) // 정밀 1초 대기 비동기 슬립
 
             if Task.isCancelled { // 도중 뒤로가기 이탈 시 무한 루프 탈출 안전핀
