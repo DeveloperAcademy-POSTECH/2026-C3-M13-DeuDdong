@@ -99,7 +99,7 @@ struct ARSceneView: View {
                 SpaceRecognitionStepView(
                     isReady: planeState == .ready, // 시스템이 바닥 평면 스캔을 완료하면 활성화됨
                     showsPreviewBackground: false,
-                    backAction: resetRecognitionFlow,
+                    backAction: onReturnHome,
                     nextAction: confirmSpaceRecognition // 버튼 클릭 시 -> 2단계로 이동
                 )
                 .transition(.opacity)
