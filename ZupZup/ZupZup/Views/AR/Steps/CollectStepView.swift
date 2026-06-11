@@ -5,27 +5,20 @@
 //  Created by Kimseoyeon on 6/5/26.
 //
 
-
 import SwiftUI
 
 struct ARCollectView: View {
-    
-    @Binding private var currentOrbCount: Int
+        @Binding private var currentOrbCount: Int
     let totalOrbCount: Int
     let onAutoCollect: () -> Void
     var onReturnHome: () -> Void = {}
     var onCompleted: () -> Void = {}
-    
-    
     @State private var showTutorialOverlay = true
     @State private var animateHand = false
-    
     @State private var showTipModal = false
     @State private var currentTipPage = 0
-    
     @State private var tipModalOffset: CGFloat = 700
     @State private var tipModalOpacity: Double = 0
-    
     @State private var showAutoCollectView = false
     @State private var showCollectCompletedView = false
     @State private var showCompletionPhase = false
@@ -74,15 +67,15 @@ struct ARCollectView: View {
                 // MARK: AR Layer
                 Color.clear
                 // MARK: Orb Count
-                
+
                 VStack(spacing: 12) {
-                    
+
                     OrbCountCapsule(
                         current: currentOrbCount,
                         total: totalOrbCount,
                         isComplete: totalOrbCount > 0 && currentOrbCount == totalOrbCount
                     )
-                    
+
                     AutoCollectButton(
                         isEnabled: currentOrbCount >= 5 && currentOrbCount < totalOrbCount
                     ) {
@@ -93,47 +86,47 @@ struct ARCollectView: View {
                         }
                     }
                     .padding(.top, 10)
-                    
+
                     Spacer()
                 }
                 .padding(.top, 78)
                 .zIndex(1)
-                
+
                 // MARK: Tutorial Overlay
-                
+
                 if showTutorialOverlay {
-                    
+
                     ZStack {
-                        
+
                         ZZColor.gray9
                             .opacity(0.8)
                             .ignoresSafeArea()
-                        
+
                         VStack {
-                            
+
                             Spacer()
-                            
+
                             VStack(spacing: 12) {
-                                
+
                                 Text("대화가 종료되었습니다")
                                     .font(ZZFont.headline)
                                     .foregroundStyle(.white)
-                                
+
                                 Text("구슬 수집을 시작합니다")
                                     .font(ZZFont.title)
                                     .foregroundStyle(.white)
                             }
-                            
+
                             Spacer()
                                 .frame(height: 48)
-                            
+
                             ZStack {
-                                
+
                                 Image("ARCollect_iphone")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 240)
-                                
+
                                 Image("ARCollect_hand")
                                     .resizable()
                                     .scaledToFit()
@@ -151,10 +144,10 @@ struct ARCollectView: View {
                                         value: animateHand
                                     )
                             }
-                            
+
                             Spacer()
                                 .frame(height: 24)
-                            
+
                             Text("손가락으로 구슬을 집어서\n유리병에 넣어보세요")
                                 .font(ZZFont.subheadline)
                                 .foregroundStyle(.white)
@@ -165,7 +158,7 @@ struct ARCollectView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        
+
                         withAnimation(.easeInOut(duration: 0.2)) {
                             showTutorialOverlay = false
                         }
@@ -175,28 +168,28 @@ struct ARCollectView: View {
                     }
                     .zIndex(10)
                 }
-                
+
                 // MARK: Tip Modal
-                
+
                 if showTipModal || tipModalOpacity > 0 {
-                    
+
                     ZStack(alignment: .bottom) {
-                        
+
                         // 배경
-                        
+
                         ZZColor.gray9
                             .opacity(0.5 * tipModalOpacity)
                             .ignoresSafeArea()
                             .onTapGesture {
-                                
+
                                 withAnimation(.easeIn(duration: 0.18)) {
-                                    
+
                                     tipModalOffset = 700
                                     tipModalOpacity = 0
                                 }
-                                
+
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    
+
                                     showTipModal = false
                                 }
                             }
@@ -211,36 +204,36 @@ struct ARCollectView: View {
                                 .foregroundStyle(ZZColor.gray10)
                                 .padding(.top, 20)
                             TabView(selection: $currentTipPage) {
-                                
+
                                 OnboardingCardView(
                                     title: "",
                                     description: "AR상 주변 공간을 비춰\n구슬을 확인합니다"
                                 ) {
-                                    
+
                                     Image("ARCollect_Tip1")
                                         .resizable()
                                         .scaledToFit()
                                         .padding(20)
                                 }
                                 .tag(0)
-                                
+
                                 OnboardingCardView(
                                     title: "",
                                     description: "손으로 AR상 구슬을\n집어 올립니다"
                                 ) {
-                                    
+
                                     Image("ARCollect_Tip2")
                                         .resizable()
                                         .scaledToFit()
                                         .padding(20)
                                 }
                                 .tag(1)
-                                
+
                                 OnboardingCardView(
                                     title: "",
                                     description: "구슬을 AR상 병에\n넣습니다"
                                 ) {
-                                    
+
                                     Image("ARCollect_Tip3")
                                         .resizable()
                                         .scaledToFit()
@@ -250,11 +243,11 @@ struct ARCollectView: View {
                             }
                             .tabViewStyle(.page(indexDisplayMode: .never))
                             .frame(height: 470)
-                            
+
                             HStack(spacing: 8) {
-                                
+
                                 ForEach(0..<3, id: \.self) { index in
-                                    
+
                                     Circle()
                                         .fill(
                                             currentTipPage == index
@@ -279,47 +272,47 @@ struct ARCollectView: View {
                     }
                     .zIndex(50)
                 }
-                
+
                 // MARK: Home Button
-                
+
                 VStack {
-                    
+
                     HStack {
-                        
+
                         ARHomeButtonDark {
                             onReturnHome()
                         }
-                        
+
                         Spacer()
                     }
-                    
+
                     Spacer()
                 }
                 .padding(.leading, 16)
                 .padding(.top, 78)
                 .zIndex(100)
-                
+
                 // MARK: Help Button
-                
+
                 if tipModalOpacity == 0 {
-                    
+
                     VStack {
-                        
+
                         Spacer()
-                        
+
                         HStack {
-                            
+
                             ARHelpButton {
-                                
+
                                 showTipModal = true
-                                
+
                                 withAnimation(.easeOut(duration: 0.22)) {
-                                    
+
                                     tipModalOffset = 0
                                     tipModalOpacity = 1
                                 }
                             }
-                            
+
                             Spacer()
                         }
                     }
@@ -355,12 +348,10 @@ struct ARCollectView: View {
 // MARK: - Preview
 
 #Preview {
-    
     ZStack {
-        
+
         Color.black
             .ignoresSafeArea()
-        
         ARCollectView()
     }
 }

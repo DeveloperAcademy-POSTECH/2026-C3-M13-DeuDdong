@@ -61,7 +61,6 @@ struct ReportScoreRow: View {
 struct ReportActionButtons: View {
     var saveAction: () -> Void
     var homeAction: () -> Void
-    
     var body: some View {
         VStack(spacing: 12) {
             Button(action: saveAction) {

@@ -4,16 +4,12 @@ struct ARSceneView: View {
     // MARK: - [내비게이션 액션 클로저]
     var onFinishConversation: (Int) -> Void = { _ in } // 5단계 수집까지 완료된 후 최종 화면으로 이동 (수집 개수 전달)
     var onReturnHome: () -> Void = {}         // 홈으로 완전히 돌아갈 때 호출
-    
-    // MARK: - [AR 및 감정 분석 핵심 엔진]
     @State private var planeState: ARState = .searching // AR 바닥 평면 인식 상태 트래킹
     @State private var sessionManager = ARSessionManager()
     @State private var placementManager = PlacementManager()
     @State private var emotionRuntime = EmotionRuntime(configuration: .conversation) // 실시간 음성/표정 분석
     @State private var countdownCuePlayer = ConversationCountdownCuePlayer()         // 안내 효과음 플레이어
     @State private var orbEventPlacementController = OrbEventPlacementController()   // 감정 구슬 3D 배치 제어
-    
-    // MARK: - [비동기 흐름 및 단계 제어 플래그]
     @State private var conversationFlowTask: Task<Void, Never>? // 타이머 및 카운트다운을 관리하는 비동기 태스크
     @State private var countdownValue: Int?                     // 3단계 진입 시 화면에 뿌려줄 3, 2, 1 숫자
     @State private var isConversationStarted = false            // 4단계(대화 진행) 시작 여부 플래그
@@ -21,21 +17,15 @@ struct ARSceneView: View {
     @State private var hasLockedSpeakerRecognition = false      // 2단계(화자 인식) 조건 통과 및 고정 여부
     @State private var hasStartedConversationFlow = false       // 카운트다운을 포함한 대화 시퀀스 진입 여부
     @State private var isConversationFinished = false           // 4단계(3분 대화) 타이머 종료 여부
-    
-    // 🔮 [5단계 핵심 상태]
     @State private var isCollecting = false                     // 4단계 종료 후 '5단계: 구슬 수집 단계' 활성화 플래그
     @State private var collectedOrbCount = 0                    // 5단계에서 유리병에 수집된 구슬 개수
     @State private var totalOrbCount = 0                        // 대화 중 생성된 전체 구슬 개수
-    
-    // MARK: - [실시간 상태 및 모니터링 변수]
     @State private var remainingConversationSeconds = 180       // 4단계 대화 시간 (3분 타이머)
     @State private var secondsWithoutOrb = 0                    // 구슬 미생성 침묵 시간 누적 (60초 체크용)
     @State private var trackedOrbEventID: UUID?                 // 가장 최근에 생성된 구슬 고유 ID 홀더
     @State private var showsPraisePrompt = false                // "칭찬의 한마디를 해보세요" 가이드 토스트 노출 상태
     @State private var activeOverlay: AROverlayType?            // 현재 화면에 띄울 상단 공통 팝업 종류
     @State private var isPlaneVisualizationVisible = true       // 노란색 AR 바닥 인식 가이드선 노출 여부
-    
-    // MARK: - [개발자 디버그 매니저]
     #if DEBUG
     @State private var handTrackingManager = HandTrackingManager.shared
     @State private var orbPlacementController = DebugOrbPlacementController()
@@ -283,8 +273,7 @@ struct ARSceneView: View {
 
 // MARK: - ⚙️ 단계 흐름 제어 조건식 및 상태 변환 비즈니스 로직
 private extension ARSceneView {
-    
-    // [1단계 가시성 제어] 공간 인식이 미완료되었고, 대화 스케줄이 아예 시작 전이며, 대화가 끝나지 않았을 때 표시
+    // [1단계 가시성 제어]
     private var shouldShowSpaceRecognition: Bool {
         !hasConfirmedSpaceRecognition && !hasStartedConversationFlow && !isConversationFinished
     }

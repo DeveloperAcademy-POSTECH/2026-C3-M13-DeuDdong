@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct ARHomeButtonDark: View {
     var action: () -> Void
 
@@ -67,7 +66,6 @@ struct ARBackButtonLight: View {
         }
     }
 }
-
 
 struct ARHelpButton: View {
     var action: () -> Void
@@ -206,7 +204,6 @@ struct FaceGuideRing: View {
     }
 }
 
-
 struct AutoCollectButton: View {
     let isEnabled: Bool
     var action: () -> Void
@@ -217,7 +214,7 @@ struct AutoCollectButton: View {
                 Image(systemName: "wand.and.stars")
                 Text("자동 수집하기")
                     .font(ZZFont.smallCaption)
-                
+
             }
             .foregroundStyle(ZZColor.gray0)
             .padding(.horizontal, 20)
@@ -230,7 +227,6 @@ struct AutoCollectButton: View {
     }
 }
 
-
 // ==========================================
 // 2. 시안 매칭형 하단 그라데이션 카운트다운 (CountdownOverlay)
 // ==========================================
@@ -240,7 +236,7 @@ struct CountdownOverlay: View {
     var body: some View {
         VStack {
             Spacer()
-            
+
             // 시안 스펙: 높이 330, 하단 gray9(100%) -> 상단 gray0(0%) 그라데이션 레이어
             ZStack(alignment: .bottom) { // 정렬 기준을 하단 중앙(.bottom)으로 변경
                 LinearGradient(
@@ -254,33 +250,33 @@ struct CountdownOverlay: View {
                     endPoint: .top
                 )
                 .frame(height: 330) // 배경 그라데이션 높이 330 고정
-                
+
                 // 가이드 문구 및 카운트 링 레이아웃 (가운데 정렬화)
                 HStack(spacing: 20) {
                     Spacer() // 왼쪽 여백을 밀어주어 가운데로 정렬
-                    
+
                     // ZZColor.brand400 단색 원형 카운트 링
                     ZStack {
                         Circle()
                             .stroke(ZZColor.brand400, lineWidth: 3)
                             .frame(width: 58, height: 58)
-                        
+
                         Text("\(count)")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundStyle(ZZColor.brand400)
                     }
-                    
+
                     // 우측 동의 안내 문구 텍스트 콤보 (중앙 정렬 보정)
                     VStack(alignment: .leading, spacing: 6) {
                         Text("잠시후 대화가 시작됩니다")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(.white)
-                        
+
                         Text("상대의 동의하에 진행해주세요")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(.white.opacity(0.8))
                     }
-                    
+
                     Spacer() // 오른쪽 여백을 밀어주어 가운데로 정렬
                 }
                 .padding(.horizontal, 32)
@@ -290,7 +286,6 @@ struct CountdownOverlay: View {
         .ignoresSafeArea(edges: .bottom)
     }
 }
-
 
 struct TimeoutNoticeOverlay: View {
     let title: String

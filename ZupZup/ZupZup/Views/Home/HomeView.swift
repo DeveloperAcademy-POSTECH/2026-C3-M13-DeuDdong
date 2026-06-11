@@ -170,19 +170,16 @@ struct HomeView: View {
                     .padding(.top, 70)
 
                 Spacer()
-                
                     ZStack {
                         Image("EmptyBallGlass")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 350, height: 450)
-                        
-                        
                         SpriteView(scene: orbScene, options: [.allowsTransparency])
                             .frame(width: 250, height: 300)
                             .clipShape(RoundedRectangle(cornerRadius: 60))
                             .padding(.top, 120)
-                        
+
                         // Emotion Detail Tooltip Overlay
                         if let emotion = selectedEmotion {
                             VStack(alignment: .leading, spacing: 6) {
@@ -191,14 +188,14 @@ struct HomeView: View {
                                         .font(ZZFont.smallCaption)
                                         .fontWeight(.bold)
                                         .foregroundStyle(emotion.swiftUIColor)
-                                    
+
                                     Spacer()
-                                    
+
                                     Image(systemName: "xmark")
                                         .font(.system(size: 11, weight: .bold))
                                         .foregroundStyle(ZZColor.gray4)
                                 }
-                                
+
                                 Text(emotion.description)
                                     .font(.system(size: 13, weight: .medium))
                                     .foregroundStyle(ZZColor.gray8)
@@ -218,8 +215,7 @@ struct HomeView: View {
                         }
                     }
                     .frame(height: 400)
-        
-                Spacer()
+                    Spacer()
 
                 VStack(spacing: 16) {
                     Text("기기를 기울여 구슬을 움직여보세요")

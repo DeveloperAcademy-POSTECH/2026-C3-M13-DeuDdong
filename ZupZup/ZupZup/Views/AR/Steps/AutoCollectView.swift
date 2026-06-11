@@ -11,7 +11,6 @@ struct AutoCollectView: View {
 
     @State private var showHomeExitOverlay = false
     
-
     let onCompleted: () -> Void
 
     var body: some View {

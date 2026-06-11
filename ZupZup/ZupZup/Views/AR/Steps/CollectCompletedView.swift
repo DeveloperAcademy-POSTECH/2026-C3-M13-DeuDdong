@@ -5,7 +5,6 @@
 //  Created by Kimseoyeon on 6/8/26.
 //
 
-
 import SwiftUI
 
 struct CollectCompletedView: View {
@@ -85,7 +84,6 @@ struct CollectCompletedView: View {
             }
             .ignoresSafeArea()
             .allowsHitTesting(false)
-            
             if showHomeExitOverlay {
                     HomeExitOverlay(
 

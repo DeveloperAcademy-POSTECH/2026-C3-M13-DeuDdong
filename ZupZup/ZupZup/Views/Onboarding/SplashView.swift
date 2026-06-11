@@ -23,7 +23,6 @@ struct SplashView: View {
                 .frame(width: 130)
                 .padding(.top, 12)
                 .padding(.bottom, 80)
-            
             Text("보이지 않는 따뜻한 말을\n눈으로 담아보세요")
                 .font(.system(size: 13, weight: .bold))
                 .fontWeight(.bold)
