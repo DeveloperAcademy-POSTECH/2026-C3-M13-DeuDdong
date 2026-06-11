@@ -28,7 +28,9 @@ final class PlacementManager {
     private var selectedOrb: ModelEntity?
     private var selectedOrbAnchor: AnchorEntity?
     private var selectedOrbDepth: Float?
+    private var selectedOrbOriginalScale: SIMD3<Float>?
     private var selectedOrbScreenOffset = CGPoint.zero
+    private var orbOriginalScales: [ObjectIdentifier: SIMD3<Float>] = [:]
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
     private var invisibleFloorEntity: Entity?
     private var invisibleFloorAnchor: AnchorEntity?
@@ -128,6 +130,7 @@ final class PlacementManager {
         }
 
         orbPairs.append((orb, anchor))
+        orbOriginalScales[ObjectIdentifier(orb)] = orb.scale
     }
 
     @discardableResult
@@ -162,6 +165,7 @@ final class PlacementManager {
 
         selectedOrb = nearestPair.orb
         selectedOrbAnchor = nearestPair.anchor
+        applySelectedOrbVisualFeedback(to: nearestPair.orb)
 
         if let orbScreenPoint = arView.project(nearestPair.orb.position(relativeTo: nil)) {
             selectedOrbScreenOffset = CGPoint(
@@ -256,9 +260,11 @@ final class PlacementManager {
         guard hasSelectedOrb else { return nil }
 
         let releasedOrb = selectedOrb
+        resetSelectedOrbVisualFeedback()
         selectedOrb = nil
         selectedOrbAnchor = nil
         selectedOrbDepth = nil
+        selectedOrbOriginalScale = nil
         selectedOrbScreenOffset = .zero
         Logger.placement.debug("구슬 놓기 완료")
         return releasedOrb
@@ -553,6 +559,7 @@ final class PlacementManager {
         guard !collectedOrbIDs.contains(orbID) else { return }
 
         collectedOrbIDs.insert(orbID)
+        orbOriginalScales[orbID] = nil
         let collectedCount = collectedOrbIDs.count
         onOrbCollected?(orb)
 
@@ -607,10 +614,51 @@ final class PlacementManager {
             self.selectedOrb = nil
             selectedOrbAnchor = nil
             selectedOrbDepth = nil
+            selectedOrbOriginalScale = nil
             selectedOrbScreenOffset = .zero
         }
 
         Logger.placement.debug("구슬 수집 완료")
+    }
+
+    private func applySelectedOrbVisualFeedback(to orb: ModelEntity) {
+        let orbID = ObjectIdentifier(orb)
+        let originalScale = orbOriginalScales[orbID] ?? orb.scale
+        orbOriginalScales[orbID] = originalScale
+        selectedOrbOriginalScale = originalScale
+
+        var highlightedTransform = orb.transform
+        highlightedTransform.scale = originalScale * 1.15
+
+        orb.move(
+            to: highlightedTransform,
+            relativeTo: orb.parent,
+            duration: 0.1,
+            timingFunction: .easeInOut
+        )
+    }
+
+    private func resetSelectedOrbVisualFeedback() {
+        guard let selectedOrb,
+              let selectedOrbOriginalScale
+        else { return }
+
+        let orb = selectedOrb
+        var defaultTransform = selectedOrb.transform
+        defaultTransform.scale = selectedOrbOriginalScale
+
+        orb.move(
+            to: defaultTransform,
+            relativeTo: orb.parent,
+            duration: 0.12,
+            timingFunction: .easeInOut
+        )
+
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 120_000_000)
+            guard self.selectedOrb !== orb else { return }
+            orb.scale = selectedOrbOriginalScale
+        }
     }
 }
 // swiftlint:enable type_body_length
