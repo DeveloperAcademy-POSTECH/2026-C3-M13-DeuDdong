@@ -45,14 +45,16 @@ struct ARCollectView: View {
         } else if showCollectCompletedView {
             ZStack {
                 Color.clear
-                CollectCompletedView(
-                    currentOrbCount: totalOrbCount,
-                    totalOrbCount: totalOrbCount,
-                    onReturnHome: onReturnHome
-                )
+
                 if showCompletionPhase {
                     CollectionCompleteOverlay(
                         reportAction: { onCompleted() }
+                    )
+                } else {
+                    CollectCompletedView(
+                        currentOrbCount: totalOrbCount,
+                        totalOrbCount: totalOrbCount,
+                        onReturnHome: onReturnHome
                     )
                 }
             }
@@ -77,7 +79,7 @@ struct ARCollectView: View {
                     )
 
                     AutoCollectButton(
-                        isEnabled: currentOrbCount >= 5 && currentOrbCount < totalOrbCount
+                        isEnabled: currentOrbCount >= 3 && currentOrbCount < totalOrbCount
                     ) {
                         onAutoCollect()
 

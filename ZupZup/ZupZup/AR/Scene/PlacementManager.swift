@@ -18,30 +18,26 @@ final class PlacementManager {
     private static let bottleAnchorName = "BottleWorldAnchor"
     private weak var arView: ARView?
     private var sceneAnchors: [AnchorEntity] = []
-    private var bottleEntity: Entity?
     private var bottleAnchorEntity: AnchorEntity?
     private var collectedOrbIDs: Set<ObjectIdentifier> = []
     private let magneticSnapDistance: Float = 0.20
     private let snapPullSmoothing: Float = 0.28
     private let snapSuccessDistance: Float = 0.08
+    private let autoCollectMoveDuration: TimeInterval = 0.45
     private var selectedOrb: ModelEntity?
-    private var selectedOrbAnchor: AnchorEntity?
     private var selectedOrbDepth: Float?
+    private var selectedOrbOriginalScale: SIMD3<Float>?
     private var selectedOrbScreenOffset = CGPoint.zero
+    private var orbOriginalScales: [ObjectIdentifier: SIMD3<Float>] = [:]
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
     private var invisibleFloorEntity: Entity?
     private var invisibleFloorAnchor: AnchorEntity?
-    private(set) var placedOrbs: [OrbData] = []
     private(set) var playAreaCenter: SIMD3<Float>?
     private(set) var floorY: Float?
     var onCollectedCountChanged: ((Int) -> Void)?
     var onOrbCollected: ((ModelEntity) -> Void)?
     var hasSelectedOrb: Bool {
         selectedOrb != nil
-    }
-
-    var hasFloor: Bool {
-        invisibleFloorEntity != nil
     }
 
     func attach(to arView: ARView) {
@@ -61,7 +57,6 @@ final class PlacementManager {
 
         sceneAnchors.append(anchor)
         registerMovableOrb(orb, anchor: anchor)
-        placedOrbs.append(OrbData(emotion: emotion, position: correctedPosition)) // id 어쩔?
     }
 
     func placeOrb(event: EmotionOrbEvent) {
@@ -102,7 +97,6 @@ final class PlacementManager {
 
         Task {
             let bottle = await BottleEntity.makeBottle()
-            bottleEntity = bottle
 
             let anchor = AnchorEntity(world: bottlePosition)
             anchor.name = Self.bottleAnchorName
@@ -127,6 +121,7 @@ final class PlacementManager {
         }
 
         orbPairs.append((orb, anchor))
+        orbOriginalScales[ObjectIdentifier(orb)] = orb.scale
     }
 
     @discardableResult
@@ -160,7 +155,7 @@ final class PlacementManager {
         }
 
         selectedOrb = nearestPair.orb
-        selectedOrbAnchor = nearestPair.anchor
+        applySelectedOrbVisualFeedback(to: nearestPair.orb)
 
         if let orbScreenPoint = arView.project(nearestPair.orb.position(relativeTo: nil)) {
             selectedOrbScreenOffset = CGPoint(
@@ -195,35 +190,6 @@ final class PlacementManager {
         return nearestPair.orb
     }
 
-    func orbTouchFeedbackIntensity(at screenPoint: CGPoint) -> Float? {
-        guard let arView else { return nil }
-
-        var strongestIntensity: Float?
-
-        for pair in orbPairs {
-            let orb = pair.orb
-            guard !collectedOrbIDs.contains(ObjectIdentifier(orb)) else { continue }
-
-            let worldPosition = orb.position(relativeTo: nil)
-            guard let orbScreenPoint = arView.project(worldPosition) else { continue }
-
-            let screenRadius = projectedScreenRadius(for: orb, at: worldPosition)
-            let outerRadius = screenRadius * 2.2
-            let distance = hypot(screenPoint.x - orbScreenPoint.x, screenPoint.y - orbScreenPoint.y)
-
-            guard distance <= outerRadius else { continue }
-
-            let intensity = touchIntensity(
-                distance: distance,
-                screenRadius: screenRadius,
-                outerRadius: outerRadius
-            )
-            strongestIntensity = max(strongestIntensity ?? 0, intensity)
-        }
-
-        return strongestIntensity
-    }
-
     func moveSelectedOrb(to screenPoint: CGPoint) {
         guard let selectedOrb else { return }
         let targetScreenPoint = CGPoint(
@@ -255,9 +221,10 @@ final class PlacementManager {
         guard hasSelectedOrb else { return nil }
 
         let releasedOrb = selectedOrb
+        resetSelectedOrbVisualFeedback()
         selectedOrb = nil
-        selectedOrbAnchor = nil
         selectedOrbDepth = nil
+        selectedOrbOriginalScale = nil
         selectedOrbScreenOffset = .zero
         Logger.placement.debug("구슬 놓기 완료")
         return releasedOrb
@@ -329,9 +296,7 @@ final class PlacementManager {
 
         sceneAnchors.removeAll()
         orbPairs.removeAll()
-        placedOrbs.removeAll()
         collectedOrbIDs.removeAll()
-        bottleEntity = nil
         bottleAnchorEntity = nil
         invisibleFloorEntity = nil
         invisibleFloorAnchor = nil
@@ -393,15 +358,6 @@ final class PlacementManager {
         return SIMD3<Float>(position.x, floorY, position.z)
     }
 
-    private func addToScene(_ entity: Entity, at position: SIMD3<Float>) {
-        guard let arView else { return }
-
-        let anchor = AnchorEntity(world: position)
-        anchor.addChild(entity)
-        arView.scene.addAnchor(anchor)
-        sceneAnchors.append(anchor)
-    }
-
     private func depthPlanePosition(from screenPoint: CGPoint) -> SIMD3<Float>? {
         guard let arView else { return nil }
         guard let selectedOrbDepth else { return nil }
@@ -434,38 +390,6 @@ final class PlacementManager {
         guard intersectionDistance >= 0 else { return nil }
 
         return rayOrigin + rayDirection * intersectionDistance
-    }
-    private func projectedScreenRadius(for orb: ModelEntity, at worldPosition: SIMD3<Float>) -> CGFloat {
-        guard let arView,
-              let cameraTransform = arView.session.currentFrame?.camera.transform,
-              let centerPoint = arView.project(worldPosition)
-        else {
-            return 42
-        }
-
-        let radius = OrbEntity.collisionRadius(for: orb)
-        let cameraRight = normalize(SIMD3<Float>(
-            cameraTransform.columns.0.x,
-            cameraTransform.columns.0.y,
-            cameraTransform.columns.0.z
-        ))
-        let edgePosition = worldPosition + cameraRight * radius
-
-        guard let edgePoint = arView.project(edgePosition) else {
-            return 42
-        }
-
-        return max(hypot(edgePoint.x - centerPoint.x, edgePoint.y - centerPoint.y), 36)
-    }
-
-    private func touchIntensity(distance: CGFloat, screenRadius: CGFloat, outerRadius: CGFloat) -> Float {
-        if distance > screenRadius {
-            let shellDepth = 1 - ((distance - screenRadius) / max(outerRadius - screenRadius, 1))
-            return 0.20 + Float(shellDepth) * 0.22
-        }
-
-        let normalizedDepth = 1 - min(max(distance / max(screenRadius, 1), 0), 1)
-        return 0.42 + Float(normalizedDepth) * 0.56
     }
     private func bottleMouthPosition() -> SIMD3<Float>? {
         guard let bottleAnchorEntity else { return nil }
@@ -552,9 +476,8 @@ final class PlacementManager {
         guard !collectedOrbIDs.contains(orbID) else { return }
 
         collectedOrbIDs.insert(orbID)
-        FeedbackSoundPlayer.playOrbCollected()
-        HapticManager.shared.playOrbCollected()
-        onCollectedCountChanged?(collectedOrbIDs.count)
+        orbOriginalScales[orbID] = nil
+        let collectedCount = collectedOrbIDs.count
         onOrbCollected?(orb)
 
         if var body = orb.components[PhysicsBodyComponent.self] {
@@ -570,19 +493,35 @@ final class PlacementManager {
         )
 
         if animated {
+            let targetPosition = bottleInsideLocalPosition()
+            let targetScale = SIMD3<Float>(repeating: 0.48)
+
             orb.setParent(bottleAnchorEntity, preservingWorldTransform: true)
             let targetTransform = Transform(
-                scale: SIMD3<Float>(repeating: 0.48),
+                scale: targetScale,
                 rotation: simd_quatf(),
-                translation: bottleInsideLocalPosition()
+                translation: targetPosition
             )
             orb.move(
                 to: targetTransform,
                 relativeTo: bottleAnchorEntity,
-                duration: 0.45,
+                duration: autoCollectMoveDuration,
                 timingFunction: .easeInOut
             )
+
+            Task { @MainActor in
+                let delay = UInt64(autoCollectMoveDuration * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: delay)
+                orb.position = targetPosition
+                orb.scale = targetScale
+                FeedbackSoundPlayer.playOrbCollected()
+                HapticManager.shared.playOrbCollected()
+                onCollectedCountChanged?(collectedCount)
+            }
         } else {
+            FeedbackSoundPlayer.playOrbCollected()
+            HapticManager.shared.playOrbCollected()
+            onCollectedCountChanged?(collectedCount)
             orb.setParent(bottleAnchorEntity, preservingWorldTransform: false)
             orb.position = bottleInsideLocalPosition()
             orb.scale = SIMD3<Float>(repeating: 0.48)
@@ -590,12 +529,52 @@ final class PlacementManager {
 
         if selectedOrb === orb {
             self.selectedOrb = nil
-            selectedOrbAnchor = nil
             selectedOrbDepth = nil
+            selectedOrbOriginalScale = nil
             selectedOrbScreenOffset = .zero
         }
 
         Logger.placement.debug("구슬 수집 완료")
+    }
+
+    private func applySelectedOrbVisualFeedback(to orb: ModelEntity) {
+        let orbID = ObjectIdentifier(orb)
+        let originalScale = orbOriginalScales[orbID] ?? orb.scale
+        orbOriginalScales[orbID] = originalScale
+        selectedOrbOriginalScale = originalScale
+
+        var highlightedTransform = orb.transform
+        highlightedTransform.scale = originalScale * 1.15
+
+        orb.move(
+            to: highlightedTransform,
+            relativeTo: orb.parent,
+            duration: 0.1,
+            timingFunction: .easeInOut
+        )
+    }
+
+    private func resetSelectedOrbVisualFeedback() {
+        guard let selectedOrb,
+              let selectedOrbOriginalScale
+        else { return }
+
+        let orb = selectedOrb
+        var defaultTransform = selectedOrb.transform
+        defaultTransform.scale = selectedOrbOriginalScale
+
+        orb.move(
+            to: defaultTransform,
+            relativeTo: orb.parent,
+            duration: 0.12,
+            timingFunction: .easeInOut
+        )
+
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 120_000_000)
+            guard self.selectedOrb !== orb else { return }
+            orb.scale = selectedOrbOriginalScale
+        }
     }
 }
 // swiftlint:enable type_body_length
