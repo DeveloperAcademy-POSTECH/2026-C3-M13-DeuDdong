@@ -17,11 +17,19 @@ struct SplashView: View {
                 .scaledToFill()
                 .ignoresSafeArea()
 
-            Text("zup\nzup")
-                .font(.system(size: 80, weight: .black))
-                .foregroundStyle(ZZColor.brand400)
+            Image("SplashIcon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 130)
+                .padding(.top, 12)
+                .padding(.bottom, 80)
+            
+            Text("보이지 않는 따뜻한 말을\n눈으로 담아보세요")
+                .font(.system(size: 13, weight: .bold))
+                .fontWeight(.bold)
+                .foregroundStyle(ZZColor.brand300)
                 .multilineTextAlignment(.center)
-                .lineSpacing(-12)
+                .padding(.top, 130)
         }
         .task {
             try? await Task.sleep(nanoseconds: 1_500_000_000)
