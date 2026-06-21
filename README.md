@@ -1,4 +1,4 @@
-<img width="1415" height="6224" alt="리드미QA없음" src="https://github.com/user-attachments/assets/65f4eeb9-7787-4b23-9183-11c8c76adc6e" />
+<img width="100%" alt="리드미QA없음" src="https://github.com/user-attachments/assets/65f4eeb9-7787-4b23-9183-11c8c76adc6e" />
 
 
 ## :sparkles: Skills & Tech Stack
