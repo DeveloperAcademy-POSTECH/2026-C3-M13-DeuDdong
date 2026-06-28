@@ -19,6 +19,7 @@ struct ARViewContainer: UIViewRepresentable {
     let isCollecting: Bool
     let onOrbCountChanged: (Int) -> Void
     let onCollectedCountChanged: (Int) -> Void
+    let onCollectedEmotionChanged: (EmotionType) -> Void
     #if DEBUG
     let orbPlacementController: DebugOrbPlacementController
     let gridController: DebugGridController
@@ -48,6 +49,9 @@ struct ARViewContainer: UIViewRepresentable {
         placementManager.onCollectedCountChanged = { count in
             onCollectedCountChanged(count)
         }
+        placementManager.onEmotionCollected = { emotion in
+            onCollectedEmotionChanged(emotion)
+        }
         orbEventPlacementController.trigger = { [weak coordinator = context.coordinator] event in
             coordinator?.placeOrb(event: event)
         }
@@ -67,6 +71,9 @@ struct ARViewContainer: UIViewRepresentable {
         context.coordinator.setCollectionMode(isCollecting)
         placementManager.onCollectedCountChanged = { count in
             onCollectedCountChanged(count)
+        }
+        placementManager.onEmotionCollected = { emotion in
+            onCollectedEmotionChanged(emotion)
         }
         context.coordinator.updatePlaneStateHandler { state in
             planeState = state
