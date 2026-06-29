@@ -7,12 +7,11 @@
 
 import SwiftUI
 
-struct EmotionReportItem: Identifiable {
-    let id = UUID()
+struct EmotionReportItem: Identifiable, Equatable {
+    var id: EmotionType { type }
     let type: EmotionType
     let count: Int
     let size: CGFloat
-    let offset: CGSize
 }
 
 struct ReportScoreRow: View {

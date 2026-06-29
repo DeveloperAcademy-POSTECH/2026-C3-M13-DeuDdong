@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AppFlowView: View {
     @State private var currentScreen: AppScreen = .splash
-    @State private var reportCollectedCount = 0
+    @State private var reportSummary = ReportSummary()
 
     var body: some View {
         ZStack {
@@ -23,9 +23,17 @@ struct AppFlowView: View {
                     currentScreen = .home
                 }
             case .home:
-                HomeView {
-                    currentScreen = .conversation
-                }
+                HomeView(
+                    onStartConversation: {
+                        currentScreen = .conversation
+                    },
+                    onShowRandomReport: {
+                        #if DEBUG
+                        reportSummary = ReportSummary.previewSamples.randomElement() ?? .preview
+                        currentScreen = .report
+                        #endif
+                    }
+                )
             case .conversation:
                 conversationView
             case .report:
@@ -36,7 +44,7 @@ struct AppFlowView: View {
                     onHome: {
                         currentScreen = .home
                     },
-                    collectedCount: reportCollectedCount
+                    summary: reportSummary
                 )
             }
         }
@@ -46,8 +54,8 @@ struct AppFlowView: View {
     private var conversationView: some View {
         ZStack(alignment: .topTrailing) {
             ARSceneView(
-                onFinishConversation: { count in
-                    reportCollectedCount = count
+                onFinishConversation: { summary in
+                    reportSummary = summary
                     currentScreen = .report
                 },
                 onReturnHome: { currentScreen = .home }

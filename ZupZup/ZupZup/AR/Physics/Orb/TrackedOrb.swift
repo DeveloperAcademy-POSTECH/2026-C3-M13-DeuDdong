@@ -18,6 +18,7 @@ enum OrbPhysicsState: String {
 final class TrackedOrb {
     let anchor: AnchorEntity
     let entity: ModelEntity
+    let emotion: EmotionType
     let radius: Float
     var state: OrbPhysicsState = .waiting
     var hasBounced = false
@@ -25,9 +26,10 @@ final class TrackedOrb {
     var touchedFloorTime: CFTimeInterval?
     var settledTime: CFTimeInterval?
 
-    init(anchor: AnchorEntity, entity: ModelEntity, radius: Float) {
+    init(anchor: AnchorEntity, entity: ModelEntity, emotion: EmotionType, radius: Float) {
         self.anchor = anchor
         self.entity = entity
+        self.emotion = emotion
         self.radius = radius
     }
 }
