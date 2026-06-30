@@ -103,7 +103,15 @@ struct ReportView: View {
 
 // 캡처(이미지 저장) 대상이 되는 본문 영역. 버튼은 포함하지 않으며, 화면 표시와 ImageRenderer 캡처에 동일하게 재사용한다.
 struct ReportContentView: View {
-    var collectedCount: Int = 0
+    var summary: ReportSummary = ReportSummary()
+
+    private var reportItems: [EmotionReportItem] {
+        ReportView.reportItems(from: summary)
+    }
+
+    private var maxEmotionCount: Int {
+        max(summary.maxEmotionCount, 1)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -112,18 +120,15 @@ struct ReportContentView: View {
                     .font(ZZFont.headline)
                     .foregroundStyle(ZZColor.gray6)
 
-                Text("2026년 06월 11일")
+                Text(ReportView.reportDateFormatter.string(from: Date()))
                     .font(ZZFont.body)
                     .foregroundStyle(ZZColor.gray5)
             }
             .padding(.top, 25)
 
-            Image("ReportGlassImage")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 350)
+            ReportGravityBowlView(items: reportItems)
                 .padding(.top, 30)
-                .padding(.bottom, 30)
+                .padding(.bottom, 18)
 
             HStack {
                 Text("총 수집 개수")
@@ -132,7 +137,7 @@ struct ReportContentView: View {
 
                 Spacer()
 
-                Text("\(collectedCount)개")
+                Text("\(summary.totalCollectedCount)개")
                     .font(ZZFont.headline)
                     .foregroundStyle(ZZColor.brand400)
             }
@@ -151,6 +156,31 @@ struct ReportContentView: View {
                 y: 4
             )
             .padding(.horizontal, ZZSpacing.screenHorizontal)
+
+            VStack(spacing: 10) {
+                ForEach(EmotionType.allCases) { emotion in
+                    ReportScoreRow(
+                        type: emotion,
+                        count: summary.count(for: emotion),
+                        maxCount: maxEmotionCount
+                    )
+                }
+            }
+            .padding(18)
+            .background(Color.white)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: ZZSpacing.cardCornerRadius
+                )
+            )
+            .shadow(
+                color: Color.black.opacity(0.04),
+                radius: 12,
+                x: 0,
+                y: 4
+            )
+            .padding(.horizontal, ZZSpacing.screenHorizontal)
+            .padding(.top, 14)
         }
         .background(ZZColor.gray1)
     }
@@ -183,7 +213,7 @@ extension ReportView {
         return minSize + (maxSize - minSize) * ratio
     }
 
-    private static let reportDateFormatter: DateFormatter = {
+    static let reportDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "yyyy년 MM월 dd일"

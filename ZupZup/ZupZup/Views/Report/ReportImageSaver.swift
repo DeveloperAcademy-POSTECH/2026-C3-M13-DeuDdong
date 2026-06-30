@@ -1,8 +1,10 @@
 import SwiftUI
 
-@MainActor
-func captureReportImage(collectedCount: Int) -> UIImage? {
-    let renderer = ImageRenderer(content: ReportContentView(collectedCount: collectedCount))
-    renderer.scale = UIScreen.main.scale
-    return renderer.uiImage
+enum ReportImageSaver {
+    @MainActor
+    static func capture(summary: ReportSummary, scale: CGFloat = 3.0) -> UIImage? {
+        let renderer = ImageRenderer(content: ReportContentView(summary: summary))
+        renderer.scale = scale
+        return renderer.uiImage
+    }
 }
