@@ -14,7 +14,6 @@ struct ReportPreviewGalleryView: View {
                             .foregroundStyle(.secondary)
 
                         ReportView(
-                            onSave: {},
                             onHome: {},
                             summary: summary
                         )

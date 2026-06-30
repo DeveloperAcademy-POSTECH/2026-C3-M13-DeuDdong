@@ -38,9 +38,6 @@ struct AppFlowView: View {
                 conversationView
             case .report:
                 ReportView(
-                    onSave: {
-                        currentScreen = .home
-                    },
                     onHome: {
                         currentScreen = .home
                     },
