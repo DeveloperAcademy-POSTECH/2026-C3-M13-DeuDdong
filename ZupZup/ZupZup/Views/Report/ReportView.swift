@@ -1,12 +1,45 @@
 import SwiftUI
 
 struct ReportView: View {
-    var onSave: () -> Void
     var onHome: () -> Void
     var summary = ReportSummary()
 
+    @State private var showSettingsAlert = false
+
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                ReportContentView(summary: summary)
+
+                ReportActionButtons(
+                    saveAction: { Task { await handleSave() } },
+                    homeAction: onHome
+                )
+                .padding(.top, 50)
+                .padding(.bottom, 30)
+                .padding(.horizontal, 28)
+            }
+        }
+        .background(ZZColor.gray1.ignoresSafeArea())
+        .alert("사진 저장 권한이 없어요", isPresented: $showSettingsAlert) {
+            Button("설정으로 이동") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("취소", role: .cancel) {}
+        } message: {
+            Text("설정 > ZupZup에서 사진 추가 권한을 허용해주세요.")
+        }
+    }
+}
+
+// 리포트 화면의 본문 영역. 버튼은 포함하지 않는다.
+struct ReportContentView: View {
+    var summary: ReportSummary = ReportSummary()
+
     private var reportItems: [EmotionReportItem] {
-        Self.reportItems(from: summary)
+        ReportView.reportItems(from: summary)
     }
 
     private var maxEmotionCount: Int {
@@ -14,95 +47,80 @@ struct ReportView: View {
     }
 
     var body: some View {
-        ZStack {
+        VStack(spacing: 0) {
+            VStack(spacing: 6) {
+                Text("Today's Report")
+                    .font(ZZFont.headline)
+                    .foregroundStyle(ZZColor.gray6)
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
+                Text(ReportView.reportDateFormatter.string(from: Date()))
+                    .font(ZZFont.body)
+                    .foregroundStyle(ZZColor.gray5)
+            }
+            .padding(.top, 25)
 
-                    // 상단 타이틀부 라벨
-                    VStack(spacing: 6) {
-                        Text("Today's Report")
-                            .font(ZZFont.headline)
-                            .foregroundStyle(ZZColor.gray6)
+            ReportGravityBowlView(items: reportItems)
+                .padding(.top, 30)
+                .padding(.bottom, 18)
 
-                        Text(Self.reportDateFormatter.string(from: Date()))
-                            .font(ZZFont.body)
-                            .foregroundStyle(ZZColor.gray5)
-                    }
-                    .padding(.top, 25)
+            HStack {
+                Text("총 수집 개수")
+                    .font(ZZFont.body)
+                    .foregroundStyle(ZZColor.gray6)
 
-                    ReportGravityBowlView(items: reportItems)
-                        .padding(.top, 30)
-                        .padding(.bottom, 18)
+                Spacer()
 
-                    HStack {
-                        Text("총 수집 개수")
-                            .font(ZZFont.body)
-                            .foregroundStyle(ZZColor.gray6)
+                Text("\(summary.totalCollectedCount)개")
+                    .font(ZZFont.headline)
+                    .foregroundStyle(ZZColor.brand400)
+            }
+            .padding(.horizontal, ZZSpacing.screenHorizontal)
+            .padding(.vertical, 24)
+            .background(Color.white)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: ZZSpacing.cardCornerRadius
+                )
+            )
+            .shadow(
+                color: Color.black.opacity(0.04),
+                radius: 12,
+                x: 0,
+                y: 4
+            )
+            .padding(.horizontal, ZZSpacing.screenHorizontal)
 
-                        Spacer()
-
-                        Text("\(summary.totalCollectedCount)개")
-                            .font(ZZFont.headline)
-                            .foregroundStyle(ZZColor.brand400)
-                    }
-                    .padding(.horizontal, ZZSpacing.screenHorizontal)
-                    .padding(.vertical, 24)
-                    .background(Color.white)
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: ZZSpacing.cardCornerRadius
-                        )
+            VStack(spacing: 10) {
+                ForEach(EmotionType.allCases) { emotion in
+                    ReportScoreRow(
+                        type: emotion,
+                        count: summary.count(for: emotion),
+                        maxCount: maxEmotionCount
                     )
-                    .shadow(
-                        color: Color.black.opacity(0.04),
-                        radius: 12,
-                        x: 0,
-                        y: 4
-                    )
-                    .padding(.horizontal, ZZSpacing.screenHorizontal)
-
-                    VStack(spacing: 10) {
-                        ForEach(EmotionType.allCases) { emotion in
-                            ReportScoreRow(
-                                type: emotion,
-                                count: summary.count(for: emotion),
-                                maxCount: maxEmotionCount
-                            )
-                        }
-                    }
-                    .padding(18)
-                    .background(Color.white)
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: ZZSpacing.cardCornerRadius
-                        )
-                    )
-                    .shadow(
-                        color: Color.black.opacity(0.04),
-                        radius: 12,
-                        x: 0,
-                        y: 4
-                    )
-                    .padding(.horizontal, ZZSpacing.screenHorizontal)
-                    .padding(.top, 14)
-
-                    ReportActionButtons(
-                        saveAction: onSave,
-                        homeAction: onHome
-                    )
-                    .padding(.top, 50)
-                    .padding(.bottom, 30)
-                    .padding(.horizontal, 28)
                 }
             }
-            .background(ZZColor.gray1.ignoresSafeArea())
+            .padding(18)
+            .background(Color.white)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: ZZSpacing.cardCornerRadius
+                )
+            )
+            .shadow(
+                color: Color.black.opacity(0.04),
+                radius: 12,
+                x: 0,
+                y: 4
+            )
+            .padding(.horizontal, ZZSpacing.screenHorizontal)
+            .padding(.top, 14)
         }
+        .background(ZZColor.gray1)
     }
 }
 
 #Preview {
-    ReportView(onSave: {}, onHome: {}, summary: .preview)
+    ReportView(onHome: {}, summary: .preview)
 }
 
 extension ReportView {
@@ -128,10 +146,24 @@ extension ReportView {
         return minSize + (maxSize - minSize) * ratio
     }
 
-    private static let reportDateFormatter: DateFormatter = {
+    static let reportDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "yyyy년 MM월 dd일"
         return formatter
     }()
+}
+
+extension ReportView {
+    @MainActor
+    private func handleSave() async {
+        let result = await ReportImageSaver.requestPermission()
+        switch result {
+        case .granted:
+            // TODO: 캡처 방식(라이브 뷰 직접 캡처 vs ImageRenderer) 결정 후 구현
+            break
+        case .denied:
+            showSettingsAlert = true
+        }
+    }
 }
