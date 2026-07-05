@@ -4,44 +4,23 @@ struct ReportView: View {
     var onHome: () -> Void
     var summary = ReportSummary()
 
-    @State private var toastMessage: String?
-    @State private var toastSystemName: String?
-    @State private var toastIsWarning = false
     @State private var showSettingsAlert = false
-    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
-        ZStack {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                ReportContentView(summary: summary)
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
-                    ReportContentView(summary: summary)
-
-                    ReportActionButtons(
-                        saveAction: { Task { await handleSave() } },
-                        homeAction: onHome
-                    )
-                    .padding(.top, 50)
-                    .padding(.bottom, 30)
-                    .padding(.horizontal, 28)
-                }
-            }
-            .background(ZZColor.gray1.ignoresSafeArea())
-
-            VStack {
-                if let message = toastMessage {
-                    StatusToast(
-                        text: message,
-                        systemName: toastSystemName,
-                        isWarning: toastIsWarning
-                    )
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                Spacer()
+                ReportActionButtons(
+                    saveAction: { Task { await handleSave() } },
+                    homeAction: onHome
+                )
+                .padding(.top, 50)
+                .padding(.bottom, 30)
+                .padding(.horizontal, 28)
             }
         }
+        .background(ZZColor.gray1.ignoresSafeArea())
         .alert("사진 저장 권한이 없어요", isPresented: $showSettingsAlert) {
             Button("설정으로 이동") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -55,7 +34,7 @@ struct ReportView: View {
     }
 }
 
-// 캡처(이미지 저장) 대상이 되는 본문 영역. 버튼은 포함하지 않으며, 화면 표시와 ImageRenderer 캡처에 동일하게 재사용한다.
+// 리포트 화면의 본문 영역. 버튼은 포함하지 않는다.
 struct ReportContentView: View {
     var summary: ReportSummary = ReportSummary()
 
@@ -178,28 +157,13 @@ extension ReportView {
 extension ReportView {
     @MainActor
     private func handleSave() async {
-        let result = await ReportImageSaver.saveToPhotos(summary: summary, scale: displayScale)
+        let result = await ReportImageSaver.requestPermission()
         switch result {
-        case .success:
-            showToast("사진 앱에 저장됐어요", systemName: "checkmark.circle")
-        case .permissionDenied:
+        case .granted:
+            // TODO: 캡처 방식(라이브 뷰 직접 캡처 vs ImageRenderer) 결정 후 구현
+            break
+        case .denied:
             showSettingsAlert = true
-        case .failure:
-            showToast("저장에 실패했어요", isWarning: true)
-        }
-    }
-
-    private func showToast(_ message: String, systemName: String? = nil, isWarning: Bool = false) {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            toastMessage = message
-            toastSystemName = systemName
-            toastIsWarning = isWarning
-        }
-        Task {
-            try? await Task.sleep(for: .seconds(2))
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                toastMessage = nil
-            }
         }
     }
 }
