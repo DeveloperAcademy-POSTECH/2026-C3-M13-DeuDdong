@@ -10,16 +10,18 @@ import SwiftUI
 struct AppFlowView: View {
     @State private var currentScreen: AppScreen = .splash
     @State private var reportCollectedCount = 0
+    @AppStorage("isFirstLaunch") private var isFirstLaunch = false
 
     var body: some View {
         ZStack {
             switch currentScreen {
             case .splash:
                 SplashView {
-                    currentScreen = .onboarding
+                    currentScreen = isFirstLaunch ? .home : .onboarding
                 }
             case .onboarding:
                 OnboardingView {
+                    isFirstLaunch = true
                     currentScreen = .home
                 }
             case .home:
