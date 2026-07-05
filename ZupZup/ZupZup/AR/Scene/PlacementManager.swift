@@ -30,6 +30,7 @@ final class PlacementManager {
     private var selectedOrbScaleTask: Task<Void, Never>?
     private var selectedOrbScreenOffset = CGPoint.zero
     private var orbOriginalScales: [ObjectIdentifier: SIMD3<Float>] = [:]
+    private var orbEmotionByID: [ObjectIdentifier: EmotionType] = [:]
     private var orbPairs: [(orb: ModelEntity, anchor: AnchorEntity)] = []
     private var invisibleFloorEntity: Entity?
     private var invisibleFloorAnchor: AnchorEntity?
@@ -37,6 +38,7 @@ final class PlacementManager {
     private(set) var floorY: Float?
     var onCollectedCountChanged: ((Int) -> Void)?
     var onOrbCollected: ((ModelEntity) -> Void)?
+    var onEmotionCollected: ((EmotionType) -> Void)?
     var hasSelectedOrb: Bool {
         selectedOrb != nil
     }
@@ -57,7 +59,7 @@ final class PlacementManager {
         arView.scene.addAnchor(anchor)
 
         sceneAnchors.append(anchor)
-        registerMovableOrb(orb, anchor: anchor)
+        registerMovableOrb(orb, anchor: anchor, emotion: emotion)
     }
 
     func placeOrb(event: EmotionOrbEvent) {
@@ -113,16 +115,19 @@ final class PlacementManager {
     }
 
     func registerMovableOrb(_ trackedOrb: TrackedOrb) {
-        registerMovableOrb(trackedOrb.entity, anchor: trackedOrb.anchor)
+        registerMovableOrb(trackedOrb.entity, anchor: trackedOrb.anchor, emotion: trackedOrb.emotion)
     }
 
-    private func registerMovableOrb(_ orb: ModelEntity, anchor: AnchorEntity) {
+    private func registerMovableOrb(_ orb: ModelEntity, anchor: AnchorEntity, emotion: EmotionType? = nil) {
         guard !orbPairs.contains(where: { $0.orb === orb }) else {
             return
         }
 
         orbPairs.append((orb, anchor))
         orbOriginalScales[ObjectIdentifier(orb)] = orb.scale
+        if let emotion {
+            orbEmotionByID[ObjectIdentifier(orb)] = emotion
+        }
     }
 
     @discardableResult
@@ -301,6 +306,7 @@ final class PlacementManager {
         sceneAnchors.removeAll()
         orbPairs.removeAll()
         collectedOrbIDs.removeAll()
+        orbEmotionByID.removeAll()
         bottleAnchorEntity = nil
         invisibleFloorEntity = nil
         invisibleFloorAnchor = nil
@@ -482,7 +488,11 @@ final class PlacementManager {
         collectedOrbIDs.insert(orbID)
         orbOriginalScales[orbID] = nil
         let collectedCount = collectedOrbIDs.count
+        let collectedEmotion = orbEmotionByID[orbID]
         onOrbCollected?(orb)
+        if let collectedEmotion {
+            onEmotionCollected?(collectedEmotion)
+        }
 
         if var body = orb.components[PhysicsBodyComponent.self] {
             body.mode = .kinematic

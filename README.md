@@ -1,23 +1,4 @@
-# ZupZup 
-사람들이 서로 대화하는 상황에서 ARKit, RealityKit, AVFoundation, ML 기술로 대화 속 감정을 실시간 감정 구슬로 시각화하고 수집하는 앱
-
-<br>
-
-## :fireworks: Screenshots
-
-Attach photos if you are available
-
-## :framed_picture: Demo (optional)
-
-Attach videos if you are available
-
-
-## :pushpin: Features
-
-- Feature 1
-- Feature 2
-- Feature 3
-<br>
+<img width="100%" alt="리드미QA없음" src="https://github.com/user-attachments/assets/0a97d001-c3b9-4a52-9e99-1d0975ae2024" />
 
 
 ## :sparkles: Skills & Tech Stack
