@@ -5,6 +5,7 @@ struct ReportView: View {
     var summary = ReportSummary()
 
     @State private var showSettingsAlert = false
+    @State private var saveResultToast: SaveResultToast?
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -21,6 +22,18 @@ struct ReportView: View {
             }
         }
         .background(ZZColor.gray1.ignoresSafeArea())
+        .overlay(alignment: .top) {
+            if let saveResultToast {
+                StatusToast(
+                    text: saveResultToast.text,
+                    systemName: saveResultToast.systemName,
+                    isWarning: saveResultToast.isWarning
+                )
+                .padding(.horizontal, ZZSpacing.screenHorizontal)
+                .padding(.top, 12)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
         .alert("사진 저장 권한이 없어요", isPresented: $showSettingsAlert) {
             Button("설정으로 이동") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -34,9 +47,20 @@ struct ReportView: View {
     }
 }
 
+struct SaveResultToast: Equatable {
+    let text: String
+    let systemName: String
+    let isWarning: Bool
+
+    static let success = SaveResultToast(text: "사진 앱에 저장됐어요", systemName: "checkmark.circle", isWarning: false)
+    static let failure = SaveResultToast(text: "저장에 실패했어요. 다시 시도해주세요", systemName: "exclamationmark.circle", isWarning: true)
+}
+
 // 리포트 화면의 본문 영역. 버튼은 포함하지 않는다.
 struct ReportContentView: View {
     var summary: ReportSummary = ReportSummary()
+    /// 이미지 저장용으로 렌더링할 때는 물리 시뮬레이션 없는 고정 배치 구슬 그릇을 사용한다.
+    var usesStaticBowl: Bool = false
 
     private var reportItems: [EmotionReportItem] {
         ReportView.reportItems(from: summary)
@@ -59,9 +83,15 @@ struct ReportContentView: View {
             }
             .padding(.top, 25)
 
-            ReportGravityBowlView(items: reportItems)
-                .padding(.top, 30)
-                .padding(.bottom, 18)
+            Group {
+                if usesStaticBowl {
+                    ReportGravityBowlSnapshotView(items: reportItems)
+                } else {
+                    ReportGravityBowlView(items: reportItems)
+                }
+            }
+            .padding(.top, 30)
+            .padding(.bottom, 18)
 
             HStack {
                 Text("총 수집 개수")
@@ -160,10 +190,34 @@ extension ReportView {
         let result = await ReportImageSaver.requestPermission()
         switch result {
         case .granted:
-            // TODO: 캡처 방식(라이브 뷰 직접 캡처 vs ImageRenderer) 결정 후 구현
-            break
+            await captureAndSave()
         case .denied:
             showSettingsAlert = true
+        }
+    }
+
+    @MainActor
+    private func captureAndSave() async {
+        guard let image = ReportImageSaver.renderImage(from: summary) else {
+            showSaveResultToast(.failure)
+            return
+        }
+
+        let success = await ReportImageSaver.save(image)
+        showSaveResultToast(success ? .success : .failure)
+    }
+
+    @MainActor
+    private func showSaveResultToast(_ toast: SaveResultToast) {
+        withAnimation(.easeOut(duration: 0.2)) {
+            saveResultToast = toast
+        }
+
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation(.easeIn(duration: 0.2)) {
+                saveResultToast = nil
+            }
         }
     }
 }
