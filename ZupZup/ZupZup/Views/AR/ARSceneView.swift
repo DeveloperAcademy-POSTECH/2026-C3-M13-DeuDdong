@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ARSceneView: View {
     // MARK: - [내비게이션 액션 클로저]
-    var onFinishConversation: (Int) -> Void = { _ in } // 5단계 수집까지 완료된 후 최종 화면으로 이동 (수집 개수 전달)
+    var onFinishConversation: (ReportSummary) -> Void = { _ in } // 5단계 수집까지 완료된 후 최종 화면으로 이동
     var onReturnHome: () -> Void = {}         // 홈으로 완전히 돌아갈 때 호출
     @State private var planeState: ARState = .searching // AR 바닥 평면 인식 상태 트래킹
     @State private var sessionManager = ARSessionManager()
@@ -19,6 +19,7 @@ struct ARSceneView: View {
     @State private var isConversationFinished = false           // 4단계(3분 대화) 타이머 종료 여부
     @State private var isCollecting = false                     // 4단계 종료 후 '5단계: 구슬 수집 단계' 활성화 플래그
     @State private var collectedOrbCount = 0                    // 5단계에서 유리병에 수집된 구슬 개수
+    @State private var reportSummary = ReportSummary()          // 리포트 화면에 전달할 감정별 수집 결과
     @State private var totalOrbCount = 0                        // 대화 중 생성된 전체 구슬 개수
     @State private var remainingConversationSeconds = 180       // 4단계 대화 시간 (3분 타이머)
     @State private var secondsWithoutOrb = 0                    // 구슬 미생성 침묵 시간 누적 (60초 체크용)
@@ -53,6 +54,9 @@ struct ARSceneView: View {
                 onCollectedCountChanged: { count in
                     collectedOrbCount = count
                 },
+                onCollectedEmotionChanged: { emotion in
+                    reportSummary.record(emotion)
+                },
                 orbPlacementController: orbPlacementController,
                 gridController: gridController
             )
@@ -71,6 +75,9 @@ struct ARSceneView: View {
                 },
                 onCollectedCountChanged: { count in
                     collectedOrbCount = count
+                },
+                onCollectedEmotionChanged: { emotion in
+                    reportSummary.record(emotion)
                 }
             )
             .ignoresSafeArea()
@@ -235,7 +242,7 @@ struct ARSceneView: View {
                         placementManager.autoCollectRemainingOrbs()
                     },
                     onReturnHome: onReturnHome,
-                    onCompleted: { onFinishConversation(collectedOrbCount) }
+                    onCompleted: { onFinishConversation(reportSummary) }
                 )
                 .transition(.opacity)
             }
@@ -247,6 +254,7 @@ struct ARSceneView: View {
         .onChange(of: isCollecting) { _, collecting in
             if collecting {
                 collectedOrbCount = 0
+                reportSummary = ReportSummary()
                 // 사용자의 전방 카메라 화면 중심 기준 알맞은 3D 좌표 공간에 구슬들을 담을 '가상 유리병(Bottle)'을 소환 배치
                 placementManager.placeBottleInFrontOfCamera()
             }
@@ -504,6 +512,7 @@ private extension ARSceneView {
         isConversationStarted = false
         remainingConversationSeconds = 180
         collectedOrbCount = 0
+        reportSummary = ReportSummary()
         totalOrbCount = 0
         secondsWithoutOrb = 0
         trackedOrbEventID = emotionRuntime.latestOrbEvent?.id
@@ -526,6 +535,7 @@ private extension ARSceneView {
         isConversationStarted = false
         isCollecting = false
         collectedOrbCount = 0
+        reportSummary = ReportSummary()
         totalOrbCount = 0
         emotionRuntime.stop()
     }

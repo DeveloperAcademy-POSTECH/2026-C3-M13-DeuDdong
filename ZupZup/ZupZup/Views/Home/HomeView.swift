@@ -131,6 +131,7 @@ class OrbPhysicsScene: SKScene {
 // MARK: - Main Home View
 struct HomeView: View {
     var onStartConversation: () -> Void
+    var onShowRandomReport: (() -> Void)?
 
     // 툴팁 노출 여부 및 데이터 매칭을 위한 상태 변수
     @State private var selectedEmotion: EmotionType?
@@ -226,6 +227,15 @@ struct HomeView: View {
                         onStartConversation()
                     }
                     .padding(.horizontal, ZZSpacing.screenHorizontal)
+
+                    #if DEBUG
+                    if let onShowRandomReport {
+                        SecondaryButton(title: "랜덤 리포트 테스트") {
+                            onShowRandomReport()
+                        }
+                        .padding(.horizontal, ZZSpacing.screenHorizontal)
+                    }
+                    #endif
                 }
                 .padding(.bottom, 34)
             }
@@ -234,5 +244,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(onStartConversation: {})
+    HomeView(onStartConversation: {}, onShowRandomReport: {})
 }
