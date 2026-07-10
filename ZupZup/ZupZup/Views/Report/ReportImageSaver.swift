@@ -20,4 +20,21 @@ enum ReportImageSaver {
             return .denied
         }
     }
+
+    @MainActor
+    static func renderImage(from summary: ReportSummary) -> UIImage? {
+        let renderer = ImageRenderer(content: ReportContentView(summary: summary, usesStaticBowl: true))
+        renderer.scale = UIScreen.main.scale
+        return renderer.uiImage
+    }
+
+    static func save(_ image: UIImage) async -> Bool {
+        await withCheckedContinuation { continuation in
+            PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            } completionHandler: { success, _ in
+                continuation.resume(returning: success)
+            }
+        }
+    }
 }
