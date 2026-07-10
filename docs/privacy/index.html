@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>줍줍 개인정보 처리방침</title>
+  <style>
+    :root {
+      color: #18130f;
+      background: #fff7ec;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(820px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 56px 0 80px;
+    }
+
+    header {
+      padding: 36px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #ffffff 0%, #ffe0c7 100%);
+      box-shadow: 0 24px 80px rgba(94, 57, 19, 0.14);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 7vw, 56px);
+      line-height: 1.08;
+      letter-spacing: -0.06em;
+    }
+
+    .lead {
+      margin: 0;
+      color: #6f6258;
+      font-size: 17px;
+    }
+
+    .meta {
+      margin-top: 20px;
+      color: #8a7b70;
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 28px;
+      padding: 30px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(255, 106, 26, 0.12);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: #4d433b;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #4d433b;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    strong {
+      color: #18130f;
+    }
+
+    a {
+      color: #d84f00;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>줍줍 개인정보 처리방침</h1>
+      <p class="lead">줍줍은 대화 속 긍정 표현을 감정 구슬로 시각화하고 수집하는 iOS 앱입니다.</p>
+      <p class="meta">시행일: 앱 출시일 | 최종 업데이트: 2026년 7월 5일</p>
+    </header>
+
+    <section>
+      <h2>1. 처리하는 정보</h2>
+      <p>줍줍은 앱 기능 제공을 위해 다음 권한과 기기 내 데이터를 사용합니다.</p>
+      <ul>
+        <li><strong>카메라</strong>: AR 공간 인식, 상대 얼굴 위치 확인, 입 움직임 감지를 위해 사용합니다.</li>
+        <li><strong>마이크</strong>: 대화 음성을 인식하기 위해 사용합니다.</li>
+        <li><strong>음성 인식</strong>: 음성을 텍스트로 변환해 긍정 표현 분류에 사용합니다.</li>
+        <li><strong>사진 추가</strong>: 사용자가 만든 수집 리포트 이미지를 사진 앱에 저장하기 위해 사용합니다.</li>
+        <li><strong>첫 실행 여부</strong>: 온보딩 반복 노출을 방지하기 위해 기기 내 설정값으로 저장합니다.</li>
+        <li><strong>감정 구슬 결과</strong>: 대화 중 생성 및 수집된 감정 구슬 개수와 종류를 현재 앱 세션 및 리포트 표시에 사용합니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2. 저장하지 않는 정보</h2>
+      <p>현재 앱 기준으로 다음 정보는 앱 서버에 저장하거나 외부 데이터베이스로 전송하지 않습니다.</p>
+      <ul>
+        <li>카메라 영상 원본</li>
+        <li>얼굴 이미지 또는 얼굴 식별 정보</li>
+        <li>마이크 음성 원본</li>
+        <li>음성 인식으로 생성된 대화 전문</li>
+        <li>사용자의 기존 사진 보관함 내용</li>
+        <li>개인을 식별하기 위한 생체정보</li>
+      </ul>
+      <p>얼굴 감지는 개인 인증이나 개인 식별이 아니라, 후면 카메라에 보이는 상대가 말하는 상황을 판단하기 위해 기기 내에서만 사용됩니다.</p>
+    </section>
+
+    <section>
+      <h2>3. 정보의 이용 목적</h2>
+      <ul>
+        <li>AR 공간 위에 감정 구슬을 배치하기 위해 카메라 정보를 사용합니다.</li>
+        <li>상대의 입 움직임과 음성 인식 결과를 함께 확인해 대화 상대의 발화인지 판단합니다.</li>
+        <li>변환된 텍스트는 온디바이스 Core ML 모델로 긍정 표현 및 감정 구슬 종류를 분류하는 데 사용합니다.</li>
+        <li>수집된 구슬 결과는 대화 종료 후 리포트 화면을 구성하는 데 사용합니다.</li>
+        <li>사용자가 리포트 저장을 선택하면 생성된 리포트 이미지를 사진 앱에 추가 저장합니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. 제3자 제공 및 외부 전송</h2>
+      <p>현재 앱은 자체 서버, 광고 SDK, 분석 SDK, 외부 LLM API로 카메라 영상, 음성 원본, 음성 인식 텍스트, 감정 분류 결과를 전송하지 않습니다.</p>
+      <p>단, iOS의 음성 인식 기능은 Apple의 시스템 음성 인식 권한과 동작 방식에 따릅니다. 사용자는 iOS 설정에서 앱 권한을 언제든지 변경할 수 있습니다.</p>
+    </section>
+
+    <section>
+      <h2>5. 보관 기간</h2>
+      <p>현재 앱 기준 감정 구슬 결과는 앱 사용 중 리포트 표시를 위해 사용되며, 앱 서버에 장기 보관하지 않습니다. 첫 실행 여부 설정값은 사용자가 앱을 삭제하거나 설정값이 초기화될 때까지 기기 내에 남을 수 있습니다.</p>
+    </section>
+
+    <section>
+      <h2>6. 사용자 선택권</h2>
+      <p>사용자는 iOS 설정에서 카메라, 마이크, 음성 인식, 사진 추가 권한을 언제든지 변경할 수 있습니다. 필수 권한을 허용하지 않으면 AR 대화 및 감정 구슬 생성 기능이 제한될 수 있습니다.</p>
+    </section>
+
+    <section>
+      <h2>7. 문의</h2>
+      <p>개인정보 처리방침 또는 앱 이용과 관련한 문의는 GitHub 저장소 이슈를 통해 접수할 수 있습니다.</p>
+      <p><a href="https://github.com/DeveloperAcademy-POSTECH/2026-C3-M13-DeuDdong/issues">GitHub Issues 바로가기</a></p>
+    </section>
+  </main>
+</body>
+</html>
