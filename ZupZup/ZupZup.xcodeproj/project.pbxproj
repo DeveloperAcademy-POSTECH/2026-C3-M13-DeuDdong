@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C187DE82FCC5A6A00660EE9 /* ARKit.framework */; };
+		CB095265300D1874004EE7D8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CB095264300D1874004EE7D8 /* GoogleService-Info.plist */; };
+		CB095268300D1927004EE7D8 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CB095267300D1927004EE7D8 /* FirebaseAnalytics */; };
+		CB09526A300D1927004EE7D8 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = CB095269300D1927004EE7D8 /* FirebaseCrashlytics */; };
 		CBC1D2732FD2975200EF9A02 /* ZupZupContent in Frameworks */ = {isa = PBXBuildFile; productRef = CBC1D2722FD2975200EF9A02 /* ZupZupContent */; };
 		E72C23DB2FD540FA005F6D4B /* Develop.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = E72C23DA2FD540FA005F6D4B /* Develop.xcconfig */; };
 /* End PBXBuildFile section */
@@ -34,6 +37,7 @@
 		56D795E22FC95B6100807EC5 /* ZupZup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZupZup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D795EF2FC95B6200807EC5 /* ZupZupTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZupZupTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D795F92FC95B6200807EC5 /* ZupZupUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZupZupUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB095264300D1874004EE7D8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E72C23DA2FD540FA005F6D4B /* Develop.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Develop.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -74,7 +78,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CBC1D2732FD2975200EF9A02 /* ZupZupContent in Frameworks */,
+				CB09526A300D1927004EE7D8 /* FirebaseCrashlytics in Frameworks */,
 				3C187DE92FCC5A6A00660EE9 /* ARKit.framework in Frameworks */,
+				CB095268300D1927004EE7D8 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +118,7 @@
 				56D795FC2FC95B6200807EC5 /* ZupZupUITests */,
 				3C187DE72FCC5A6900660EE9 /* Frameworks */,
 				56D795E32FC95B6100807EC5 /* Products */,
+				CB095264300D1874004EE7D8 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -147,6 +154,8 @@
 			name = ZupZup;
 			packageProductDependencies = (
 				CBC1D2722FD2975200EF9A02 /* ZupZupContent */,
+				CB095267300D1927004EE7D8 /* FirebaseAnalytics */,
+				CB095269300D1927004EE7D8 /* FirebaseCrashlytics */,
 			);
 			productName = ZupZup;
 			productReference = 56D795E22FC95B6100807EC5 /* ZupZup.app */;
@@ -232,6 +241,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CBC1D2712FD2974A00EF9A02 /* XCLocalSwiftPackageReference "ZupZupContent" */,
+				CB095266300D1927004EE7D8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 56D795E32FC95B6100807EC5 /* Products */;
@@ -250,6 +260,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CB095265300D1874004EE7D8 /* GoogleService-Info.plist in Resources */,
 				E72C23DB2FD540FA005F6D4B /* Develop.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -670,7 +681,28 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		CB095266300D1927004EE7D8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.16.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		CB095267300D1927004EE7D8 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CB095266300D1927004EE7D8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		CB095269300D1927004EE7D8 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CB095266300D1927004EE7D8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
 		CBC1D2722FD2975200EF9A02 /* ZupZupContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CBC1D2712FD2974A00EF9A02 /* XCLocalSwiftPackageReference "ZupZupContent" */;
